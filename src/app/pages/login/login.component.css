@@ -1,17 +1,99 @@
-h2 {
+/* CONTENEDOR GENERAL */
+.page {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #0a1f44, #1e3c72);
+  padding: 20px;
+}
+
+/* CARD */
+.login-card {
+  width: 100%;
+  max-width: 380px;
+  background: #fff;
+  padding: 30px;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
   text-align: center;
 }
 
-input {
-  display: block;
-  margin: 10px auto;
-  padding: 8px;
-  width: 200px;
+/* TITULOS */
+h2 {
+  margin-bottom: 5px;
+  color: #0a1f44;
 }
 
-button {
-  display: block;
-  margin: 10px auto;
-  padding: 8px 16px;
+.subtitle {
+  font-size: 14px;
+  color: #777;
+  margin-bottom: 20px;
+}
+
+/* INPUTS */
+input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  outline: none;
+  font-size: 14px;
+}
+
+input:focus {
+  border-color: #1e90ff;
+}
+
+/* PASSWORD ICON */
+.input-group {
+  position: relative;
+}
+
+.input-group input {
+  padding-right: 40px;
+}
+
+.input-group span {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
   cursor: pointer;
+}
+
+/* BOTONES */
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 8px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #0a1f44;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #163a7a;
+}
+
+.btn-secondary {
+  background: #eaeaea;
+}
+
+/* 📱 RESPONSIVE */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 20px;
+  }
+
+  h2 {
+    font-size: 18px;
+  }
 }

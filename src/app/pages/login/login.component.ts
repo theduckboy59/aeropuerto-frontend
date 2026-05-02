@@ -11,22 +11,30 @@ export class LoginComponent {
   email = '';
   password = '';
 
- constructor(private auth: AuthService, private router: Router) {}
+  // 🔹 agregar esto
+  show: boolean = false;
+
+  constructor(private auth: AuthService, private router: Router) {}
+
+  // 🔹 agregar esto
+  togglePassword(): void {
+    this.show = !this.show;
+  }
 
   login() {
-  this.auth.login({
-    email: this.email,
-    password: this.password
-  }).subscribe({
-    next: (res: any) => {
-      console.log('OK:', res);
-      this.auth.saveToken(res.token);
-      this.router.navigate(['/menu']);
-    },
-    error: (err) => {
-      console.log('ERROR:', err);
-      alert('Error login');
-    }
-  });
-}
+    this.auth.login({
+      email: this.email,
+      password: this.password
+    }).subscribe({
+      next: (res: any) => {
+        console.log('OK:', res);
+        this.auth.saveToken(res.token);
+        this.router.navigate(['/menu']);
+      },
+      error: (err) => {
+        console.log('ERROR:', err);
+        alert('Error login');
+      }
+    });
+  }
 }

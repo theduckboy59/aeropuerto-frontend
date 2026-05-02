@@ -1,12 +1,18 @@
-<h2>Login</h2>
+<<div class="page">
+  <div class="login-card">
+    <h2>✈ Aeropuerto Los Primos</h2>
+    <p class="subtitle">Acceso al sistema</p>
 
-<input [(ngModel)]="email" placeholder="Email">
-<br><br>
+    <input [(ngModel)]="email" placeholder="Email">
 
-<input [(ngModel)]="password" type="password" placeholder="Password">
-<br><br>
+    <div class="input-group">
+      <input [(ngModel)]="password"
+             [type]="show ? 'text' : 'password'"
+             placeholder="Password">
+      <span (click)="togglePassword()">👁</span>
+    </div>
 
-<button (click)="login()">Ingresar</button>
-<br><br>
-
-<button routerLink="/">Regresar</button>
+    <button class="btn-primary" (click)="login()">Ingresar</button>
+    <button class="btn-secondary" routerLink="/">Regresar</button>
+  </div>
+</div>
