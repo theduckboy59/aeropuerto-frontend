@@ -11,6 +11,7 @@ export class EmpleadosComponent implements OnInit {
   empleados: any[] = [];
 
   form: any = {};
+  editando = false;
 
   tipoEmpleado: any[] = [];
   aerolinea: any[] = [];
@@ -47,10 +48,53 @@ export class EmpleadosComponent implements OnInit {
   }
 
   guardar() {
-    this.service.crearEmpleado(this.form).subscribe(() => {
-      alert('Empleado creado');
-      this.form = {};
-      this.cargar();
-    });
+
+    if (this.editando) {
+      this.service.actualizarEmpleado(this.form.id, this.form).subscribe(() => {
+        alert('Empleado actualizado');
+        this.reset();
+        this.cargar();
+      });
+    } else {
+      this.service.crearEmpleado(this.form).subscribe(() => {
+        alert('Empleado creado');
+        this.reset();
+        this.cargar();
+      });
+    }
+  }
+
+  editar(e: any) {
+  this.form = {
+    id: e.id,
+    username: e.username,
+    email: e.email,
+    codigoEmpleado: e.codigoEmpleado,
+    nombreCompleto: e.nombreCompleto,
+    tipoEmpleadoId: e.tipoEmpleadoId,
+    aerolineaId: e.aerolineaId,
+    turnoId: e.turnoId,
+    nivelAccesoId: e.nivelAccesoId,
+    rolId: e.rolId,
+    areaId: e.areaId,
+    licenciaId: e.licenciaId,
+    fechaIngreso: e.fechaIngreso,
+    fechaVencimientoLicencia: e.fechaVencimientoLicencia
+  };
+
+  this.editando = true;
+}
+
+  eliminar(id: number) {
+    if (confirm('¿Eliminar empleado?')) {
+      this.service.eliminarEmpleado(id).subscribe(() => {
+        this.cargar();
+      });
+    }
+  }
+
+  reset() {
+    this.form = {};
+    this.editando = false;
   }
 }

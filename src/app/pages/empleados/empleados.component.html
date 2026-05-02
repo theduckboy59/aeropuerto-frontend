@@ -4,7 +4,7 @@
 
 <hr>
 
-<h3>Crear empleado</h3>
+<h3>{{ editando ? 'Editar empleado' : 'Crear empleado' }}</h3>
 
 <div class="form-container">
 
@@ -78,7 +78,15 @@
     </option>
   </select>
 
-  <button (click)="guardar()">Guardar</button>
+  <br>
+
+  <button (click)="guardar()">
+    {{ editando ? 'Actualizar' : 'Guardar' }}
+  </button>
+
+  <button *ngIf="editando" (click)="reset()">
+    Cancelar
+  </button>
 
 </div>
 
@@ -86,8 +94,19 @@
 
 <h3>Lista de empleados</h3>
 
-<ul>
-  <li *ngFor="let e of empleados">
-    {{ e.nombreCompleto }} - {{ e.codigoEmpleado }}
-  </li>
-</ul>
+<table border="1" width="100%">
+  <tr>
+    <th>Nombre</th>
+    <th>Código</th>
+    <th>Acciones</th>
+  </tr>
+
+  <tr *ngFor="let e of empleados">
+    <td>{{ e.nombreCompleto }}</td>
+    <td>{{ e.codigoEmpleado }}</td>
+    <td>
+      <button (click)="editar(e)">Editar</button>
+      <button (click)="eliminar(e.id)">Eliminar</button>
+    </td>
+  </tr>
+</table>

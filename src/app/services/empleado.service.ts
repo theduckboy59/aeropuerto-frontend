@@ -14,7 +14,16 @@ export class EmpleadoService {
     return this.http.get<any[]>(this.api);
   }
 
-  crearEmpleado(data: any) {
-  return this.http.post(this.api, data);
-}
+    crearEmpleado(data: any) {
+    return this.http.post(this.api, data);
+  }
+
+  actualizarEmpleado(id: number, data: any) {
+    return this.http.put(`${this.api}/${id}`, data);
+  }
+
+  eliminarEmpleado(id: number) {
+    return this.http.delete(`${this.api}/${id}`);
+  }
+
 }
