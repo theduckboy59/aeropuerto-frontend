@@ -1,0 +1,54 @@
+<div class="container">
+
+  <button class="volver-btn" routerLink="/portal">← Volver</button>
+
+  <form #f="ngForm" (ngSubmit)="register()" novalidate>
+
+    <input [(ngModel)]="form.username" name="username" placeholder="Usuario" required #username="ngModel">
+    <div *ngIf="username.invalid && username.touched">Usuario requerido</div>
+
+    <input [(ngModel)]="form.email" name="email" placeholder="Email" required email #email="ngModel">
+    <div *ngIf="email.invalid && email.touched">Email inválido</div>
+
+    <input [(ngModel)]="form.password" type="password" name="password" placeholder="Password" required #password="ngModel">
+    <div *ngIf="password.invalid && password.touched">Password requerido</div>
+
+    <input [(ngModel)]="form.nombreCompleto" name="nombreCompleto" placeholder="Nombre completo" required #nombre="ngModel">
+    <div *ngIf="nombre.invalid && nombre.touched">Nombre requerido</div>
+
+    <input [(ngModel)]="form.fechaNacimiento" type="date" name="fechaNacimiento" required #fecha="ngModel">
+    <div *ngIf="fecha.invalid && fecha.touched">Fecha requerida</div>
+
+    <input [(ngModel)]="form.numeroDocumento" name="numeroDocumento" placeholder="Documento" required #doc="ngModel">
+    <div *ngIf="doc.invalid && doc.touched">Documento requerido</div>
+
+    <select [(ngModel)]="form.tipoDocumentoId" name="tipoDocumentoId" required #tipo="ngModel">
+      <option [ngValue]="null">Seleccione tipo documento</option>
+      <option *ngFor="let t of tipos" [value]="t.id">{{t.nombre}}</option>
+    </select>
+    <div *ngIf="tipo.invalid && tipo.touched">Seleccione tipo documento</div>
+
+    <select [(ngModel)]="form.nacionalidadId" name="nacionalidadId" required #nac="ngModel">
+      <option [ngValue]="null">Seleccione nacionalidad</option>
+      <option *ngFor="let n of nacionalidades" [value]="n.id">{{n.nombre}}</option>
+    </select>
+    <div *ngIf="nac.invalid && nac.touched">Seleccione nacionalidad</div>
+
+    <select [(ngModel)]="form.codigoAreaId" name="codigoAreaId" required #cod="ngModel">
+      <option [ngValue]="null">Seleccione código área</option>
+      <option *ngFor="let c of codigos" [value]="c.id">{{c.codigo}}</option>
+    </select>
+    <div *ngIf="cod.invalid && cod.touched">Seleccione código área</div>
+
+    <input [(ngModel)]="form.telefono" name="telefono" placeholder="Teléfono" required #tel="ngModel">
+    <div *ngIf="tel.invalid && tel.touched">Teléfono requerido</div>
+
+    <input [(ngModel)]="form.telefonoEmergencia" name="telefonoEmergencia" placeholder="Teléfono emergencia">
+
+    <input [(ngModel)]="form.direccion" name="direccion" placeholder="Dirección">
+
+    <button type="submit" [disabled]="f.invalid">Registrarse</button>
+
+  </form>
+
+</div>

@@ -13,6 +13,7 @@ import { FormsModule } from '@angular/forms';
 
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { EmpleadosComponent } from './pages/empleados/empleados.component';
+import { RegisterComponent } from './pages/register/register.component';
 
 @NgModule({
   declarations: [
@@ -20,7 +21,8 @@ import { EmpleadosComponent } from './pages/empleados/empleados.component';
     PortalComponent,
     LoginComponent,
     MenuComponent,
-    EmpleadosComponent
+    EmpleadosComponent,
+    RegisterComponent
   ],
   imports: [
     BrowserModule,
