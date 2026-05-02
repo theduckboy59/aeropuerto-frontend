@@ -3,31 +3,48 @@ import {
   HttpEvent,
   HttpHandler,
   HttpInterceptor,
-  HttpRequest
+  HttpRequest,
+  HttpErrorResponse
 } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { Router } from '@angular/router';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
 
+  constructor(private router: Router) {}
+
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
 
-    // NO interceptar login
+    // No interceptar login
     if (req.url.includes('/auth/login')) {
       return next.handle(req);
     }
 
     const token = localStorage.getItem('token');
 
+    let clonedReq = req;
+
     if (token) {
-      const cloned = req.clone({
+      clonedReq = req.clone({
         setHeaders: {
           Authorization: `Bearer ${token}`
         }
       });
-      return next.handle(cloned);
     }
 
-    return next.handle(req);
+    return next.handle(clonedReq).pipe(
+      catchError((error: HttpErrorResponse) => {
+
+        if (error.status === 401) {
+          // Token expirado o inválido
+          localStorage.removeItem('token');
+          this.router.navigate(['/login']);
+        }
+
+        return throwError(() => error);
+      })
+    );
   }
 }

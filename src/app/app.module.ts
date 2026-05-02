@@ -12,13 +12,15 @@ import { MenuComponent } from './pages/menu/menu.component';
 import { FormsModule } from '@angular/forms';
 
 import { AuthInterceptor } from './interceptors/auth.interceptor';
+import { EmpleadosComponent } from './pages/empleados/empleados.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     PortalComponent,
     LoginComponent,
-    MenuComponent
+    MenuComponent,
+    EmpleadosComponent
   ],
   imports: [
     BrowserModule,

@@ -1,0 +1,93 @@
+<h2>Empleados</h2>
+
+<button routerLink="/menu">Regresar</button>
+
+<hr>
+
+<h3>Crear empleado</h3>
+
+<div class="form-container">
+
+  <label>Username</label>
+  <input [(ngModel)]="form.username">
+
+  <label>Email</label>
+  <input [(ngModel)]="form.email">
+
+  <label>Password</label>
+  <input type="password" [(ngModel)]="form.password">
+
+  <label>Código Empleado</label>
+  <input [(ngModel)]="form.codigoEmpleado">
+
+  <label>Nombre Completo</label>
+  <input [(ngModel)]="form.nombreCompleto">
+
+  <label>Fecha Ingreso</label>
+  <input type="date" [(ngModel)]="form.fechaIngreso">
+
+  <label>Fecha Vencimiento Licencia</label>
+  <input type="date" [(ngModel)]="form.fechaVencimientoLicencia">
+
+  <label>Tipo Empleado</label>
+  <select [(ngModel)]="form.tipoEmpleadoId">
+    <option *ngFor="let t of tipoEmpleado" [ngValue]="t.id">
+      {{ t.nombre }}
+    </option>
+  </select>
+
+  <label>Aerolínea</label>
+  <select [(ngModel)]="form.aerolineaId">
+    <option *ngFor="let a of aerolinea" [ngValue]="a.id">
+      {{ a.nombre }}
+    </option>
+  </select>
+
+  <label>Turno</label>
+  <select [(ngModel)]="form.turnoId">
+    <option *ngFor="let t of turno" [ngValue]="t.id">
+      {{ t.nombre }}
+    </option>
+  </select>
+
+  <label>Nivel Acceso</label>
+  <select [(ngModel)]="form.nivelAccesoId">
+    <option *ngFor="let n of nivelAcceso" [ngValue]="n.id">
+      {{ n.nombre }}
+    </option>
+  </select>
+
+  <label>Rol</label>
+  <select [(ngModel)]="form.rolId">
+    <option *ngFor="let r of rol" [ngValue]="r.id">
+      {{ r.nombre }}
+    </option>
+  </select>
+
+  <label>Área</label>
+  <select [(ngModel)]="form.areaId">
+    <option *ngFor="let a of area" [ngValue]="a.id">
+      {{ a.nombre }}
+    </option>
+  </select>
+
+  <label>Licencia</label>
+  <select [(ngModel)]="form.licenciaId">
+    <option *ngFor="let l of licencia" [ngValue]="l.id">
+      {{ l.nombre }}
+    </option>
+  </select>
+
+  <button (click)="guardar()">Guardar</button>
+
+</div>
+
+<hr>
+
+<h3>Lista de empleados</h3>
+
+<ul>
+  <li *ngFor="let e of empleados">
+    {{ e.nombreCompleto }} - {{ e.codigoEmpleado }}
+  </li>
+</ul>

@@ -1,0 +1,22 @@
+.form-container {
+  max-width: 400px;
+  margin: 20px auto;
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+input, select {
+  padding: 6px;
+  margin-top: 4px;
+}
+
+button {
+  margin-top: 15px;
+  padding: 8px;
+  cursor: pointer;
+}
