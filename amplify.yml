@@ -8,7 +8,7 @@ frontend:
       commands:
         - npm run build -- --configuration production
   artifacts:
-    baseDirectory: dist/aeropuertolosprimosfront
+    baseDirectory: dist/aeropuertolosprimosfront/browser
     files:
       - '**/*'
   cache:
