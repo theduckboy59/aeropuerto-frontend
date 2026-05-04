@@ -1,18 +1,48 @@
-<<div class="page">
-  <div class="login-card">
-    <h2>✈ Aeropuerto Los Primos</h2>
-    <p class="subtitle">Acceso al sistema</p>
+<div class="login-root">
+  <main class="login-layout">
+    <section class="login-brand" aria-label="Marca">
+      <div class="brand-badge">A L P</div>
+      <h1 class="brand-title">Aeropuerto Los Primos</h1>
+      <p class="brand-subtitle">Control de acceso para el panel operativo de usuarios.</p>
+    </section>
 
-    <input [(ngModel)]="email" placeholder="Email">
+    <section class="login-panel" aria-label="Inicio de sesión">
+      <div class="login-card" aria-labelledby="login-title">
+        <h2 id="login-title" class="card-title">Iniciar sesión</h2>
+        <p class="card-subtitle">Ingresa tus credenciales para continuar.</p>
 
-    <div class="input-group">
-      <input [(ngModel)]="password"
-             [type]="show ? 'text' : 'password'"
-             placeholder="Password">
-      <span (click)="togglePassword()">👁</span>
-    </div>
+        <div class="form">
+          <div class="field">
+            <label class="label" for="email">Username o Email</label>
+            <input
+              id="email"
+              class="control"
+              [(ngModel)]="email"
+              placeholder="usuario@correo.com"
+              autocomplete="username"
+            />
+          </div>
 
-    <button class="btn-primary" (click)="login()">Ingresar</button>
-    <button class="btn-secondary" routerLink="/">Regresar</button>
-  </div>
+          <div class="field">
+            <label class="label" for="password">Password</label>
+            <input
+              id="password"
+              class="control"
+              [(ngModel)]="password"
+              [type]="show ? 'text' : 'password'"
+              placeholder="Tu contraseña"
+              autocomplete="current-password"
+            />
+            <label class="toggle">
+              <input type="checkbox" [checked]="show" (change)="togglePassword()" />
+              <span>Ver contraseña</span>
+            </label>
+          </div>
+
+          <button class="btn-primary" type="button" (click)="login()">Ingresar</button>
+          <a class="btn-secondary" routerLink="/portal">Regresar</a>
+        </div>
+      </div>
+    </section>
+  </main>
 </div>

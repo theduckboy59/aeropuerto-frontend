@@ -1,9 +1,32 @@
-<h2>Menú</h2>
+<div class="page-root">
+  <main class="page-layout">
+    <section class="brand" aria-label="Marca">
+      <div class="brand-badge">A L P</div>
+      <h1 class="brand-title">Aeropuerto Los Primos</h1>
+      <p class="brand-subtitle">Panel de navegación para módulos operativos.</p>
+    </section>
 
-<button routerLink="/empleados">CRUD Empleados</button>
-<br><br>
+    <section class="panel" aria-label="Menú">
+      <div class="card" aria-labelledby="menu-title">
+        <h2 id="menu-title" class="card-title">Menú</h2>
+        <p class="card-subtitle">Elige un módulo para continuar.</p>
 
-<button routerLink="/pasajeros">CRUD Pasajeros</button>
-<br><br>
+        <div class="tiles" role="list">
+          <button class="tile primary" type="button" routerLink="/empleados" role="listitem">
+            <div class="tile-title">Empleados</div>
+            <div class="tile-desc">Administración y control</div>
+          </button>
 
-<button (click)="logout()">Cerrar sesión</button>
+          <button class="tile secondary" type="button" routerLink="/pasajeros" role="listitem">
+            <div class="tile-title">Pasajeros</div>
+            <div class="tile-desc">Gestión de registros</div>
+          </button>
+        </div>
+
+        <div class="footer">
+          <button class="btn-danger" type="button" (click)="logout()">Cerrar sesión</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>

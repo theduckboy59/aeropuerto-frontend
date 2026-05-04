@@ -4,7 +4,8 @@ import { CatalogoService } from '../../services/catalogo.service';
 
 @Component({
   selector: 'app-empleados',
-  templateUrl: './empleados.component.html'
+  templateUrl: './empleados.component.html',
+  styleUrl: './empleados.component.css'
 })
 export class EmpleadosComponent implements OnInit {
 

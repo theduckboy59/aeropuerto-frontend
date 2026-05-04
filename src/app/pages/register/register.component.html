@@ -1,54 +1,206 @@
-<div class="container">
+<div class="page-root">
+  <main class="page-layout">
+    <section class="brand" aria-label="Marca">
+      <div class="brand-badge">A L P</div>
+      <h1 class="brand-title">Aeropuerto Los Primos</h1>
+      <p class="brand-subtitle">Registro de usuario para el sistema.</p>
+    </section>
 
-  <button class="volver-btn" routerLink="/portal">← Volver</button>
+    <section class="panel" aria-label="Registro">
+      <div class="card" aria-labelledby="register-title">
+        <header class="header">
+          <h2 id="register-title" class="card-title">Registrarse</h2>
+          <p class="card-subtitle">Completa tus datos para continuar.</p>
+        </header>
 
-  <form #f="ngForm" (ngSubmit)="register()" novalidate>
+        <form class="form" #f="ngForm" (ngSubmit)="register()" novalidate>
+          <div class="grid">
+          <div class="field">
+            <label class="label" for="username">Usuario</label>
+            <input
+              id="username"
+              class="control"
+              [(ngModel)]="form.username"
+              name="username"
+              placeholder="Tu usuario"
+              required
+              #username="ngModel"
+              autocomplete="username"
+            />
+            <div class="error" *ngIf="username.invalid && username.touched">Usuario requerido</div>
+          </div>
 
-    <input [(ngModel)]="form.username" name="username" placeholder="Usuario" required #username="ngModel">
-    <div *ngIf="username.invalid && username.touched">Usuario requerido</div>
+          <div class="field">
+            <label class="label" for="email">Email</label>
+            <input
+              id="email"
+              class="control"
+              [(ngModel)]="form.email"
+              name="email"
+              placeholder="correo@ejemplo.com"
+              required
+              email
+              #email="ngModel"
+              autocomplete="email"
+            />
+            <div class="error" *ngIf="email.invalid && email.touched">Email inválido</div>
+          </div>
 
-    <input [(ngModel)]="form.email" name="email" placeholder="Email" required email #email="ngModel">
-    <div *ngIf="email.invalid && email.touched">Email inválido</div>
+          <div class="field">
+            <label class="label" for="password">Contraseña</label>
+            <input
+              id="password"
+              class="control"
+              [(ngModel)]="form.password"
+              type="password"
+              name="password"
+              placeholder="Crea una contraseña"
+              required
+              #password="ngModel"
+              autocomplete="new-password"
+            />
+            <div class="error" *ngIf="password.invalid && password.touched">Password requerido</div>
+          </div>
 
-    <input [(ngModel)]="form.password" type="password" name="password" placeholder="Password" required #password="ngModel">
-    <div *ngIf="password.invalid && password.touched">Password requerido</div>
+          <div class="field">
+            <label class="label" for="nombreCompleto">Nombre completo</label>
+            <input
+              id="nombreCompleto"
+              class="control"
+              [(ngModel)]="form.nombreCompleto"
+              name="nombreCompleto"
+              placeholder="Nombre y apellidos"
+              required
+              #nombre="ngModel"
+              autocomplete="name"
+            />
+            <div class="error" *ngIf="nombre.invalid && nombre.touched">Nombre requerido</div>
+          </div>
 
-    <input [(ngModel)]="form.nombreCompleto" name="nombreCompleto" placeholder="Nombre completo" required #nombre="ngModel">
-    <div *ngIf="nombre.invalid && nombre.touched">Nombre requerido</div>
+          <div class="field">
+            <label class="label" for="fechaNacimiento">Fecha de nacimiento</label>
+            <input
+              id="fechaNacimiento"
+              class="control"
+              [(ngModel)]="form.fechaNacimiento"
+              type="date"
+              name="fechaNacimiento"
+              required
+              #fecha="ngModel"
+              autocomplete="bday"
+            />
+            <div class="error" *ngIf="fecha.invalid && fecha.touched">Fecha requerida</div>
+          </div>
 
-    <input [(ngModel)]="form.fechaNacimiento" type="date" name="fechaNacimiento" required #fecha="ngModel">
-    <div *ngIf="fecha.invalid && fecha.touched">Fecha requerida</div>
+          <div class="field">
+            <label class="label" for="tipoDocumentoId">Tipo de documento</label>
+            <select
+              id="tipoDocumentoId"
+              class="control"
+              [(ngModel)]="form.tipoDocumentoId"
+              name="tipoDocumentoId"
+              required
+              #tipo="ngModel"
+            >
+              <option [ngValue]="null">Seleccione tipo documento</option>
+              <option *ngFor="let t of tipos" [value]="t.id">{{ t.nombre }}</option>
+            </select>
+            <div class="error" *ngIf="tipo.invalid && tipo.touched">Seleccione tipo documento</div>
+          </div>
 
-    <input [(ngModel)]="form.numeroDocumento" name="numeroDocumento" placeholder="Documento" required #doc="ngModel">
-    <div *ngIf="doc.invalid && doc.touched">Documento requerido</div>
+          <div class="field">
+            <label class="label" for="numeroDocumento">Documento</label>
+            <input
+              id="numeroDocumento"
+              class="control"
+              [(ngModel)]="form.numeroDocumento"
+              name="numeroDocumento"
+              placeholder="Número de documento"
+              required
+              #doc="ngModel"
+              autocomplete="off"
+            />
+            <div class="error" *ngIf="doc.invalid && doc.touched">Documento requerido</div>
+          </div>
 
-    <select [(ngModel)]="form.tipoDocumentoId" name="tipoDocumentoId" required #tipo="ngModel">
-      <option [ngValue]="null">Seleccione tipo documento</option>
-      <option *ngFor="let t of tipos" [value]="t.id">{{t.nombre}}</option>
-    </select>
-    <div *ngIf="tipo.invalid && tipo.touched">Seleccione tipo documento</div>
+          <div class="field">
+            <label class="label" for="nacionalidadId">Nacionalidad</label>
+            <select
+              id="nacionalidadId"
+              class="control"
+              [(ngModel)]="form.nacionalidadId"
+              name="nacionalidadId"
+              required
+              #nac="ngModel"
+            >
+              <option [ngValue]="null">Seleccione nacionalidad</option>
+              <option *ngFor="let n of nacionalidades" [value]="n.id">{{ n.nombre }}</option>
+            </select>
+            <div class="error" *ngIf="nac.invalid && nac.touched">Seleccione nacionalidad</div>
+          </div>
 
-    <select [(ngModel)]="form.nacionalidadId" name="nacionalidadId" required #nac="ngModel">
-      <option [ngValue]="null">Seleccione nacionalidad</option>
-      <option *ngFor="let n of nacionalidades" [value]="n.id">{{n.nombre}}</option>
-    </select>
-    <div *ngIf="nac.invalid && nac.touched">Seleccione nacionalidad</div>
+          <div class="field">
+            <label class="label" for="codigoAreaId">Código de área</label>
+            <select
+              id="codigoAreaId"
+              class="control"
+              [(ngModel)]="form.codigoAreaId"
+              name="codigoAreaId"
+              required
+              #cod="ngModel"
+            >
+              <option [ngValue]="null">Seleccione código área</option>
+              <option *ngFor="let c of codigos" [value]="c.id">{{ c.codigo }}</option>
+            </select>
+            <div class="error" *ngIf="cod.invalid && cod.touched">Seleccione código área</div>
+          </div>
 
-    <select [(ngModel)]="form.codigoAreaId" name="codigoAreaId" required #cod="ngModel">
-      <option [ngValue]="null">Seleccione código área</option>
-      <option *ngFor="let c of codigos" [value]="c.id">{{c.codigo}}</option>
-    </select>
-    <div *ngIf="cod.invalid && cod.touched">Seleccione código área</div>
+          <div class="field">
+            <label class="label" for="telefono">Teléfono</label>
+            <input
+              id="telefono"
+              class="control"
+              [(ngModel)]="form.telefono"
+              name="telefono"
+              placeholder="Número de teléfono"
+              required
+              #tel="ngModel"
+              autocomplete="tel"
+            />
+            <div class="error" *ngIf="tel.invalid && tel.touched">Teléfono requerido</div>
+          </div>
 
-    <input [(ngModel)]="form.telefono" name="telefono" placeholder="Teléfono" required #tel="ngModel">
-    <div *ngIf="tel.invalid && tel.touched">Teléfono requerido</div>
+          <div class="field">
+            <label class="label" for="telefonoEmergencia">Teléfono de emergencia</label>
+            <input
+              id="telefonoEmergencia"
+              class="control"
+              [(ngModel)]="form.telefonoEmergencia"
+              name="telefonoEmergencia"
+              placeholder="Opcional"
+              autocomplete="off"
+            />
+          </div>
 
-    <input [(ngModel)]="form.telefonoEmergencia" name="telefonoEmergencia" placeholder="Teléfono emergencia">
+          <div class="field field-wide">
+            <label class="label" for="direccion">Dirección</label>
+            <input
+              id="direccion"
+              class="control"
+              [(ngModel)]="form.direccion"
+              name="direccion"
+              placeholder="Opcional"
+              autocomplete="street-address"
+            />
+          </div>
+          </div>
 
-    <input [(ngModel)]="form.direccion" name="direccion" placeholder="Dirección">
-
-    <button type="submit" [disabled]="f.invalid">Registrarse</button>
-
-  </form>
-
+          <div class="footer">
+            <button class="btn-primary" type="submit" [disabled]="f.invalid">Registrarse</button>
+            <button class="btn-secondary" type="button" routerLink="/portal">Regresar al portal</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
 </div>

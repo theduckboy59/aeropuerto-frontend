@@ -1,6 +1,23 @@
-<div class="container">
-  <h1>Portal Aeropuerto</h1>
+<div class="page-root">
+  <nav class="top-actions" aria-label="Acciones de acceso">
+    <button class="top-action" type="button" routerLink="/login">Iniciar sesión</button>
+    <button class="top-action" type="button" routerLink="/register">Registrarse</button>
+  </nav>
 
-  <button routerLink="/login">Iniciar Sesión</button>
-  <button routerLink="/register">Registrarse</button>
+  <main class="page-layout">
+    <section class="brand" aria-label="Marca">
+      <div class="brand-badge">A L P</div>
+      <h1 class="brand-title">Aeropuerto Los Primos</h1>
+      <p class="brand-subtitle">
+        Portal principal del sistema. Accede con tu cuenta o ingresa a la ventana de registro.
+      </p>
+    </section>
+
+    <section class="panel" aria-label="Acceso">
+      <div class="card" aria-labelledby="portal-title">
+        <h2 id="portal-title" class="card-title">Bienvenido</h2>
+        <p class="card-subtitle">Selecciona una opción para continuar.</p>
+      </div>
+    </section>
+  </main>
 </div>
