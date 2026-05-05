@@ -26,7 +26,7 @@ export class RegisterComponent {
       username: '',
       email: '',
       password: '',
-      dpi: '',
+      pasaporte: '',
       nombreCompleto: '',
       fechaNacimiento: '',
       nacionalidad: '',
@@ -35,6 +35,43 @@ export class RegisterComponent {
       telefonoEmergencia: '',
       direccion: ''
     };
+  }
+
+  limitarPasaporte() {
+    const value = (this.form.pasaporte ?? '').toString();
+    const digitsOnly = value.replace(/\D+/g, '');
+    this.form.pasaporte = digitsOnly.substring(0, 15);
+  }
+
+  bloquearPasaporteSiCompleto(event: KeyboardEvent) {
+    const max = 15;
+
+    const tecla = event.key;
+    const esControl =
+      tecla === 'Backspace' ||
+      tecla === 'Delete' ||
+      tecla === 'Tab' ||
+      tecla === 'Enter' ||
+      tecla === 'ArrowLeft' ||
+      tecla === 'ArrowRight' ||
+      tecla === 'Home' ||
+      tecla === 'End';
+    if (esControl) return;
+
+    if (!/^\d$/.test(tecla)) {
+      event.preventDefault();
+      return;
+    }
+
+    const input = event.target as HTMLInputElement | null;
+    if (!input) return;
+
+    const haySeleccion = (input.selectionEnd ?? 0) > (input.selectionStart ?? 0);
+    if (haySeleccion) return;
+
+    if ((this.form.pasaporte ?? '').length >= max) {
+      event.preventDefault();
+    }
   }
 
   register() {

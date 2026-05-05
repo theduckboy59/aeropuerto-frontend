@@ -52,11 +52,16 @@
             </div>
 
             <div class="field">
-              <label class="label">DPI</label>
+              <label class="label">Pasaporte</label>
               <input class="control"
-                     [(ngModel)]="form.dpi"
-                     name="dpi"
-                     placeholder="ej: 123456789">
+                     [(ngModel)]="form.pasaporte"
+                     name="pasaporte"
+                     maxlength="15"
+                     (keydown)="bloquearPasaporteSiCompleto($event)"
+                     (input)="limitarPasaporte()"
+                     inputmode="numeric"
+                     autocomplete="off"
+                     placeholder="ej: 123456789012345">
             </div>
 
             <div class="field">
