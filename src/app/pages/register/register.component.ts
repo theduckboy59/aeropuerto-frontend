@@ -1,7 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { CatalogoService } from '../../services/catalogo.service';
 import { Router } from '@angular/router';
 
 @Component({
@@ -9,47 +8,59 @@ import { Router } from '@angular/router';
   templateUrl: './register.component.html',
   styleUrl: './register.component.css'
 })
-export class RegisterComponent implements OnInit {
+export class RegisterComponent {
 
   private api = `${environment.apiUrl}/auth/register`;
 
-  tipos: any[] = [];
-  nacionalidades: any[] = [];
-  codigos: any[] = [];
+  showPassword: boolean = false;
 
-  form: any = {
-    username: '',
-    email: '',
-    password: '',
-    tipoDocumentoId: null,
-    numeroDocumento: '',
-    nombreCompleto: '',
-    fechaNacimiento: '',
-    nacionalidadId: null,
-    codigoAreaId: null,
-    telefono: '',
-    telefonoEmergencia: '',
-    direccion: ''
-  };
+  form: any = this.getEmptyForm();
 
   constructor(
     private http: HttpClient,
-    private catalogoService: CatalogoService,
     private router: Router
   ) {}
 
-  ngOnInit(): void {
-    this.catalogoService.tipoDocumento().subscribe(r => this.tipos = r);
-    this.catalogoService.nacionalidad().subscribe(r => this.nacionalidades = r);
-    this.catalogoService.codigoArea().subscribe(r => this.codigos = r);
+  private getEmptyForm() {
+    return {
+      username: '',
+      email: '',
+      password: '',
+      dpi: '',
+      nombreCompleto: '',
+      fechaNacimiento: '',
+      nacionalidad: '',
+      codigoArea: '',
+      telefono: '',
+      telefonoEmergencia: '',
+      direccion: ''
+    };
   }
 
   register() {
-    this.http.post(this.api, this.form, { responseType: 'text' }).subscribe({
-      next: () => {
+    this.http.post<any>(this.api, this.form).subscribe({
+      next: (res) => {
+
+        alert(res.message);
+        this.form = this.getEmptyForm();
         this.router.navigate(['/portal']);
       },
-      error: (e) => console.error(e)
+      error: (e) => {
+        const message = e.error?.message || 'Error inesperado';
+        alert(message);
+      }
     });
+  }
+
+  cancelar() {
+    const confirmar = confirm('¿Está seguro de cancelar el registro?');
+
+    if (confirmar) {
+      this.router.navigate(['/portal']);
+    }
+  }
+
+  togglePassword() {
+    this.showPassword = !this.showPassword;
   }
 }

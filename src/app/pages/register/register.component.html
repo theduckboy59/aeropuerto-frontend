@@ -1,206 +1,142 @@
 <div class="page-root">
-  <main class="page-layout">
-    <section class="brand" aria-label="Marca">
-      <div class="brand-badge">A L P</div>
-      <h1 class="brand-title">Aeropuerto Los Primos</h1>
-      <p class="brand-subtitle">Registro de usuario para el sistema.</p>
-    </section>
+  <div class="page-layout">
 
-    <section class="panel" aria-label="Registro">
-      <div class="card" aria-labelledby="register-title">
-        <header class="header">
-          <h2 id="register-title" class="card-title">Registrarse</h2>
-          <p class="card-subtitle">Completa tus datos para continuar.</p>
-        </header>
+    <div class="brand">
+      <div class="brand-badge">AEROPUERTO</div>
+      <h1 class="brand-title">Los Primos</h1>
+      <p class="brand-subtitle">
+        Registro de pasajeros
+      </p>
+    </div>
 
-        <form class="form" #f="ngForm" (ngSubmit)="register()" novalidate>
+    <div class="panel">
+      <div class="card">
+
+        <div class="header">
+          <h2 class="card-title">Crear cuenta</h2>
+          <p class="card-subtitle">Complete la información</p>
+        </div>
+
+        <form class="form">
+
           <div class="grid">
-          <div class="field">
-            <label class="label" for="username">Usuario</label>
-            <input
-              id="username"
-              class="control"
-              [(ngModel)]="form.username"
-              name="username"
-              placeholder="Tu usuario"
-              required
-              #username="ngModel"
-              autocomplete="username"
-            />
-            <div class="error" *ngIf="username.invalid && username.touched">Usuario requerido</div>
-          </div>
 
-          <div class="field">
-            <label class="label" for="email">Email</label>
-            <input
-              id="email"
-              class="control"
-              [(ngModel)]="form.email"
-              name="email"
-              placeholder="correo@ejemplo.com"
-              required
-              email
-              #email="ngModel"
-              autocomplete="email"
-            />
-            <div class="error" *ngIf="email.invalid && email.touched">Email inválido</div>
-          </div>
+            <div class="field">
+              <label class="label">Usuario</label>
+              <input class="control"
+                     [(ngModel)]="form.username"
+                     name="username"
+                     placeholder="ej: usuario123">
+            </div>
 
-          <div class="field">
-            <label class="label" for="password">Contraseña</label>
-            <input
-              id="password"
-              class="control"
-              [(ngModel)]="form.password"
-              type="password"
-              name="password"
-              placeholder="Crea una contraseña"
-              required
-              #password="ngModel"
-              autocomplete="new-password"
-            />
-            <div class="error" *ngIf="password.invalid && password.touched">Password requerido</div>
-          </div>
+            <div class="field">
+              <label class="label">Correo</label>
+              <input class="control"
+                     [(ngModel)]="form.email"
+                     name="email"
+                     placeholder="ej: usuario@mail.com">
+            </div>
 
-          <div class="field">
-            <label class="label" for="nombreCompleto">Nombre completo</label>
-            <input
-              id="nombreCompleto"
-              class="control"
-              [(ngModel)]="form.nombreCompleto"
-              name="nombreCompleto"
-              placeholder="Nombre y apellidos"
-              required
-              #nombre="ngModel"
-              autocomplete="name"
-            />
-            <div class="error" *ngIf="nombre.invalid && nombre.touched">Nombre requerido</div>
-          </div>
+            <div class="field">
+              <label class="label">Contraseña</label>
+              <div style="display:flex; gap:5px;">
+                <input class="control"
+                       [type]="showPassword ? 'text' : 'password'"
+                       [(ngModel)]="form.password"
+                       name="password"
+                       placeholder="Ej: Abc@$123">
+                <button type="button" (click)="togglePassword()">
+                  {{ showPassword ? 'Ocultar' : 'Ver' }}
+                </button>
+              </div>
+            </div>
 
-          <div class="field">
-            <label class="label" for="fechaNacimiento">Fecha de nacimiento</label>
-            <input
-              id="fechaNacimiento"
-              class="control"
-              [(ngModel)]="form.fechaNacimiento"
-              type="date"
-              name="fechaNacimiento"
-              required
-              #fecha="ngModel"
-              autocomplete="bday"
-            />
-            <div class="error" *ngIf="fecha.invalid && fecha.touched">Fecha requerida</div>
-          </div>
+            <div class="field">
+              <label class="label">DPI</label>
+              <input class="control"
+                     [(ngModel)]="form.dpi"
+                     name="dpi"
+                     placeholder="ej: 123456789">
+            </div>
 
-          <div class="field">
-            <label class="label" for="tipoDocumentoId">Tipo de documento</label>
-            <select
-              id="tipoDocumentoId"
-              class="control"
-              [(ngModel)]="form.tipoDocumentoId"
-              name="tipoDocumentoId"
-              required
-              #tipo="ngModel"
-            >
-              <option [ngValue]="null">Seleccione tipo documento</option>
-              <option *ngFor="let t of tipos" [value]="t.id">{{ t.nombre }}</option>
-            </select>
-            <div class="error" *ngIf="tipo.invalid && tipo.touched">Seleccione tipo documento</div>
-          </div>
+            <div class="field">
+              <label class="label">Nombre Completo</label>
+              <input class="control"
+                     [(ngModel)]="form.nombreCompleto"
+                     name="nombreCompleto"
+                     placeholder="ej: Juan Pérez">
+            </div>
 
-          <div class="field">
-            <label class="label" for="numeroDocumento">Documento</label>
-            <input
-              id="numeroDocumento"
-              class="control"
-              [(ngModel)]="form.numeroDocumento"
-              name="numeroDocumento"
-              placeholder="Número de documento"
-              required
-              #doc="ngModel"
-              autocomplete="off"
-            />
-            <div class="error" *ngIf="doc.invalid && doc.touched">Documento requerido</div>
-          </div>
+            <div class="field">
+              <label class="label">Fecha Nacimiento</label>
+              <input type="date"
+                     class="control"
+                     [(ngModel)]="form.fechaNacimiento"
+                     name="fechaNacimiento">
+            </div>
 
-          <div class="field">
-            <label class="label" for="nacionalidadId">Nacionalidad</label>
-            <select
-              id="nacionalidadId"
-              class="control"
-              [(ngModel)]="form.nacionalidadId"
-              name="nacionalidadId"
-              required
-              #nac="ngModel"
-            >
-              <option [ngValue]="null">Seleccione nacionalidad</option>
-              <option *ngFor="let n of nacionalidades" [value]="n.id">{{ n.nombre }}</option>
-            </select>
-            <div class="error" *ngIf="nac.invalid && nac.touched">Seleccione nacionalidad</div>
-          </div>
+            <div class="field">
+              <label class="label">Nacionalidad</label>
+              <input class="control"
+                     [(ngModel)]="form.nacionalidad"
+                     name="nacionalidad"
+                     placeholder="ej: GUATEMALA">
+            </div>
 
-          <div class="field">
-            <label class="label" for="codigoAreaId">Código de área</label>
-            <select
-              id="codigoAreaId"
-              class="control"
-              [(ngModel)]="form.codigoAreaId"
-              name="codigoAreaId"
-              required
-              #cod="ngModel"
-            >
-              <option [ngValue]="null">Seleccione código área</option>
-              <option *ngFor="let c of codigos" [value]="c.id">{{ c.codigo }}</option>
-            </select>
-            <div class="error" *ngIf="cod.invalid && cod.touched">Seleccione código área</div>
-          </div>
+            <div class="field">
+              <label class="label">Código Área</label>
+              <input class="control"
+                     [(ngModel)]="form.codigoArea"
+                     name="codigoArea"
+                     placeholder="ej: 502">
+            </div>
 
-          <div class="field">
-            <label class="label" for="telefono">Teléfono</label>
-            <input
-              id="telefono"
-              class="control"
-              [(ngModel)]="form.telefono"
-              name="telefono"
-              placeholder="Número de teléfono"
-              required
-              #tel="ngModel"
-              autocomplete="tel"
-            />
-            <div class="error" *ngIf="tel.invalid && tel.touched">Teléfono requerido</div>
-          </div>
+            <div class="field">
+              <label class="label">Teléfono</label>
+              <input class="control"
+                     [(ngModel)]="form.telefono"
+                     name="telefono"
+                     placeholder="ej: 12345678">
+            </div>
 
-          <div class="field">
-            <label class="label" for="telefonoEmergencia">Teléfono de emergencia</label>
-            <input
-              id="telefonoEmergencia"
-              class="control"
-              [(ngModel)]="form.telefonoEmergencia"
-              name="telefonoEmergencia"
-              placeholder="Opcional"
-              autocomplete="off"
-            />
-          </div>
+            <div class="field">
+              <label class="label">Teléfono Emergencia</label>
+              <input class="control"
+                     [(ngModel)]="form.telefonoEmergencia"
+                     name="telefonoEmergencia"
+                     placeholder="ej: 87654321">
+            </div>
 
-          <div class="field field-wide">
-            <label class="label" for="direccion">Dirección</label>
-            <input
-              id="direccion"
-              class="control"
-              [(ngModel)]="form.direccion"
-              name="direccion"
-              placeholder="Opcional"
-              autocomplete="street-address"
-            />
-          </div>
+            <div class="field field-wide">
+              <label class="label">Dirección</label>
+              <input class="control"
+                     [(ngModel)]="form.direccion"
+                     name="direccion"
+                     placeholder="ej: Zona 1, Ciudad de Guatemala">
+            </div>
+
           </div>
 
           <div class="footer">
-            <button class="btn-primary" type="submit" [disabled]="f.invalid">Registrarse</button>
-            <button class="btn-secondary" type="button" routerLink="/portal">Regresar al portal</button>
+
+            <button class="btn-primary"
+                    type="button"
+                    (click)="register()">
+              Registrar
+            </button>
+
+            <button class="btn-secondary"
+                    type="button"
+                    (click)="cancelar()">
+              Cancelar
+            </button>
+
           </div>
+
         </form>
+
       </div>
-    </section>
-  </main>
+    </div>
+
+  </div>
 </div>

@@ -1,48 +1,72 @@
-<div class="login-root">
-  <main class="login-layout">
-    <section class="login-brand" aria-label="Marca">
-      <div class="brand-badge">A L P</div>
-      <h1 class="brand-title">Aeropuerto Los Primos</h1>
-      <p class="brand-subtitle">Control de acceso para el panel operativo de usuarios.</p>
-    </section>
+<div class="ig-root">
+  <nav class="ig-top" aria-label="Navegación">
+    <a class="ig-top-link" routerLink="/portal">Volver al portal</a>
+  </nav>
 
-    <section class="login-panel" aria-label="Inicio de sesión">
-      <div class="login-card" aria-labelledby="login-title">
-        <h2 id="login-title" class="card-title">Iniciar sesión</h2>
-        <p class="card-subtitle">Ingresa tus credenciales para continuar.</p>
-
-        <div class="form">
-          <div class="field">
-            <label class="label" for="email">Username o Email</label>
-            <input
-              id="email"
-              class="control"
-              [(ngModel)]="email"
-              placeholder="usuario@correo.com"
-              autocomplete="username"
-            />
+  <main class="ig-wrap" aria-label="Inicio de sesión">
+    <section class="ig-auth" aria-label="Acceso">
+      <div class="ig-cards" aria-label="Panel de acceso">
+        <div class="ig-card ig-card--main" aria-labelledby="login-title">
+          <div class="brand">
+            <div class="brand-badge" aria-label="Código del aeropuerto">ALP</div>
+            <h1 class="brand-title">Aeropuerto Los Primos</h1>
+            <p class="brand-subtitle">Acceso al panel operativo</p>
           </div>
 
-          <div class="field">
-            <label class="label" for="password">Password</label>
-            <input
-              id="password"
-              class="control"
-              [(ngModel)]="password"
-              [type]="show ? 'text' : 'password'"
-              placeholder="Tu contraseña"
-              autocomplete="current-password"
-            />
-            <label class="toggle">
-              <input type="checkbox" [checked]="show" (change)="togglePassword()" />
-              <span>Ver contraseña</span>
+          <h2 id="login-title" class="ig-title">Iniciar sesión</h2>
+
+          <form class="ig-form" (submit)="$event.preventDefault(); login()">
+            <label class="ig-field">
+              <span class="ig-label">Usuario o correo</span>
+              <input
+                class="ig-input"
+                [(ngModel)]="email"
+                name="email"
+                autocomplete="username"
+                placeholder="usuario@correo.com"
+              />
             </label>
-          </div>
 
-          <button class="btn-primary" type="button" (click)="login()">Ingresar</button>
-          <a class="btn-secondary" routerLink="/portal">Regresar</a>
+            <label class="ig-field">
+              <span class="ig-label">Contraseña</span>
+              <div class="ig-pass">
+                <input
+                  class="ig-input ig-input--pass"
+                  [(ngModel)]="password"
+                  name="password"
+                  [type]="show ? 'text' : 'password'"
+                  autocomplete="current-password"
+                  placeholder="Tu contraseña"
+                />
+                <button class="ig-pass-toggle" type="button" (click)="togglePassword()">
+                  {{ show ? 'Ocultar' : 'Ver' }}
+                </button>
+              </div>
+            </label>
+
+            <button class="ig-btn" type="submit">Entrar</button>
+          </form>
+        </div>
+
+        <div class="ig-card ig-card--alt" aria-label="Registro">
+          <div class="ig-alt-inner">
+            <img
+              class="brand-logo brand-logo--alt"
+              src="/assets/portal/photos/logo-aeropuerto.png"
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+            />
+            <p class="ig-alt-text">¿No tienes cuenta?</p>
+            <p class="ig-alt-sub">Crea tu usuario para entrar al sistema.</p>
+            <a class="ig-alt-link" routerLink="/register">Registrarse</a>
+          </div>
         </div>
       </div>
+
+      <p class="ig-meta" aria-label="Nota">
+        Al ingresar aceptas las políticas internas de uso del sistema.
+      </p>
     </section>
   </main>
 </div>
