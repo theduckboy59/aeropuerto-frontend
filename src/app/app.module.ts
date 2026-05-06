@@ -14,6 +14,8 @@ import { FormsModule } from '@angular/forms';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { EmpleadosComponent } from './pages/empleados/empleados.component';
 import { RegisterComponent } from './pages/register/register.component';
+import { DashboardComponent } from './pages/dashboard/dashboard.component';
+import { PlaceholderComponent } from './pages/placeholder/placeholder.component';
 
 @NgModule({
   declarations: [
@@ -22,7 +24,9 @@ import { RegisterComponent } from './pages/register/register.component';
     LoginComponent,
     MenuComponent,
     EmpleadosComponent,
-    RegisterComponent
+    RegisterComponent,
+    DashboardComponent,
+    PlaceholderComponent
   ],
   imports: [
     BrowserModule,

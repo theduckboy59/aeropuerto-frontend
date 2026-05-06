@@ -1,32 +1,63 @@
-<div class="page-root">
-  <main class="page-layout">
-    <section class="brand" aria-label="Marca">
-      <div class="brand-badge">A L P</div>
-      <h1 class="brand-title">Aeropuerto Los Primos</h1>
-      <p class="brand-subtitle">Panel de navegación para módulos operativos.</p>
-    </section>
+<div class="shell">
+  <header class="topbar" role="banner">
+    <button class="icon-btn" type="button" (click)="toggleSidebar()" aria-label="Mostrar/ocultar sidebar">
+      ☰
+    </button>
+    <div class="topbar-title">
+      <div class="topbar-app">Aeropuerto Los Primos</div>
+      <div class="topbar-sub">ERP operativo</div>
+    </div>
+    <div class="topbar-spacer"></div>
+  </header>
 
-    <section class="panel" aria-label="Menú">
-      <div class="card" aria-labelledby="menu-title">
-        <h2 id="menu-title" class="card-title">Menú</h2>
-        <p class="card-subtitle">Elige un módulo para continuar.</p>
-
-        <div class="tiles" role="list">
-          <button class="tile primary" type="button" routerLink="/empleados" role="listitem">
-            <div class="tile-title">Empleados</div>
-            <div class="tile-desc">Administración y control</div>
-          </button>
-
-          <button class="tile secondary" type="button" routerLink="/pasajeros" role="listitem">
-            <div class="tile-title">Pasajeros</div>
-            <div class="tile-desc">Gestión de registros</div>
-          </button>
-        </div>
-
-        <div class="footer">
-          <button class="btn-danger" type="button" (click)="logout()">Cerrar sesión</button>
+  <div class="body">
+    <aside class="sidebar" [class.closed]="!sidebarOpen" aria-label="Sidebar">
+      <div class="logo" aria-label="Logo">
+        <div class="logo-badge">A L P</div>
+        <div class="logo-text">
+          <div class="logo-title">ALP</div>
+          <div class="logo-sub">Admin</div>
         </div>
       </div>
-    </section>
-  </main>
+
+      <nav class="nav" aria-label="Módulos">
+        <details class="group" open>
+          <summary class="group-title">Aerolínea</summary>
+          <a class="nav-item" routerLink="aerolinea/empleados" routerLinkActive="active">Empleados</a>
+          <a class="nav-item" routerLink="aerolinea/tripulacion" routerLinkActive="active">Tripulación</a>
+          <a class="nav-item" routerLink="aerolinea/aviones" routerLinkActive="active">Aviones</a>
+          <a class="nav-item" routerLink="aerolinea/vuelos" routerLinkActive="active">Vuelos</a>
+        </details>
+
+        <details class="group">
+          <summary class="group-title">Vuelos</summary>
+          <a class="nav-item" routerLink="vuelos/reservar" routerLinkActive="active">Reservar</a>
+          <a class="nav-item" routerLink="vuelos/abordaje" routerLinkActive="active">Abordaje</a>
+        </details>
+
+        <details class="group">
+          <summary class="group-title">Consultas</summary>
+          <a class="nav-item" routerLink="consultas/vuelos" routerLinkActive="active">Vuelos</a>
+          <a class="nav-item" routerLink="consultas/equipaje" routerLinkActive="active">Equipaje</a>
+          <a class="nav-item" routerLink="consultas/pasajeros" routerLinkActive="active">Pasajeros</a>
+        </details>
+
+        <details class="group">
+          <summary class="group-title">Usuarios</summary>
+          <a class="nav-item" routerLink="usuarios/registro" routerLinkActive="active">Registro</a>
+          <a class="nav-item" routerLink="usuarios/login" routerLinkActive="active">Login</a>
+        </details>
+      </nav>
+
+      <div class="sidebar-footer" role="contentinfo">
+        <div class="divider" aria-hidden="true"></div>
+        <button class="logout" type="button" (click)="logout()">Cerrar sesión</button>
+      </div>
+    </aside>
+
+    <main class="content" role="main" aria-label="Contenido">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
 </div>
+

@@ -1,0 +1,26 @@
+.ph {
+  padding: 24px;
+}
+
+.ph-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.ph-text {
+  margin: 10px 0 0;
+  color: #475569;
+  line-height: 1.5;
+  max-width: 72ch;
+}
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New",
+    monospace;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+

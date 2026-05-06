@@ -8,8 +8,13 @@ import { AuthService } from '../../services/auth.service';
   styleUrl: './menu.component.css'
 })
 export class MenuComponent {
+  sidebarOpen = true;
 
   constructor(private auth: AuthService, private router: Router) {}
+
+  toggleSidebar(): void {
+    this.sidebarOpen = !this.sidebarOpen;
+  }
 
   logout() {
     this.auth.logout();

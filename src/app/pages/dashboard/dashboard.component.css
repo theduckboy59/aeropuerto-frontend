@@ -1,0 +1,52 @@
+.dash {
+  padding: 24px;
+}
+
+.dash-header {
+  margin-bottom: 16px;
+}
+
+.dash-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.dash-subtitle {
+  margin: 6px 0 0;
+  color: #64748b;
+}
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 14px;
+  background: #ffffff;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.03);
+}
+
+.card-title {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.card-desc {
+  margin-top: 6px;
+  color: #475569;
+  line-height: 1.4;
+}
+
+@media (max-width: 900px) {
+  .dash-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
