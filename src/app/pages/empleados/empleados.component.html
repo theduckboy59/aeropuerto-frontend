@@ -5,138 +5,14 @@
         <div class="badge">A L P</div>
         <div>
           <h1 class="title">Empleados</h1>
-          <p class="subtitle">Crea, edita y administra registros.</p>
+          <p class="subtitle">Accesos rapidos.</p>
         </div>
       </div>
       <div class="topbar-right">
+        <button class="btn-primary" type="button" routerLink="/menu/aerolinea/empleados/nuevo">Agregar nuevo</button>
         <button class="btn-secondary" type="button" routerLink="/menu">Regresar</button>
       </div>
     </header>
-
-    <section class="card" aria-label="Gestión de empleados">
-      <div class="section">
-        <h2 class="section-title">{{ editando ? 'Editar empleado' : 'Crear empleado' }}</h2>
-
-        <div class="form-grid">
-          <div class="field">
-            <label class="label">Username</label>
-            <input class="control" [(ngModel)]="form.username" />
-          </div>
-
-          <div class="field">
-            <label class="label">Email</label>
-            <input class="control" [(ngModel)]="form.email" />
-          </div>
-
-          <div class="field">
-            <label class="label">Password</label>
-            <input class="control" type="password" [(ngModel)]="form.password" />
-          </div>
-
-          <div class="field">
-            <label class="label">Código Empleado</label>
-            <input class="control" [(ngModel)]="form.codigoEmpleado" />
-          </div>
-
-          <div class="field field-wide">
-            <label class="label">Nombre Completo</label>
-            <input class="control" [(ngModel)]="form.nombreCompleto" />
-          </div>
-
-          <div class="field">
-            <label class="label">Fecha Ingreso</label>
-            <input class="control" type="date" [(ngModel)]="form.fechaIngreso" />
-          </div>
-
-          <div class="field">
-            <label class="label">Fecha Vencimiento Licencia</label>
-            <input class="control" type="date" [(ngModel)]="form.fechaVencimientoLicencia" />
-          </div>
-
-          <div class="field">
-            <label class="label">Tipo Empleado</label>
-            <select class="control" [(ngModel)]="form.tipoEmpleadoId">
-              <option *ngFor="let t of tipoEmpleado" [ngValue]="t.id">{{ t.nombre }}</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label class="label">Aerolínea</label>
-            <select class="control" [(ngModel)]="form.aerolineaId">
-              <option *ngFor="let a of aerolinea" [ngValue]="a.id">{{ a.nombre }}</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label class="label">Turno</label>
-            <select class="control" [(ngModel)]="form.turnoId">
-              <option *ngFor="let t of turno" [ngValue]="t.id">{{ t.nombre }}</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label class="label">Nivel Acceso</label>
-            <select class="control" [(ngModel)]="form.nivelAccesoId">
-              <option *ngFor="let n of nivelAcceso" [ngValue]="n.id">{{ n.nombre }}</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label class="label">Rol</label>
-            <select class="control" [(ngModel)]="form.rolId">
-              <option *ngFor="let r of rol" [ngValue]="r.id">{{ r.nombre }}</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label class="label">Área</label>
-            <select class="control" [(ngModel)]="form.areaId">
-              <option *ngFor="let a of area" [ngValue]="a.id">{{ a.nombre }}</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label class="label">Licencia</label>
-            <select class="control" [(ngModel)]="form.licenciaId">
-              <option *ngFor="let l of licencia" [ngValue]="l.id">{{ l.nombre }}</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button class="btn-primary" type="button" (click)="guardar()">
-            {{ editando ? 'Actualizar' : 'Guardar' }}
-          </button>
-          <button class="btn-secondary" *ngIf="editando" type="button" (click)="reset()">Cancelar</button>
-        </div>
-      </div>
-
-      <div class="section">
-        <h2 class="section-title">Lista de empleados</h2>
-
-        <div class="table-wrap">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Código</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let e of empleados">
-                <td>{{ e.nombreCompleto }}</td>
-                <td>{{ e.codigoEmpleado }}</td>
-                <td class="table-actions">
-                  <button class="btn-secondary" type="button" (click)="editar(e)">Editar</button>
-                  <button class="btn-danger" type="button" (click)="eliminar(e.id)">Eliminar</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
   </main>
 </div>
 

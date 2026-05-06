@@ -1,12 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EmpleadoService {
 
-  private api = 'http://localhost:8080/empleados';
+  private api = `${environment.apiUrl}/empleados`;
+  private registroApi = `${environment.apiUrl}/register`;
 
   constructor(private http: HttpClient) {}
 
@@ -14,8 +16,8 @@ export class EmpleadoService {
     return this.http.get<any[]>(this.api);
   }
 
-    crearEmpleado(data: any) {
-    return this.http.post(this.api, data);
+  crearEmpleado(data: any) {
+    return this.http.post(this.registroApi, data);
   }
 
   actualizarEmpleado(id: number, data: any) {
