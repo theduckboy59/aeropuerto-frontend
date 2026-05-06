@@ -14,6 +14,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { EmpleadosComponent } from './pages/empleados/empleados.component';
 import { EmpleadoFormComponent } from './pages/empleado-form/empleado-form.component';
+import { EmpleadoEditComponent } from './pages/empleado-edit/empleado-edit.component';
 import { RegisterComponent } from './pages/register/register.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { PlaceholderComponent } from './pages/placeholder/placeholder.component';
@@ -26,6 +27,7 @@ import { PlaceholderComponent } from './pages/placeholder/placeholder.component'
     MenuComponent,
     EmpleadosComponent,
     EmpleadoFormComponent,
+    EmpleadoEditComponent,
     RegisterComponent,
     DashboardComponent,
     PlaceholderComponent

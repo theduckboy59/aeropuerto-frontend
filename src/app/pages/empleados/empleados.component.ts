@@ -11,8 +11,16 @@ export class EmpleadosComponent implements OnInit {
 
   empleados: any[] = [];
 
-  form: any = {};
-  editando = false;
+  filtros: any = {
+    tipoEmpleadoId: '',
+    aerolineaId: '',
+    fechaIngreso: '',
+    fechaSalida: '',
+    turnoId: '',
+    rolId: '',
+    nivelAccesoId: '',
+    areaId: ''
+  };
 
   tipoEmpleado: any[] = [];
   aerolinea: any[] = [];
@@ -21,6 +29,13 @@ export class EmpleadosComponent implements OnInit {
   rol: any[] = [];
   area: any[] = [];
   licencia: any[] = [];
+
+  tipoEmpleadoMap: Record<string, string> = {};
+  aerolineaMap: Record<string, string> = {};
+  turnoMap: Record<string, string> = {};
+  nivelAccesoMap: Record<string, string> = {};
+  rolMap: Record<string, string> = {};
+  areaMap: Record<string, string> = {};
 
   constructor(
     private service: EmpleadoService,
@@ -33,69 +48,89 @@ export class EmpleadosComponent implements OnInit {
   }
 
   cargar() {
-    this.service.getEmpleados().subscribe(data => {
-      this.empleados = data;
+    this.service.getEmpleados(this.filtros).subscribe({
+      next: (data) => {
+        this.empleados = data;
+      },
+      error: (e) => {
+        const message = e.error?.message || 'Error al listar empleados';
+        alert(message);
+      }
     });
   }
 
   cargarCatalogos() {
-    this.catalogo.tipoEmpleado().subscribe(d => this.tipoEmpleado = d);
-    this.catalogo.aerolinea().subscribe(d => this.aerolinea = d);
-    this.catalogo.turno().subscribe(d => this.turno = d);
-    this.catalogo.nivelAcceso().subscribe(d => this.nivelAcceso = d);
-    this.catalogo.rol().subscribe(d => this.rol = d);
-    this.catalogo.area().subscribe(d => this.area = d);
+    this.catalogo.tipoEmpleado().subscribe(d => {
+      this.tipoEmpleado = d;
+      this.tipoEmpleadoMap = this.buildMap(d);
+    });
+    this.catalogo.aerolinea().subscribe(d => {
+      this.aerolinea = d;
+      this.aerolineaMap = this.buildMap(d);
+    });
+    this.catalogo.turno().subscribe(d => {
+      this.turno = d;
+      this.turnoMap = this.buildMap(d);
+    });
+    this.catalogo.nivelAcceso().subscribe(d => {
+      this.nivelAcceso = d;
+      this.nivelAccesoMap = this.buildMap(d);
+    });
+    this.catalogo.rol().subscribe(d => {
+      this.rol = d;
+      this.rolMap = this.buildMap(d);
+    });
+    this.catalogo.area().subscribe(d => {
+      this.area = d;
+      this.areaMap = this.buildMap(d);
+    });
     this.catalogo.licencia().subscribe(d => this.licencia = d);
   }
 
-  guardar() {
-
-    if (this.editando) {
-      this.service.actualizarEmpleado(this.form.id, this.form).subscribe(() => {
-        alert('Empleado actualizado');
-        this.reset();
-        this.cargar();
-      });
-    } else {
-      this.service.crearEmpleado(this.form).subscribe(() => {
-        alert('Empleado creado');
-        this.reset();
-        this.cargar();
-      });
-    }
+  private buildMap(items: any[]) {
+    return (items || []).reduce((acc: Record<string, string>, item: any) => {
+      const label = this.getCatalogoLabel(item);
+      if (label) {
+        acc[String(item.id)] = label;
+      }
+      return acc;
+    }, {});
   }
 
-  editar(e: any) {
-  this.form = {
-    id: e.id,
-    username: e.username,
-    email: e.email,
-    codigoEmpleado: e.codigoEmpleado,
-    nombreCompleto: e.nombreCompleto,
-    tipoEmpleadoId: e.tipoEmpleadoId,
-    aerolineaId: e.aerolineaId,
-    turnoId: e.turnoId,
-    nivelAccesoId: e.nivelAccesoId,
-    rolId: e.rolId,
-    areaId: e.areaId,
-    licenciaId: e.licenciaId,
-    fechaIngreso: e.fechaIngreso,
-    fechaVencimientoLicencia: e.fechaVencimientoLicencia
-  };
-
-  this.editando = true;
-}
+  getCatalogoLabel(item: any) {
+    return item?.nombre || item?.descripcion || item?.label || '';
+  }
 
   eliminar(id: number) {
     if (confirm('¿Eliminar empleado?')) {
-      this.service.eliminarEmpleado(id).subscribe(() => {
-        this.cargar();
+      this.service.eliminarEmpleado(id).subscribe({
+        next: () => {
+          this.cargar();
+        },
+        error: (e) => {
+          const message = e.error?.message || 'Error al eliminar empleado';
+          alert(message);
+        }
       });
     }
   }
 
-  reset() {
-    this.form = {};
-    this.editando = false;
+  aplicarFiltros() {
+    this.cargar();
+  }
+
+  limpiarFiltros() {
+    this.filtros = {
+      tipoEmpleadoId: '',
+      aerolineaId: '',
+      fechaIngreso: '',
+      fechaSalida: '',
+      turnoId: '',
+      rolId: '',
+      nivelAccesoId: '',
+      areaId: ''
+    };
+
+    this.cargar();
   }
 }

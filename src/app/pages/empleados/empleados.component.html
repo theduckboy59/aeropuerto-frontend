@@ -13,6 +13,123 @@
         <button class="btn-secondary" type="button" routerLink="/menu">Regresar</button>
       </div>
     </header>
+
+    <section class="card" aria-label="Filtros">
+      <div class="section">
+        <h2 class="section-title">Filtros de listado</h2>
+
+        <div class="form-grid">
+          <div class="field">
+            <label class="label">Tipo Empleado</label>
+            <select class="control" [(ngModel)]="filtros.tipoEmpleadoId">
+              <option value="">Todos</option>
+              <option *ngFor="let t of tipoEmpleado" [value]="t.id">{{ getCatalogoLabel(t) }}</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Aerolínea</label>
+            <select class="control" [(ngModel)]="filtros.aerolineaId">
+              <option value="">Todas</option>
+              <option *ngFor="let a of aerolinea" [value]="a.id">{{ getCatalogoLabel(a) }}</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Turno</label>
+            <select class="control" [(ngModel)]="filtros.turnoId">
+              <option value="">Todos</option>
+              <option *ngFor="let t of turno" [value]="t.id">{{ getCatalogoLabel(t) }}</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Nivel Acceso</label>
+            <select class="control" [(ngModel)]="filtros.nivelAccesoId">
+              <option value="">Todos</option>
+              <option *ngFor="let n of nivelAcceso" [value]="n.id">{{ getCatalogoLabel(n) }}</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Rol</label>
+            <select class="control" [(ngModel)]="filtros.rolId">
+              <option value="">Todos</option>
+              <option *ngFor="let r of rol" [value]="r.id">{{ getCatalogoLabel(r) }}</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Área</label>
+            <select class="control" [(ngModel)]="filtros.areaId">
+              <option value="">Todas</option>
+              <option *ngFor="let a of area" [value]="a.id">{{ getCatalogoLabel(a) }}</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Fecha Ingreso</label>
+            <input class="control" type="date" [(ngModel)]="filtros.fechaIngreso" />
+          </div>
+
+          <div class="field">
+            <label class="label">Fecha Salida</label>
+            <input class="control" type="date" [(ngModel)]="filtros.fechaSalida" />
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-primary" type="button" (click)="aplicarFiltros()">Aplicar filtros</button>
+          <button class="btn-secondary" type="button" (click)="limpiarFiltros()">Limpiar</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-label="Listado">
+      <div class="section">
+        <h2 class="section-title">Lista de empleados</h2>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Código</th>
+                <th>Usuario</th>
+                <th>Email</th>
+                <th>Tipo</th>
+                <th>Aerolínea</th>
+                <th>Turno</th>
+                <th>Nivel Acceso</th>
+                <th>Rol</th>
+                <th>Área</th>
+                <th>Fecha Ingreso</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let e of empleados">
+                <td>{{ e.nombreCompleto }}</td>
+                <td>{{ e.codigoEmpleado }}</td>
+                <td>{{ e.username }}</td>
+                <td>{{ e.email }}</td>
+                <td>{{ tipoEmpleadoMap[e.tipoEmpleadoId] || e.tipoEmpleadoId }}</td>
+                <td>{{ aerolineaMap[e.aerolineaId] || e.aerolineaId }}</td>
+                <td>{{ turnoMap[e.turnoId] || e.turnoId }}</td>
+                <td>{{ nivelAccesoMap[e.nivelAccesoId] || e.nivelAccesoId }}</td>
+                <td>{{ rolMap[e.rolId] || e.rolId }}</td>
+                <td>{{ areaMap[e.areaId] || e.areaId }}</td>
+                <td>{{ e.fechaIngreso }}</td>
+                <td class="table-actions">
+                  <button class="btn-secondary" type="button" [routerLink]="['/menu/aerolinea/empleados/editar', e.id]">Editar</button>
+                  <button class="btn-danger" type="button" (click)="eliminar(e.id)">Eliminar</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
   </main>
 </div>
 

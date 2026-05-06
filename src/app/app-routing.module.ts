@@ -6,6 +6,7 @@ import { LoginComponent } from './pages/login/login.component';
 import { MenuComponent } from './pages/menu/menu.component';
 import { EmpleadosComponent } from './pages/empleados/empleados.component';
 import { EmpleadoFormComponent } from './pages/empleado-form/empleado-form.component';
+import { EmpleadoEditComponent } from './pages/empleado-edit/empleado-edit.component';
 import { RegisterComponent } from './pages/register/register.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { PlaceholderComponent } from './pages/placeholder/placeholder.component';
@@ -20,6 +21,7 @@ const routes: Routes = [
       { path: '', component: DashboardComponent },
       { path: 'aerolinea/empleados', component: EmpleadosComponent },
       { path: 'aerolinea/empleados/nuevo', component: EmpleadoFormComponent },
+      { path: 'aerolinea/empleados/editar/:id', component: EmpleadoEditComponent },
       { path: 'aerolinea/tripulacion', component: PlaceholderComponent, data: { title: 'Tripulación' } },
       { path: 'aerolinea/aviones', component: PlaceholderComponent, data: { title: 'Aviones' } },
       { path: 'aerolinea/vuelos', component: PlaceholderComponent, data: { title: 'Vuelos (Aerolínea)' } },
