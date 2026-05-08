@@ -1,0 +1,52 @@
+<div class="page-root">
+  <main class="content">
+    <header class="topbar" aria-label="Encabezado">
+      <div class="topbar-left">
+        <div class="badge">A L P</div>
+        <div>
+          <h1 class="title">Crear aerolínea</h1>
+          <p class="subtitle">Registro de aerolíneas.</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-secondary" type="button" (click)="regresar()">Regresar</button>
+      </div>
+    </header>
+
+    <section class="card" aria-label="Formulario">
+      <div class="section">
+        <h2 class="section-title">Datos</h2>
+
+        <div class="form-grid">
+          <div class="field field-wide">
+            <label class="label">Nombre</label>
+            <input class="control" [(ngModel)]="form.nombre" />
+          </div>
+
+          <div class="field">
+            <label class="label">Código IATA</label>
+            <input class="control" [(ngModel)]="form.codigoIata" />
+          </div>
+
+          <div class="field">
+            <label class="label">Código ICAO</label>
+            <input class="control" [(ngModel)]="form.codigoIcao" />
+          </div>
+
+          <div class="field field-wide">
+            <label class="label">País</label>
+            <input class="control" [(ngModel)]="form.pais" />
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-primary" type="button" (click)="guardar()" [disabled]="cargando">
+            {{ cargando ? 'Guardando...' : 'Crear aerolínea' }}
+          </button>
+          <button class="btn-secondary" type="button" (click)="regresar()">Cancelar</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+

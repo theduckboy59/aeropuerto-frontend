@@ -23,18 +23,28 @@
       <nav class="nav" aria-label="Módulos">
         <details class="group" open>
           <summary class="group-title">Aerolínea</summary>
-          <div class="nav-subtitle">Personal</div>
-          <a class="nav-item" routerLink="/menu/aerolinea/empleados" routerLinkActive="active">Gestion Empleados</a>
-          <a class="nav-item" routerLink="/menu/aerolinea/tripulacion" routerLinkActive="active">Gestion tripulacion</a>
+          <details class="subgroup" open>
+            <summary class="subgroup-title">Administración</summary>
+            <a class="nav-item sub" routerLink="/menu/aerolinea/aerolineas" routerLinkActive="active">Gestión Aerolíneas</a>
+          </details>
 
-          <div class="nav-subtitle">Operacion Aerea</div>
-          <a class="nav-item" routerLink="/menu/aerolinea/aviones" routerLinkActive="active">Gestion avion</a>
-          <a class="nav-item" routerLink="/menu/aerolinea/vuelos" routerLinkActive="active">Gestion vuelo</a>
+          <details class="subgroup" open>
+            <summary class="subgroup-title">Personal</summary>
+            <a class="nav-item sub" routerLink="/menu/aerolinea/empleados" routerLinkActive="active">Gestión Empleados</a>
+            <a class="nav-item sub" routerLink="/menu/aerolinea/tripulacion" routerLinkActive="active">Gestión Tripulación</a>
+          </details>
 
-          <div class="nav-subtitle">Infraestructura</div>
-          <div class="nav-item">Gestion Aeropuertos</div>
-          <div class="nav-item">Gestion Puertas de embarque</div>
-          <div class="nav-item">Gestion Destinos autorizados</div>
+          <details class="subgroup" open>
+            <summary class="subgroup-title">Operación Aérea</summary>
+            <a class="nav-item sub" routerLink="/menu/aerolinea/aviones" routerLinkActive="active">Gestión Avión</a>
+            <a class="nav-item sub" routerLink="/menu/aerolinea/vuelos" routerLinkActive="active">Gestión Vuelo</a>
+          </details>
+
+          <details class="subgroup" open>
+            <summary class="subgroup-title">Infraestructura</summary>
+            <a class="nav-item sub" routerLink="/menu/aerolinea/aeropuertos" routerLinkActive="active">Gestión Aeropuertos</a>
+            <a class="nav-item sub" routerLink="/menu/aerolinea/destinos-autorizados" routerLinkActive="active">Gestión Destinos Autorizados</a>
+          </details>
         </details>
 
         <details class="group">
@@ -70,4 +80,3 @@
     </main>
   </div>
 </div>
-

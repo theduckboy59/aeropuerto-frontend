@@ -1,0 +1,96 @@
+<div class="page-root">
+  <main class="content">
+    <header class="topbar" aria-label="Encabezado">
+      <div class="topbar-left">
+        <div class="badge">A L P</div>
+        <div>
+          <h1 class="title">Editar aeropuerto</h1>
+          <p class="subtitle">Actualiza aeropuerto y puertas (envía lista completa).</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-secondary" type="button" (click)="regresar()">Regresar</button>
+      </div>
+    </header>
+
+    <section class="card" aria-label="Formulario">
+      <div class="section">
+        <h2 class="section-title">Datos del aeropuerto</h2>
+
+        <p class="muted" *ngIf="cargandoDetalle">Cargando...</p>
+
+        <div class="form-grid" *ngIf="!cargandoDetalle">
+          <div class="field field-wide">
+            <label class="label">Nombre</label>
+            <input class="control" [(ngModel)]="form.nombre" />
+          </div>
+
+          <div class="field">
+            <label class="label">Código IATA</label>
+            <input class="control" [(ngModel)]="form.codigoIata" />
+          </div>
+
+          <div class="field">
+            <label class="label">Código ICAO</label>
+            <input class="control" [(ngModel)]="form.codigoIcao" />
+          </div>
+
+          <div class="field">
+            <label class="label">País</label>
+            <input class="control" [(ngModel)]="form.pais" />
+          </div>
+
+          <div class="field">
+            <label class="label">Ciudad</label>
+            <input class="control" [(ngModel)]="form.ciudad" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-label="Puertas">
+      <div class="section">
+        <h2 class="section-title">Puertas de embarque</h2>
+
+        <div class="puertas-add">
+          <input
+            class="control"
+            [(ngModel)]="nuevaPuerta"
+            (keyup.enter)="agregarPuerta()"
+            placeholder="Ej: A1"
+          />
+          <button class="btn-secondary" type="button" (click)="agregarPuerta()">Agregar puerta</button>
+        </div>
+
+        <div class="table-wrap" *ngIf="!cargandoDetalle && puertas.length">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of puertas; let i = index">
+                <td>
+                  <input class="control" [(ngModel)]="puertas[i].codigo" placeholder="Código" />
+                </td>
+                <td class="table-actions">
+                  <button class="btn-secondary" type="button" (click)="quitarPuerta(i)">Quitar</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-primary" type="button" (click)="guardar()" [disabled]="cargando || cargandoDetalle">
+            {{ cargando ? 'Guardando...' : 'Guardar cambios' }}
+          </button>
+          <button class="btn-secondary" type="button" (click)="regresar()">Cancelar</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+

@@ -20,6 +20,15 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { PlaceholderComponent } from './pages/placeholder/placeholder.component';
 import { TripulacionComponent } from './pages/tripulacion/tripulacion.component';
 import { TripulacionCreateComponent } from './pages/tripulacion-create/tripulacion-create.component';
+import { AerolineasComponent } from './pages/aerolineas/aerolineas.component';
+import { AerolineaCreateComponent } from './pages/aerolinea-create/aerolinea-create.component';
+import { AerolineaEditComponent } from './pages/aerolinea-edit/aerolinea-edit.component';
+import { AeropuertosComponent } from './pages/aeropuertos/aeropuertos.component';
+import { AeropuertoCreateComponent } from './pages/aeropuerto-create/aeropuerto-create.component';
+import { AeropuertoEditComponent } from './pages/aeropuerto-edit/aeropuerto-edit.component';
+import { DestinosAutorizadosComponent } from './pages/destinos-autorizados/destinos-autorizados.component';
+import { DestinoAutorizadoCreateComponent } from './pages/destino-autorizado-create/destino-autorizado-create.component';
+import { DestinoAutorizadoEditComponent } from './pages/destino-autorizado-edit/destino-autorizado-edit.component';
 
 @NgModule({
   declarations: [
@@ -34,7 +43,16 @@ import { TripulacionCreateComponent } from './pages/tripulacion-create/tripulaci
     DashboardComponent,
     PlaceholderComponent,
     TripulacionComponent,
-    TripulacionCreateComponent
+    TripulacionCreateComponent,
+    AerolineasComponent,
+    AerolineaCreateComponent,
+    AerolineaEditComponent,
+    AeropuertosComponent,
+    AeropuertoCreateComponent,
+    AeropuertoEditComponent,
+    DestinosAutorizadosComponent,
+    DestinoAutorizadoCreateComponent,
+    DestinoAutorizadoEditComponent
   ],
   imports: [
     BrowserModule,

@@ -1,0 +1,50 @@
+<div class="page-root">
+  <main class="content">
+    <header class="topbar" aria-label="Encabezado">
+      <div class="topbar-left">
+        <div class="badge">A L P</div>
+        <div>
+          <h1 class="title">Editar destino autorizado</h1>
+          <p class="subtitle">Actualiza aerolínea y aeropuerto.</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-secondary" type="button" (click)="regresar()">Regresar</button>
+      </div>
+    </header>
+
+    <section class="card" aria-label="Formulario">
+      <div class="section">
+        <h2 class="section-title">Destino</h2>
+
+        <p class="muted" *ngIf="cargandoDetalle">Cargando...</p>
+
+        <div class="form-grid" *ngIf="!cargandoDetalle">
+          <div class="field">
+            <label class="label">Aerolínea</label>
+            <select class="control" [(ngModel)]="form.aerolineaId">
+              <option value="">Seleccione</option>
+              <option *ngFor="let a of aerolineas" [value]="a.id">{{ a.nombre || a.descripcion || a.label }}</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Aeropuerto</label>
+            <select class="control" [(ngModel)]="form.aeropuertoId">
+              <option value="">Seleccione</option>
+              <option *ngFor="let a of aeropuertos" [value]="a.id">{{ a.nombre || a.descripcion || a.label }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-primary" type="button" (click)="guardar()" [disabled]="cargando || cargandoDetalle">
+            {{ cargando ? 'Guardando...' : 'Guardar cambios' }}
+          </button>
+          <button class="btn-secondary" type="button" (click)="regresar()">Cancelar</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+

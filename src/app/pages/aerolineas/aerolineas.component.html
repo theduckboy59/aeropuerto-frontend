@@ -1,0 +1,84 @@
+<div class="page-root">
+  <main class="content">
+    <header class="topbar" aria-label="Encabezado">
+      <div class="topbar-left">
+        <div class="badge">A L P</div>
+        <div>
+          <h1 class="title">Aerolíneas</h1>
+          <p class="subtitle">Gestión de aerolíneas.</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-primary" type="button" (click)="crear()">Crear aerolínea</button>
+        <button class="btn-secondary" type="button" routerLink="/menu">Regresar</button>
+      </div>
+    </header>
+
+    <section class="card" aria-label="Búsqueda">
+      <div class="section">
+        <h2 class="section-title">Buscar</h2>
+
+        <div class="form-grid">
+          <div class="field field-wide">
+            <label class="label">Nombre</label>
+            <input
+              class="control"
+              [(ngModel)]="search.nombre"
+              (input)="onNombreChange()"
+              (keyup.enter)="buscar()"
+              placeholder="Ej: sky"
+            />
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-primary" type="button" (click)="buscar()">Buscar</button>
+          <button class="btn-secondary" type="button" (click)="limpiar()">Limpiar</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-label="Listado">
+      <div class="section">
+        <h2 class="section-title">Lista</h2>
+
+        <p class="muted" *ngIf="cargando">Cargando...</p>
+
+        <div class="table-wrap" *ngIf="!cargando && aerolineas.length; else empty">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>IATA</th>
+                <th>ICAO</th>
+                <th>País</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let a of aerolineas">
+                <td>{{ a.id }}</td>
+                <td>{{ a.nombre }}</td>
+                <td>{{ a.codigoIata }}</td>
+                <td>{{ a.codigoIcao }}</td>
+                <td>{{ a.pais }}</td>
+                <td>{{ a.estadoId ?? '-' }}</td>
+                <td class="table-actions">
+                  <button class="btn-secondary" type="button" (click)="editar(a)">Editar</button>
+                  <button class="btn-secondary" type="button" (click)="eliminar(a)">Eliminar</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <ng-template #empty>
+          <p class="muted">No hay aerolíneas para mostrar.</p>
+        </ng-template>
+      </div>
+    </section>
+  </main>
+</div>
+

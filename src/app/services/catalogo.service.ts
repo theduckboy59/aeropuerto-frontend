@@ -31,6 +31,10 @@ export class CatalogoService {
     return this.http.get<any[]>(`${this.api}/aerolineas`);
   }
 
+  aeropuerto() {
+    return this.http.get<any[]>(`${this.api}/aeropuerto`);
+  }
+
   turno() {
     return this.http.get<any[]>(`${this.api}/turno`);
   }
