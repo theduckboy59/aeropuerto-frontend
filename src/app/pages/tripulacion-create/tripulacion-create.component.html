@@ -1,0 +1,88 @@
+<div class="page-root">
+  <main class="content">
+    <header class="topbar" aria-label="Encabezado">
+      <div class="topbar-left">
+        <div class="badge">A L P</div>
+        <div>
+          <h1 class="title">Crear tripulacion</h1>
+          <p class="subtitle">Selecciona aerolinea e integrantes.</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-secondary" type="button" (click)="regresar()">Regresar</button>
+      </div>
+    </header>
+
+    <section class="card" aria-label="Formulario">
+      <div class="section">
+        <h2 class="section-title">Tripulacion</h2>
+
+        <div class="form-grid">
+          <div class="field">
+            <label class="label">Aerolinea</label>
+            <select class="control" [(ngModel)]="form.aerolineaId" (change)="onAerolineaChange()">
+              <option value="">Seleccione</option>
+              <option *ngFor="let a of aerolineas" [value]="a.id">{{ a.nombre || a.descripcion || a.label }}</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Piloto</label>
+            <select class="control" [(ngModel)]="form.pilotoId">
+              <option value="">Seleccione</option>
+              <option *ngFor="let e of getPilotos()" [value]="e.id">{{ getEmpleadoLabel(e) }}</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Copiloto</label>
+            <select class="control" [(ngModel)]="form.copilotoId">
+              <option value="">Seleccione</option>
+              <option *ngFor="let e of getCopilotos()" [value]="e.id">{{ getEmpleadoLabel(e) }}</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Ingeniero</label>
+            <select class="control" [(ngModel)]="form.ingenieroId">
+              <option value="">Seleccione</option>
+              <option *ngFor="let e of getIngenieros()" [value]="e.id">{{ getEmpleadoLabel(e) }}</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Cabina 1</label>
+            <select class="control" [(ngModel)]="form.cabina1Id">
+              <option value="">Seleccione</option>
+              <option *ngFor="let e of getCabina('cabina1Id')" [value]="e.id">{{ getEmpleadoLabel(e) }}</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Cabina 2</label>
+            <select class="control" [(ngModel)]="form.cabina2Id">
+              <option value="">Seleccione</option>
+              <option *ngFor="let e of getCabina('cabina2Id')" [value]="e.id">{{ getEmpleadoLabel(e) }}</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Cabina 3</label>
+            <select class="control" [(ngModel)]="form.cabina3Id">
+              <option value="">Seleccione</option>
+              <option *ngFor="let e of getCabina('cabina3Id')" [value]="e.id">{{ getEmpleadoLabel(e) }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-primary" type="button" (click)="guardar()" [disabled]="cargando">
+            {{ cargando ? 'Guardando...' : 'Crear tripulacion' }}
+          </button>
+          <button class="btn-secondary" type="button" (click)="regresar()">Cancelar</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>

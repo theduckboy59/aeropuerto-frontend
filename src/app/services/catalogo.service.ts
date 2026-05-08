@@ -15,8 +15,20 @@ export class CatalogoService {
     return this.http.get<any[]>(`${this.api}/tipo-empleado`);
   }
 
+  tiposEmpleado() {
+    return this.http.get<any[]>(`${this.api}/tipos-empleado`);
+  }
+
+  status() {
+    return this.http.get<any[]>(`${this.api}/status`);
+  }
+
   aerolinea() {
     return this.http.get<any[]>(`${this.api}/aerolinea`);
+  }
+
+  aerolineas() {
+    return this.http.get<any[]>(`${this.api}/aerolineas`);
   }
 
   turno() {

@@ -18,6 +18,9 @@ import { EmpleadoEditComponent } from './pages/empleado-edit/empleado-edit.compo
 import { RegisterComponent } from './pages/register/register.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { PlaceholderComponent } from './pages/placeholder/placeholder.component';
+import { TripulacionComponent } from './pages/tripulacion/tripulacion.component';
+import { TripulacionCreateComponent } from './pages/tripulacion-create/tripulacion-create.component';
+import { TripulacionEditComponent } from './pages/tripulacion-edit/tripulacion-edit.component';
 
 @NgModule({
   declarations: [
@@ -30,7 +33,10 @@ import { PlaceholderComponent } from './pages/placeholder/placeholder.component'
     EmpleadoEditComponent,
     RegisterComponent,
     DashboardComponent,
-    PlaceholderComponent
+    PlaceholderComponent,
+    TripulacionComponent,
+    TripulacionCreateComponent,
+    TripulacionEditComponent
   ],
   imports: [
     BrowserModule,

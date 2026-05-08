@@ -10,6 +10,9 @@ import { EmpleadoEditComponent } from './pages/empleado-edit/empleado-edit.compo
 import { RegisterComponent } from './pages/register/register.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { PlaceholderComponent } from './pages/placeholder/placeholder.component';
+import { TripulacionComponent } from './pages/tripulacion/tripulacion.component';
+import { TripulacionCreateComponent } from './pages/tripulacion-create/tripulacion-create.component';
+import { TripulacionEditComponent } from './pages/tripulacion-edit/tripulacion-edit.component';
 
 const routes: Routes = [
   { path: '', component: PortalComponent },
@@ -22,7 +25,9 @@ const routes: Routes = [
       { path: 'aerolinea/empleados', component: EmpleadosComponent },
       { path: 'aerolinea/empleados/nuevo', component: EmpleadoFormComponent },
       { path: 'aerolinea/empleados/editar/:id', component: EmpleadoEditComponent },
-      { path: 'aerolinea/tripulacion', component: PlaceholderComponent, data: { title: 'Tripulación' } },
+      { path: 'aerolinea/tripulacion', component: TripulacionComponent },
+      { path: 'aerolinea/tripulacion/nuevo', component: TripulacionCreateComponent },
+      { path: 'aerolinea/tripulacion/editar/:id', component: TripulacionEditComponent },
       { path: 'aerolinea/aviones', component: PlaceholderComponent, data: { title: 'Aviones' } },
       { path: 'aerolinea/vuelos', component: PlaceholderComponent, data: { title: 'Vuelos (Aerolínea)' } },
 
