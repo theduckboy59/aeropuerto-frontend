@@ -23,29 +23,39 @@
       <nav class="nav" aria-label="Módulos">
         <details class="group" open>
           <summary class="group-title">Aerolínea</summary>
-          <a class="nav-item" routerLink="/menu/aerolinea/empleados" routerLinkActive="active">Empleados</a>
-          <a class="nav-item" routerLink="/menu/aerolinea/tripulacion" routerLinkActive="active">Tripulación</a>
-          <a class="nav-item" routerLink="/menu/aerolinea/aviones" routerLinkActive="active">Aviones</a>
-          <a class="nav-item" routerLink="/menu/aerolinea/vuelos" routerLinkActive="active">Vuelos</a>
+          <div class="nav-subtitle">Personal</div>
+          <a class="nav-item" routerLink="/menu/aerolinea/empleados" routerLinkActive="active">Gestion Empleados</a>
+          <a class="nav-item" routerLink="/menu/aerolinea/tripulacion" routerLinkActive="active">Gestion tripulacion</a>
+
+          <div class="nav-subtitle">Operacion Aerea</div>
+          <a class="nav-item" routerLink="/menu/aerolinea/aviones" routerLinkActive="active">Gestion avion</a>
+          <a class="nav-item" routerLink="/menu/aerolinea/vuelos" routerLinkActive="active">Gestion vuelo</a>
+
+          <div class="nav-subtitle">Infraestructura</div>
+          <div class="nav-item">Gestion Aeropuertos</div>
+          <div class="nav-item">Gestion Puertas de embarque</div>
+          <div class="nav-item">Gestion Destinos autorizados</div>
         </details>
 
         <details class="group">
           <summary class="group-title">Vuelos</summary>
-          <a class="nav-item" routerLink="/menu/vuelos/reservar" routerLinkActive="active">Reservar</a>
-          <a class="nav-item" routerLink="/menu/vuelos/abordaje" routerLinkActive="active">Abordaje</a>
+          <a class="nav-item" routerLink="/menu/vuelos/reservar" routerLinkActive="active">Gestion Reservar vuelo</a>
+          <a class="nav-item" routerLink="/menu/vuelos/abordaje" routerLinkActive="active">Gestion Abordaje</a>
         </details>
 
         <details class="group">
           <summary class="group-title">Consultas</summary>
-          <a class="nav-item" routerLink="/menu/consultas/vuelos" routerLinkActive="active">Vuelos</a>
-          <a class="nav-item" routerLink="/menu/consultas/equipaje" routerLinkActive="active">Equipaje</a>
-          <a class="nav-item" routerLink="/menu/consultas/pasajeros" routerLinkActive="active">Pasajeros</a>
+          <a class="nav-item" routerLink="/menu/consultas/vuelos" routerLinkActive="active">Consulta vuelos</a>
+          <div class="nav-item">Reporte pasajeros</div>
+          <a class="nav-item" routerLink="/menu/consultas/equipaje" routerLinkActive="active">Reporte equipaje</a>
+          <div class="nav-item">Reporte aviones</div>
+          <div class="nav-item">Reporte aerolineas</div>
+          <div class="nav-item">Reporte destinos autorizados</div>
         </details>
 
         <details class="group">
           <summary class="group-title">Usuarios</summary>
-          <a class="nav-item" routerLink="/menu/usuarios/registro" routerLinkActive="active">Registro</a>
-          <a class="nav-item" routerLink="/menu/usuarios/login" routerLinkActive="active">Login</a>
+          <a class="nav-item" routerLink="/menu/usuarios/registro" routerLinkActive="active">Registro pasajero</a>
         </details>
       </nav>
 
