@@ -20,7 +20,19 @@ export class TripulacionService {
     return this.http.post(this.api, data);
   }
 
+  getTripulaciones() {
+    return this.http.get<any[]>(this.api);
+  }
+
+  getTripulacionesByAerolinea(aerolineaId: number) {
+    return this.http.get<any[]>(`${this.api}/aerolinea/${aerolineaId}`);
+  }
+
   getTripulacion(id: number) {
     return this.http.get(`${this.api}/${id}`);
+  }
+
+  actualizarEstado(id: number, estadoId: number) {
+    return this.http.put(`${this.api}/${id}/estado/${estadoId}`, {});
   }
 }

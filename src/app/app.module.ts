@@ -20,7 +20,6 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { PlaceholderComponent } from './pages/placeholder/placeholder.component';
 import { TripulacionComponent } from './pages/tripulacion/tripulacion.component';
 import { TripulacionCreateComponent } from './pages/tripulacion-create/tripulacion-create.component';
-import { TripulacionEditComponent } from './pages/tripulacion-edit/tripulacion-edit.component';
 
 @NgModule({
   declarations: [
@@ -35,8 +34,7 @@ import { TripulacionEditComponent } from './pages/tripulacion-edit/tripulacion-e
     DashboardComponent,
     PlaceholderComponent,
     TripulacionComponent,
-    TripulacionCreateComponent,
-    TripulacionEditComponent
+    TripulacionCreateComponent
   ],
   imports: [
     BrowserModule,
