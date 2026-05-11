@@ -1,0 +1,96 @@
+<div class="page-root">
+  <main class="content">
+    <header class="topbar" aria-label="Encabezado">
+      <div class="topbar-left">
+        <div class="badge">A L P</div>
+        <div>
+          <h1 class="title">Editar avión</h1>
+          <p class="subtitle">Actualice la información requerida.</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-secondary" type="button" (click)="regresar()">Regresar</button>
+      </div>
+    </header>
+
+    <section class="card" aria-label="Formulario">
+      <div class="section">
+        <h2 class="section-title">Datos del avión</h2>
+
+        <div class="form-grid">
+          <div class="field">
+            <label class="label">Aerolínea *</label>
+            <select class="control" [(ngModel)]="form.aerolineaId" name="aerolineaId">
+              <option value="">Seleccione</option>
+              <option *ngFor="let a of aerolineas" [value]="a.id">{{ a.nombre || a.descripcion || a.label }}</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Estado operativo *</label>
+            <select class="control" [(ngModel)]="form.estadoAvionId" name="estadoAvionId">
+              <option value="">Seleccione</option>
+              <option *ngFor="let e of estadosAvion" [value]="e.id">{{ e.nombre || e.codigo || e.label }}</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Modelo *</label>
+            <select class="control" [(ngModel)]="form.modeloAvionId" name="modeloAvionId" (change)="onModeloChange()">
+              <option value="">Seleccione</option>
+              <option *ngFor="let m of modelosAvion" [value]="m.id">{{ m.fabricante }} - {{ m.nombre }} ({{ m.codigoModelo }})</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Código avión *</label>
+            <input class="control" type="text" [(ngModel)]="form.codigoAvion" name="codigoAvion" />
+          </div>
+
+          <div class="field">
+            <label class="label">Número de serie</label>
+            <input class="control" type="text" [(ngModel)]="form.numeroSerie" name="numeroSerie" />
+          </div>
+
+          <div class="field">
+            <label class="label">Año *</label>
+            <input class="control" type="number" [(ngModel)]="form.anio" name="anio" />
+          </div>
+
+          <div class="field">
+            <label class="label">Filas configuradas *</label>
+            <input
+              class="control"
+              type="number"
+              [(ngModel)]="form.filasConfiguradas"
+              name="filasConfiguradas"
+              [placeholder]="modeloSeleccionado ? (modeloSeleccionado.filasMin + ' a ' + modeloSeleccionado.filasMax) : ''"
+            />
+          </div>
+
+          <div class="field">
+            <label class="label">EstadoId *</label>
+            <input class="control" type="number" [(ngModel)]="form.estadoId" name="estadoId" />
+          </div>
+        </div>
+
+        <div class="model-info" *ngIf="modeloSeleccionado as ms">
+          <div class="model-title">Información del modelo</div>
+          <div class="model-grid">
+            <div><span class="k">Fabricante:</span> {{ ms.fabricante }}</div>
+            <div><span class="k">Modelo:</span> {{ ms.nombre }}</div>
+            <div><span class="k">Configuración:</span> {{ ms.configuracion }}</div>
+            <div><span class="k">Columnas:</span> {{ ms.totalColumnas }}</div>
+            <div><span class="k">Filas permitidas:</span> {{ ms.filasMin }} a {{ ms.filasMax }}</div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-primary" type="button" (click)="guardar()" [disabled]="cargando">Guardar</button>
+          <button class="btn-secondary" type="button" (click)="regresar()">Cancelar</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+

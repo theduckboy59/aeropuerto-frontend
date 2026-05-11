@@ -20,14 +20,8 @@ export class DestinosAutorizadosComponent implements OnInit {
   filtros = {
     aerolineaId: '',
     aeropuertoId: '',
-    pais: '',
-    estadoId: ''
+    pais: ''
   };
-
-  estados = [
-    { id: 1, nombre: 'ACTIVO' },
-    { id: 2, nombre: 'INACTIVO' }
-  ];
 
   private searchTimer: any = null;
 
@@ -87,7 +81,7 @@ export class DestinosAutorizadosComponent implements OnInit {
   }
 
   limpiar() {
-    this.filtros = { aerolineaId: '', aeropuertoId: '', pais: '', estadoId: '' };
+    this.filtros = { aerolineaId: '', aeropuertoId: '', pais: '' };
     this.cargar();
   }
 

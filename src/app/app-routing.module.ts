@@ -21,6 +21,9 @@ import { AeropuertoEditComponent } from './pages/aeropuerto-edit/aeropuerto-edit
 import { DestinosAutorizadosComponent } from './pages/destinos-autorizados/destinos-autorizados.component';
 import { DestinoAutorizadoCreateComponent } from './pages/destino-autorizado-create/destino-autorizado-create.component';
 import { DestinoAutorizadoEditComponent } from './pages/destino-autorizado-edit/destino-autorizado-edit.component';
+import { AvionesComponent } from './pages/aviones/aviones.component';
+import { AvionCreateComponent } from './pages/avion-create/avion-create.component';
+import { AvionEditComponent } from './pages/avion-edit/avion-edit.component';
 
 const routes: Routes = [
   { path: '', component: PortalComponent },
@@ -44,7 +47,9 @@ const routes: Routes = [
       { path: 'aerolinea/destinos-autorizados', component: DestinosAutorizadosComponent },
       { path: 'aerolinea/destinos-autorizados/nuevo', component: DestinoAutorizadoCreateComponent },
       { path: 'aerolinea/destinos-autorizados/editar/:id', component: DestinoAutorizadoEditComponent },
-      { path: 'aerolinea/aviones', component: PlaceholderComponent, data: { title: 'Aviones' } },
+      { path: 'aerolinea/aviones', component: AvionesComponent },
+      { path: 'aerolinea/aviones/nuevo', component: AvionCreateComponent },
+      { path: 'aerolinea/aviones/editar/:id', component: AvionEditComponent },
       { path: 'aerolinea/vuelos', component: PlaceholderComponent, data: { title: 'Vuelos (Aerolínea)' } },
 
       { path: 'vuelos/reservar', component: PlaceholderComponent, data: { title: 'Reservar vuelo' } },

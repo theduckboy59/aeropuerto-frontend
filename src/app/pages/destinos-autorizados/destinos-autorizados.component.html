@@ -39,14 +39,6 @@
             <label class="label">País</label>
             <input class="control" [(ngModel)]="filtros.pais" (input)="onFiltroChange()" placeholder="Ej: guatemala" />
           </div>
-
-          <div class="field">
-            <label class="label">Estado</label>
-            <select class="control" [(ngModel)]="filtros.estadoId" (change)="cargar()">
-              <option value="">Todos</option>
-              <option *ngFor="let e of estados" [value]="e.id">{{ e.nombre }}</option>
-            </select>
-          </div>
         </div>
 
         <div class="form-actions">
@@ -69,7 +61,6 @@
                 <th>Aeropuerto</th>
                 <th>País</th>
                 <th>Fecha</th>
-                <th>Estado</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -79,7 +70,6 @@
                 <td>{{ getAeropuertoLabel(d) }}</td>
                 <td>{{ d.pais || '-' }}</td>
                 <td>{{ d.fechaAutorizacion || '-' }}</td>
-                <td>{{ d.estadoId ?? '-' }}</td>
                 <td class="table-actions">
                   <button class="btn-secondary" type="button" (click)="editar(d)">Editar</button>
                   <button class="btn-secondary" type="button" (click)="eliminar(d)">Eliminar</button>
