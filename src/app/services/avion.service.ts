@@ -13,6 +13,7 @@ export interface Avion {
   numeroSerie?: string;
   anio: number;
   filasConfiguradas: number;
+  cantidadVuelos?: number;
   estadoId: number;
   createdAt?: string;
   updatedAt?: string;

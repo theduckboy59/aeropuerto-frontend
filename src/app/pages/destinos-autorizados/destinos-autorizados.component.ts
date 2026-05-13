@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CatalogoService } from '../../services/catalogo.service';
 import { DestinoAutorizado, DestinosAutorizadosService } from '../../services/destinos-autorizados.service';
+import { getApiErrorMessage } from '../../services/shared/api-error.util';
 
 @Component({
   selector: 'app-destinos-autorizados',
@@ -69,7 +70,7 @@ export class DestinosAutorizadosComponent implements OnInit {
       },
       error: (e) => {
         this.cargando = false;
-        const message = e.error?.message || 'Error al cargar destinos autorizados';
+        const message = getApiErrorMessage(e, 'Error al cargar destinos autorizados');
         alert(message);
       }
     });
@@ -104,7 +105,7 @@ export class DestinosAutorizadosComponent implements OnInit {
         this.cargar();
       },
       error: (e) => {
-        const message = e.error?.message || 'Error al eliminar destino autorizado';
+        const message = getApiErrorMessage(e, 'Error al eliminar destino autorizado');
         alert(message);
       }
     });

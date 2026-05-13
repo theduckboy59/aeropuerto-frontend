@@ -5,6 +5,7 @@ import { forkJoin } from 'rxjs';
 import { Avion, AvionService } from '../../services/avion.service';
 import { CatalogoService } from '../../services/catalogo.service';
 import { ModeloAvion, ModeloAvionService } from '../../services/modelo-avion.service';
+import { getApiErrorMessage } from '../../services/shared/api-error.util';
 
 @Component({
   selector: 'app-aviones',
@@ -70,7 +71,7 @@ export class AvionesComponent implements OnInit {
       error: (err) => {
         console.error(err);
         this.cargandoCatalogos = false;
-        alert('Error cargando catálogos');
+        alert(getApiErrorMessage(err, 'Error cargando catálogos'));
       }
     });
   }
@@ -87,7 +88,7 @@ export class AvionesComponent implements OnInit {
       error: (err) => {
         console.error(err);
         this.cargandoAviones = false;
-        alert('Error cargando aviones');
+        alert(getApiErrorMessage(err, 'Error cargando aviones'));
       }
     });
   }
@@ -110,7 +111,7 @@ export class AvionesComponent implements OnInit {
       },
       error: (err) => {
         console.error(err);
-        alert(err.error?.message || 'Error al eliminar avión');
+        alert(getApiErrorMessage(err, 'Error al eliminar avión'));
       }
     });
   }

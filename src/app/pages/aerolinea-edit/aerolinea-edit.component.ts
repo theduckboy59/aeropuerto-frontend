@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AerolineasService } from '../../services/aerolineas.service';
+import { getApiErrorMessage } from '../../services/shared/api-error.util';
 
 @Component({
   selector: 'app-aerolinea-edit',
@@ -54,7 +55,7 @@ export class AerolineaEditComponent implements OnInit {
       },
       error: (e) => {
         this.cargandoDetalle = false;
-        const message = e.error?.message || 'Error al cargar aerolínea';
+        const message = getApiErrorMessage(e, 'Error al cargar aerolínea');
         alert(message);
         this.regresar();
       }
@@ -85,7 +86,7 @@ export class AerolineaEditComponent implements OnInit {
       },
       error: (e) => {
         this.cargando = false;
-        const message = e.error?.message || 'Error al editar aerolínea';
+        const message = getApiErrorMessage(e, 'Error al editar aerolínea');
         alert(message);
       }
     });

@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
+import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
+import { getApiErrorMessage } from '../../services/shared/api-error.util';
 
 @Component({
   selector: 'app-register',
@@ -10,14 +10,14 @@ import { Router } from '@angular/router';
 })
 export class RegisterComponent {
 
-  private api = `${environment.apiUrl}/auth/register`;
-
   showPassword: boolean = false;
+  loading = false;
+  errorMessage = '';
 
   form: any = this.getEmptyForm();
 
   constructor(
-    private http: HttpClient,
+    private authService: AuthService,
     private router: Router
   ) {}
 
@@ -39,8 +39,7 @@ export class RegisterComponent {
 
   limitarPasaporte() {
     const value = (this.form.pasaporte ?? '').toString();
-    const digitsOnly = value.replace(/\D+/g, '');
-    this.form.pasaporte = digitsOnly.substring(0, 15);
+    this.form.pasaporte = value.substring(0, 15);
   }
 
   bloquearPasaporteSiCompleto(event: KeyboardEvent) {
@@ -58,11 +57,6 @@ export class RegisterComponent {
       tecla === 'End';
     if (esControl) return;
 
-    if (!/^\d$/.test(tecla)) {
-      event.preventDefault();
-      return;
-    }
-
     const input = event.target as HTMLInputElement | null;
     if (!input) return;
 
@@ -75,16 +69,20 @@ export class RegisterComponent {
   }
 
   register() {
-    this.http.post<any>(this.api, this.form).subscribe({
-      next: (res) => {
+    this.loading = true;
+    this.errorMessage = '';
 
-        alert(res.message);
+    this.authService.registerPassenger(this.form).subscribe({
+      next: (res) => {
+        this.loading = false;
+        alert(res.message || 'Se ha creado con exito el usuario.');
         this.form = this.getEmptyForm();
-        this.router.navigate(['/portal']);
+        this.router.navigate(['/login']);
       },
       error: (e) => {
-        const message = e.error?.message || 'Error inesperado';
-        alert(message);
+        this.loading = false;
+        this.errorMessage = getApiErrorMessage(e, 'Error inesperado durante el registro');
+        console.error('Error:', e);
       }
     });
   }

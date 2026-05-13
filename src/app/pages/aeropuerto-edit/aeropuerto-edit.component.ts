@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AeropuertosService } from '../../services/aeropuertos.service';
+import { getApiErrorMessage } from '../../services/shared/api-error.util';
 
 @Component({
   selector: 'app-aeropuerto-edit',
@@ -61,7 +62,7 @@ export class AeropuertoEditComponent implements OnInit {
       },
       error: (e) => {
         this.cargandoDetalle = false;
-        const message = e.error?.message || 'Error al cargar aeropuerto';
+        const message = getApiErrorMessage(e, 'Error al cargar aeropuerto');
         alert(message);
         this.regresar();
       }
@@ -108,7 +109,7 @@ export class AeropuertoEditComponent implements OnInit {
       },
       error: (e) => {
         this.cargando = false;
-        const message = e.error?.message || 'Error al editar aeropuerto';
+        const message = getApiErrorMessage(e, 'Error al editar aeropuerto');
         alert(message);
       }
     });

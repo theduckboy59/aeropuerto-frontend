@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AeropuertosService } from '../../services/aeropuertos.service';
+import { getApiErrorMessage } from '../../services/shared/api-error.util';
 
 @Component({
   selector: 'app-aeropuerto-create',
@@ -64,7 +65,7 @@ export class AeropuertoCreateComponent {
       },
       error: (e) => {
         this.cargando = false;
-        const message = e.error?.message || 'Error al crear aeropuerto';
+        const message = getApiErrorMessage(e, 'Error al crear aeropuerto');
         alert(message);
       }
     });

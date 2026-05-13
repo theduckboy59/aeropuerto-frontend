@@ -39,16 +39,6 @@
           </div>
 
           <div class="field">
-            <label class="label">Fecha Ingreso</label>
-            <input class="control" type="date" [(ngModel)]="form.fechaIngreso" />
-          </div>
-
-          <div class="field">
-            <label class="label">Fecha Vencimiento Licencia</label>
-            <input class="control" type="date" [(ngModel)]="form.fechaVencimientoLicencia" />
-          </div>
-
-          <div class="field">
             <label class="label">Tipo Empleado</label>
             <select class="control" [(ngModel)]="form.tipoEmpleadoId">
               <option value="">Seleccione</option>
@@ -62,6 +52,16 @@
               <option value="">Seleccione</option>
               <option *ngFor="let a of aerolinea" [value]="a.id">{{ a.nombre }}</option>
             </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Fecha Ingreso</label>
+            <input class="control" type="date" [(ngModel)]="form.fechaIngreso" />
+          </div>
+
+          <div class="field">
+            <label class="label">Fecha Salida <span style="color: #999; font-size: 0.9em;">(Opcional)</span></label>
+            <input class="control" type="date" [(ngModel)]="form.fechaSalida" />
           </div>
 
           <div class="field">
@@ -97,11 +97,16 @@
           </div>
 
           <div class="field">
-            <label class="label">Licencia</label>
+            <label class="label">Licencia <span style="color: #999; font-size: 0.9em;">(Opcional)</span></label>
             <select class="control" [(ngModel)]="form.licenciaId">
               <option value="">Seleccione</option>
               <option *ngFor="let l of licencia" [value]="l.id">{{ l.nombre }}</option>
             </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Fecha Vencimiento Licencia <span style="color: #999; font-size: 0.9em;">(Opcional)</span></label>
+            <input class="control" type="date" [(ngModel)]="form.fechaVencimientoLicencia" />
           </div>
         </div>
 

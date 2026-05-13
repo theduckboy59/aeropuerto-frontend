@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CatalogoService } from '../../services/catalogo.service';
 import { TripulacionService } from '../../services/tripulacion.service';
+import { getApiErrorMessage } from '../../services/shared/api-error.util';
 
 @Component({
   selector: 'app-tripulacion',
@@ -67,7 +68,7 @@ export class TripulacionComponent implements OnInit {
       },
       error: (e) => {
         this.cargando = false;
-        const message = e.error?.message || 'Error al cargar tripulaciones';
+        const message = getApiErrorMessage(e, 'Error al cargar tripulaciones');
         alert(message);
       }
     });
@@ -97,7 +98,7 @@ export class TripulacionComponent implements OnInit {
       },
       error: (e) => {
         this.cargandoDetalle = false;
-        const message = e.error?.message || 'Error al cargar detalle';
+        const message = getApiErrorMessage(e, 'Error al cargar detalle');
         alert(message);
       }
     });
@@ -120,7 +121,7 @@ export class TripulacionComponent implements OnInit {
         this.aplicarFiltroEstado();
       },
       error: (e) => {
-        const message = e.error?.message || 'Error al cambiar estado';
+        const message = getApiErrorMessage(e, 'Error al cambiar estado');
         alert(message);
       }
     });

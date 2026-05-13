@@ -1,0 +1,90 @@
+<div class="page-root">
+  <main class="content">
+    <header class="topbar" aria-label="Encabezado">
+      <div class="topbar-left">
+        <div class="badge">A L P</div>
+        <div>
+          <h1 class="title">Pasajeros</h1>
+          <p class="subtitle">Listado, edición de estado e inactivación.</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-secondary" type="button" routerLink="/menu">Regresar</button>
+      </div>
+    </header>
+
+    <section class="card" aria-label="Filtros de pasajeros">
+      <div class="section">
+        <h2 class="section-title">Filtros</h2>
+        <div class="form-grid">
+          <div class="field">
+            <label class="label">Pasaporte</label>
+            <input class="control" [(ngModel)]="filtros.pasaporte" />
+          </div>
+          <div class="field">
+            <label class="label">Nombre</label>
+            <input class="control" [(ngModel)]="filtros.nombre" />
+          </div>
+          <div class="field">
+            <label class="label">Nacionalidad</label>
+            <input class="control" [(ngModel)]="filtros.nacionalidad" />
+          </div>
+          <div class="field">
+            <label class="label">Estado</label>
+            <select class="control" [(ngModel)]="filtros.estadoId">
+              <option value="">Todos</option>
+              <option value="1">Activo</option>
+              <option value="2">Inactivo</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-primary" type="button" (click)="aplicarFiltros()">Buscar</button>
+          <button class="btn-secondary" type="button" (click)="limpiarFiltros()">Limpiar</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-label="Listado de pasajeros">
+      <div class="section">
+        <h2 class="section-title">Lista de pasajeros</h2>
+
+        <div *ngIf="loading">Cargando pasajeros...</div>
+        <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+        <div class="table-wrap" *ngIf="!loading">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Pasaporte</th>
+                <th>Nombre</th>
+                <th>Fecha Nacimiento</th>
+                <th>Nacionalidad</th>
+                <th>Teléfono</th>
+                <th>Emergencia</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let pasajero of pasajeros">
+                <td>{{ pasajero.pasaporte }}</td>
+                <td>{{ pasajero.nombreCompleto }}</td>
+                <td>{{ pasajero.fechaNacimiento }}</td>
+                <td>{{ pasajero.nacionalidad }}</td>
+                <td>{{ pasajero.telefono }}</td>
+                <td>{{ pasajero.telefonoEmergencia }}</td>
+                <td>{{ getEstadoLabel(pasajero) }}</td>
+                <td class="table-actions">
+                  <button class="btn-secondary" type="button" (click)="editar(pasajero.id)">Editar</button>
+                  <button class="btn-danger" type="button" (click)="eliminar(pasajero.id)">Eliminar</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>

@@ -1,1 +1,114 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global airport theme */
+:root {
+	--alp-blue-900: #0b2a5b;
+	--alp-blue-700: #0f4da8;
+	--alp-blue-600: #1d63c9;
+	--alp-sky-500: #17a7e0;
+	--alp-sky-300: #8ed9f8;
+	--alp-cloud: #f3f9ff;
+	--alp-border: #b8d8ef;
+	--alp-ink: #0f2544;
+	--alp-muted: #4d6c8d;
+	--alp-accent: #ffd166;
+	--alp-danger: #d64545;
+}
+
+html,
+body {
+	margin: 0;
+	padding: 0;
+}
+
+body {
+	color: var(--alp-ink);
+	background:
+		radial-gradient(circle at 8% -10%, rgba(141, 218, 248, 0.45), transparent 36%),
+		radial-gradient(circle at 88% 4%, rgba(23, 167, 224, 0.18), transparent 32%),
+		linear-gradient(180deg, #f9fcff 0%, #eef6fd 100%);
+}
+
+/* Shared page language for CRUD modules */
+.page-root {
+	background:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.96));
+}
+
+.page-root .topbar .title {
+	color: var(--alp-blue-900);
+}
+
+.page-root .topbar .subtitle {
+	color: var(--alp-muted);
+}
+
+.page-root .badge {
+	background: linear-gradient(135deg, #eaf6ff, #d8efff) !important;
+	border-color: #9fcced !important;
+	color: var(--alp-blue-900) !important;
+	box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.75);
+}
+
+.page-root .card {
+	background: linear-gradient(180deg, #ffffff, #f8fcff) !important;
+	border-color: var(--alp-border) !important;
+	box-shadow: 0 6px 18px rgba(15, 77, 168, 0.08), 0 1px 0 rgba(15, 77, 168, 0.08) !important;
+}
+
+.page-root .section-title,
+.page-root .label {
+	color: var(--alp-blue-900) !important;
+}
+
+.page-root .control {
+	border-color: #b7d5ea !important;
+	background: #ffffff !important;
+}
+
+.page-root .control:focus {
+	border-color: var(--alp-sky-500) !important;
+	box-shadow: 0 0 0 3px rgba(23, 167, 224, 0.16) !important;
+}
+
+.page-root .table-wrap {
+	border-color: var(--alp-border) !important;
+}
+
+.page-root .table th {
+	background: linear-gradient(180deg, #eaf6ff, #dff1ff) !important;
+	color: var(--alp-blue-900) !important;
+	border-bottom-color: #b8d8ef !important;
+}
+
+.page-root .table td {
+	border-bottom-color: #d7e8f5 !important;
+}
+
+.page-root .btn-primary {
+	background: linear-gradient(180deg, var(--alp-blue-600), var(--alp-blue-700)) !important;
+	border: 1px solid #0f4da8 !important;
+	color: #ffffff !important;
+}
+
+.page-root .btn-secondary {
+	background: linear-gradient(180deg, #ffffff, #edf7ff) !important;
+	border-color: #9fcced !important;
+	color: var(--alp-blue-900) !important;
+}
+
+.page-root .btn-danger {
+	background: linear-gradient(180deg, #ec5f5f, var(--alp-danger)) !important;
+	border: 1px solid #c63e3e !important;
+	color: #ffffff !important;
+}
+
+.page-root .btn-primary:hover,
+.page-root .btn-secondary:hover,
+.page-root .btn-danger:hover {
+	filter: saturate(1.08) brightness(1.02) !important;
+}
+
+.page-root .alert-danger {
+	background: linear-gradient(180deg, #fff6f0, #fff0ea) !important;
+	border-color: #ffcfbf !important;
+	color: #9e3d2a !important;
+}

@@ -1,0 +1,78 @@
+<div class="page-root">
+  <main class="content">
+    <header class="topbar" aria-label="Encabezado">
+      <div class="topbar-left">
+        <div class="badge">A L P</div>
+        <div>
+          <h1 class="title">Editar pasajero</h1>
+          <p class="subtitle">Cambiar datos y estado del pasajero.</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-secondary" type="button" (click)="cancelar()">Regresar</button>
+      </div>
+    </header>
+
+    <section class="card">
+      <div class="section">
+        <div *ngIf="loading">Cargando pasajero...</div>
+        <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+        <div class="form-grid" *ngIf="!loading">
+          <div class="field">
+            <label class="label">Pasaporte</label>
+            <input class="control" [(ngModel)]="form.pasaporte" />
+          </div>
+
+          <div class="field field-wide">
+            <label class="label">Nombre Completo</label>
+            <input class="control" [(ngModel)]="form.nombreCompleto" />
+          </div>
+
+          <div class="field">
+            <label class="label">Fecha Nacimiento</label>
+            <input class="control" type="date" [(ngModel)]="form.fechaNacimiento" />
+          </div>
+
+          <div class="field">
+            <label class="label">Nacionalidad</label>
+            <input class="control" [(ngModel)]="form.nacionalidad" />
+          </div>
+
+          <div class="field">
+            <label class="label">Código Área</label>
+            <input class="control" [(ngModel)]="form.codigoArea" />
+          </div>
+
+          <div class="field">
+            <label class="label">Teléfono</label>
+            <input class="control" [(ngModel)]="form.telefono" />
+          </div>
+
+          <div class="field">
+            <label class="label">Teléfono Emergencia</label>
+            <input class="control" [(ngModel)]="form.telefonoEmergencia" />
+          </div>
+
+          <div class="field">
+            <label class="label">Dirección</label>
+            <input class="control" [(ngModel)]="form.direccion" />
+          </div>
+
+          <div class="field">
+            <label class="label">Estado</label>
+            <select class="control" [(ngModel)]="form.estadoId">
+              <option value="1">Activo</option>
+              <option value="2">Inactivo</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-primary" type="button" (click)="guardar()">Guardar cambios</button>
+          <button class="btn-secondary" type="button" (click)="cancelar()">Cancelar</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>

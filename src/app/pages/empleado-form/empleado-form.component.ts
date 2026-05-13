@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CatalogoService } from '../../services/catalogo.service';
 import { EmpleadoService } from '../../services/empleado.service';
+import { getApiErrorMessage } from '../../services/shared/api-error.util';
 
 @Component({
   selector: 'app-empleado-form',
@@ -38,12 +39,13 @@ export class EmpleadoFormComponent implements OnInit {
       aerolineaId: '',
       nombreCompleto: '',
       fechaIngreso: '',
+      fechaSalida: '',              // OPCIONAL
       turnoId: '',
       nivelAccesoId: '',
       rolId: '',
       areaId: '',
-      licenciaId: '',
-      fechaVencimientoLicencia: ''
+      licenciaId: '',               // OPCIONAL
+      fechaVencimientoLicencia: ''  // OPCIONAL
     };
   }
 
@@ -58,6 +60,7 @@ export class EmpleadoFormComponent implements OnInit {
   }
 
   guardar() {
+    // CAMPOS OBLIGATORIOS
     const requiredFields = [
       { key: 'username', label: 'Usuario' },
       { key: 'email', label: 'Email' },
@@ -69,11 +72,10 @@ export class EmpleadoFormComponent implements OnInit {
       { key: 'turnoId', label: 'Turno' },
       { key: 'nivelAccesoId', label: 'Nivel Acceso' },
       { key: 'rolId', label: 'Rol' },
-      { key: 'areaId', label: 'Área' },
-      { key: 'licenciaId', label: 'Licencia' },
-      { key: 'fechaVencimientoLicencia', label: 'Fecha Vencimiento Licencia' }
+      { key: 'areaId', label: 'Área' }
     ];
 
+    // Validar obligatorios
     const faltante = requiredFields.find(field => {
       const value = this.form[field.key];
       return value === null || value === undefined || value === '';
@@ -84,16 +86,44 @@ export class EmpleadoFormComponent implements OnInit {
       return;
     }
 
-    this.service.crearEmpleado(this.form).subscribe({
+    // PREPARAR DATOS: solo enviar campos con valor
+    const datosAEnviar = this.prepararDatos();
+
+    console.log('JSON a enviar:', datosAEnviar);
+
+    this.service.crearEmpleado(datosAEnviar).subscribe({
       next: () => {
-        alert('Empleado creado');
+        alert('Empleado creado exitosamente');
         this.router.navigate(['/menu/aerolinea/empleados']);
       },
       error: (e) => {
-        const message = e.error?.message || 'Error inesperado';
+        const message = getApiErrorMessage(e, 'Error inesperado');
         alert(message);
       }
     });
+  }
+
+  /**
+   * Prepara los datos para enviar al backend
+   * Solo incluye campos opcionales si tienen valor
+   */
+  private prepararDatos(): any {
+    const datos: any = { ...this.form };
+
+    // Si no tiene valor, no enviar campos opcionales
+    if (!datos.fechaSalida) {
+      delete datos.fechaSalida;
+    }
+
+    if (!datos.licenciaId || datos.licenciaId === '') {
+      delete datos.licenciaId;
+    }
+
+    if (!datos.fechaVencimientoLicencia) {
+      delete datos.fechaVencimientoLicencia;
+    }
+
+    return datos;
   }
 
   regresar() {

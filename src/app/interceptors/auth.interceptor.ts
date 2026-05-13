@@ -9,20 +9,32 @@ import {
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
 
-  constructor(private router: Router) {}
+  // URLs públicas que no requieren autenticación
+  private publicUrls = [
+    '/auth/login',
+    '/auth/register',
+    '/catalogos/',
+    '/vuelos/consulta/'
+  ];
+
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {}
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
 
-    // No interceptar login
-    if (req.url.includes('/auth/login')) {
+    // No interceptar URLs públicas
+    if (this.isPublicUrl(req.url)) {
       return next.handle(req);
     }
 
-    const token = localStorage.getItem('token');
+    const token = this.authService.getToken();
 
     let clonedReq = req;
 
@@ -39,12 +51,22 @@ export class AuthInterceptor implements HttpInterceptor {
 
         if (error.status === 401) {
           // Token expirado o inválido
-          localStorage.removeItem('token');
+          this.authService.logout();
           this.router.navigate(['/login']);
+        } else if (error.status === 403) {
+          // Acceso denegado por roles
+          this.router.navigate(['/menu']);
         }
 
         return throwError(() => error);
       })
     );
+  }
+
+  /**
+   * Verifica si la URL es pública
+   */
+  private isPublicUrl(url: string): boolean {
+    return this.publicUrls.some(publicUrl => url.includes(publicUrl));
   }
 }

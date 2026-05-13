@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { AerolineasService } from '../../services/aerolineas.service';
+import { getApiErrorMessage } from '../../services/shared/api-error.util';
 
 @Component({
   selector: 'app-aerolinea-create',
@@ -45,7 +46,7 @@ export class AerolineaCreateComponent {
       },
       error: (e) => {
         this.cargando = false;
-        const message = e.error?.message || 'Error al crear aerolínea';
+        const message = getApiErrorMessage(e, 'Error al crear aerolínea');
         alert(message);
       }
     });

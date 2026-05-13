@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { EmpleadoService } from '../../services/empleado.service';
 import { CatalogoService } from '../../services/catalogo.service';
+import { getApiErrorMessage } from '../../services/shared/api-error.util';
 
 @Component({
   selector: 'app-empleados',
@@ -53,7 +54,7 @@ export class EmpleadosComponent implements OnInit {
         this.empleados = data;
       },
       error: (e) => {
-        const message = e.error?.message || 'Error al listar empleados';
+        const message = getApiErrorMessage(e, 'Error al listar empleados');
         alert(message);
       }
     });
@@ -108,7 +109,7 @@ export class EmpleadosComponent implements OnInit {
           this.cargar();
         },
         error: (e) => {
-          const message = e.error?.message || 'Error al eliminar empleado';
+          const message = getApiErrorMessage(e, 'Error al eliminar empleado');
           alert(message);
         }
       });

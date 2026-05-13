@@ -1,0 +1,106 @@
+<div class="page-root">
+  <main class="content">
+    <header class="topbar" aria-label="Encabezado">
+      <div class="topbar-left">
+        <div class="badge">A L P</div>
+        <div>
+          <h1 class="title">Configurar clases por filas</h1>
+          <p class="subtitle">Define rangos de filas por clase (sin crear asientos manualmente).</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-primary" type="button" (click)="nuevo()">Nuevo</button>
+        <button class="btn-secondary" type="button" routerLink="/menu">Regresar</button>
+      </div>
+    </header>
+
+    <section class="card" aria-label="Filtros">
+      <div class="section">
+        <h2 class="section-title">Filtros</h2>
+
+        <div class="form-grid">
+          <div class="field">
+            <label class="label">Avión</label>
+            <select class="control" [(ngModel)]="filtros.avionId" name="avionId" (change)="buscar()">
+              <option value="">Todos</option>
+              <option *ngFor="let a of aviones" [value]="a.id">{{ a.codigoAvion }} - {{ a.filasConfiguradas }} filas</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Clase de vuelo</label>
+            <select class="control" [(ngModel)]="filtros.claseVueloId" name="claseVueloId" (change)="buscar()">
+              <option value="">Todas</option>
+              <option *ngFor="let c of clasesVuelo" [value]="c.id">{{ c.nombre || c.descripcion || c.label }}</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Estado</label>
+            <select class="control" [(ngModel)]="filtros.activo" name="activo" (change)="buscar()">
+              <option value="">Todos</option>
+              <option value="true">Activo</option>
+              <option value="false">Inactivo</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-primary" type="button" (click)="buscar()">Buscar</button>
+          <button class="btn-secondary" type="button" (click)="limpiar()">Limpiar</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-label="Listado">
+      <div class="section">
+        <h2 class="section-title">Configuraciones</h2>
+
+        <p class="muted" *ngIf="cargando">Cargando...</p>
+        <p class="muted" *ngIf="!cargando && errorMsg">{{ errorMsg }}</p>
+
+        <div class="table-wrap" *ngIf="!cargando && !errorMsg && configs.length; else empty">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Avión</th>
+                <th>Clase</th>
+                <th>Fila desde</th>
+                <th>Fila hasta</th>
+                <th>Estado</th>
+                <th>Actualización</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of configs">
+                <td>{{ c.id }}</td>
+                <td>{{ avionMap[c.avionId] || c.avionId }}</td>
+                <td>{{ claseMap[c.claseVueloId] || c.claseVueloId }}</td>
+                <td>{{ c.filaDesde }}</td>
+                <td>{{ c.filaHasta }}</td>
+                <td>{{ getEstadoLabel(c.activo) }}</td>
+                <td>{{ getFechaActualizacion(c) }}</td>
+                <td class="table-actions">
+                  <button class="btn-secondary" type="button" (click)="editar(c.id)">Editar</button>
+                  <button class="btn-danger" type="button" (click)="desactivar(c)" *ngIf="c.activo">Desactivar</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <ng-template #empty>
+          <p class="muted" *ngIf="!errorMsg">No hay configuraciones para mostrar.</p>
+        </ng-template>
+
+        <div class="pager" *ngIf="totalPages > 1">
+          <button class="btn-secondary" type="button" (click)="cambiarPagina(-1)" [disabled]="page === 0">Anterior</button>
+          <div class="pager-info">Página {{ page + 1 }} de {{ totalPages }} ({{ totalElements }} registros)</div>
+          <button class="btn-secondary" type="button" (click)="cambiarPagina(1)" [disabled]="page + 1 >= totalPages">Siguiente</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>

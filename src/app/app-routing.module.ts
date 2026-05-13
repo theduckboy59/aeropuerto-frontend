@@ -24,48 +24,219 @@ import { DestinoAutorizadoEditComponent } from './pages/destino-autorizado-edit/
 import { AvionesComponent } from './pages/aviones/aviones.component';
 import { AvionCreateComponent } from './pages/avion-create/avion-create.component';
 import { AvionEditComponent } from './pages/avion-edit/avion-edit.component';
+import { ConfigClaseFilasAvionComponent } from './pages/config-clase-filas-avion/config-clase-filas-avion.component';
+import { ConfigClaseFilasAvionCreateComponent } from './pages/config-clase-filas-avion-create/config-clase-filas-avion-create.component';
+import { ConfigClaseFilasAvionEditComponent } from './pages/config-clase-filas-avion-edit/config-clase-filas-avion-edit.component';
+import { AsientoUbiComponent } from './pages/asiento-ubi/asiento-ubi.component';
+import { PasajerosComponent } from './pages/pasajeros/pasajeros.component';
+import { PasajeroEditComponent } from './pages/pasajero-edit/pasajero-edit.component';
+import { EditPasajerosComponent } from './pages/edit-pasajeros/edit-pasajeros.component';
+import { RoleGuard } from './guards/role.guard';
 
 const routes: Routes = [
   { path: '', component: PortalComponent },
   { path: 'login', component: LoginComponent },
+  { path: 'register', component: RegisterComponent },
+  { path: 'portal', component: PortalComponent },
   {
     path: 'menu',
     component: MenuComponent,
+    canActivate: [RoleGuard],
     children: [
       { path: '', component: DashboardComponent },
-      { path: 'aerolinea/empleados', component: EmpleadosComponent },
-      { path: 'aerolinea/empleados/nuevo', component: EmpleadoFormComponent },
-      { path: 'aerolinea/empleados/editar/:id', component: EmpleadoEditComponent },
-      { path: 'aerolinea/tripulacion', component: TripulacionComponent },
-      { path: 'aerolinea/tripulacion/nuevo', component: TripulacionCreateComponent },
-      { path: 'aerolinea/aerolineas', component: AerolineasComponent },
-      { path: 'aerolinea/aerolineas/nuevo', component: AerolineaCreateComponent },
-      { path: 'aerolinea/aerolineas/editar/:id', component: AerolineaEditComponent },
-      { path: 'aerolinea/aeropuertos', component: AeropuertosComponent },
-      { path: 'aerolinea/aeropuertos/nuevo', component: AeropuertoCreateComponent },
-      { path: 'aerolinea/aeropuertos/editar/:id', component: AeropuertoEditComponent },
-      { path: 'aerolinea/destinos-autorizados', component: DestinosAutorizadosComponent },
-      { path: 'aerolinea/destinos-autorizados/nuevo', component: DestinoAutorizadoCreateComponent },
-      { path: 'aerolinea/destinos-autorizados/editar/:id', component: DestinoAutorizadoEditComponent },
-      { path: 'aerolinea/aviones', component: AvionesComponent },
-      { path: 'aerolinea/aviones/nuevo', component: AvionCreateComponent },
-      { path: 'aerolinea/aviones/editar/:id', component: AvionEditComponent },
-      { path: 'aerolinea/vuelos', component: PlaceholderComponent, data: { title: 'Vuelos (Aerolínea)' } },
+      // Rutas para Administrador de Aerolínea
+      {
+        path: 'aerolinea/empleados',
+        component: EmpleadosComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/empleados/nuevo',
+        component: EmpleadoFormComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/empleados/editar/:id',
+        component: EmpleadoEditComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/tripulacion',
+        component: TripulacionComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/tripulacion/nuevo',
+        component: TripulacionCreateComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/aerolineas',
+        component: AerolineasComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/aerolineas/nuevo',
+        component: AerolineaCreateComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/aerolineas/editar/:id',
+        component: AerolineaEditComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/aeropuertos',
+        component: AeropuertosComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/aeropuertos/nuevo',
+        component: AeropuertoCreateComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/aeropuertos/editar/:id',
+        component: AeropuertoEditComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/destinos-autorizados',
+        component: DestinosAutorizadosComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/destinos-autorizados/nuevo',
+        component: DestinoAutorizadoCreateComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/destinos-autorizados/editar/:id',
+        component: DestinoAutorizadoEditComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/aviones',
+        component: AvionesComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/aviones/nuevo',
+        component: AvionCreateComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/aviones/editar/:id',
+        component: AvionEditComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/asiento-ubi',
+        component: AsientoUbiComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/config-clase-filas-avion',
+        component: ConfigClaseFilasAvionComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/config-clase-filas-avion/nuevo',
+        component: ConfigClaseFilasAvionCreateComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/config-clase-filas-avion/editar/:id',
+        component: ConfigClaseFilasAvionEditComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/vuelos',
+        component: PlaceholderComponent,
+        canActivate: [RoleGuard],
+        data: { title: 'Vuelos (Aerolínea)', roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
 
-      { path: 'vuelos/reservar', component: PlaceholderComponent, data: { title: 'Reservar vuelo' } },
-      { path: 'vuelos/abordaje', component: PlaceholderComponent, data: { title: 'Abordaje' } },
+      // Rutas para pasajeros
+      {
+        path: 'vuelos/reservar',
+        component: PlaceholderComponent,
+        canActivate: [RoleGuard],
+        data: { title: 'Reservar vuelo', roles: ['ROLE_CLIENTE'] }
+      },
+      {
+        path: 'vuelos/abordaje',
+        component: PlaceholderComponent,
+        canActivate: [RoleGuard],
+        data: { title: 'Abordaje', roles: ['ROLE_ADMIN_ABORDAJE', 'ROLE_ADMIN_SISTEMA'] }
+      },
 
-      { path: 'consultas/vuelos', component: PlaceholderComponent, data: { title: 'Consulta de vuelos' } },
-      { path: 'consultas/equipaje', component: PlaceholderComponent, data: { title: 'Consulta de equipaje' } },
-      { path: 'consultas/pasajeros', component: PlaceholderComponent, data: { title: 'Consulta de pasajeros' } },
-
-      { path: 'usuarios/registro', component: PlaceholderComponent, data: { title: 'Usuarios - Registro' } },
-      { path: 'usuarios/login', component: PlaceholderComponent, data: { title: 'Usuarios - Login' } }
+      // Rutas para consultas
+      {
+        path: 'consultas/vuelos',
+        component: PlaceholderComponent,
+        canActivate: [RoleGuard],
+        data: { title: 'Consulta de vuelos', roles: ['ROLE_CONSULTAS_AEROLINEA', 'ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'consultas/equipaje',
+        component: PlaceholderComponent,
+        canActivate: [RoleGuard],
+        data: { title: 'Consulta de equipaje', roles: ['ROLE_CONSULTAS_AEROLINEA', 'ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'consultas/pasajeros',
+        component: PlaceholderComponent,
+        canActivate: [RoleGuard],
+        data: { title: 'Consulta de pasajeros', roles: ['ROLE_CONSULTAS_AEROLINEA', 'ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'dashboard/pasajeros',
+        component: PasajerosComponent,
+        canActivate: [RoleGuard],
+        data: { title: 'Pasajeros', roles: ['ROLE_ADMIN_ABORDAJE', 'ROLE_CONSULTAS_AEROLINEA', 'ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'dashboard/pasajeros/editar/:id',
+        component: EditPasajerosComponent,
+        canActivate: [RoleGuard],
+        data: { title: 'Editar pasajero', roles: ['ROLE_ADMIN_ABORDAJE', 'ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'pasajeros',
+        redirectTo: 'dashboard/pasajeros',
+        pathMatch: 'full'
+      },
+      {
+        path: 'pasajeros/editar/:id',
+        component: PasajeroEditComponent,
+        canActivate: [RoleGuard],
+        data: { title: 'Editar pasajero (legacy)', roles: ['ROLE_ADMIN_ABORDAJE', 'ROLE_ADMIN_SISTEMA'] }
+      }
     ]
   },
-  { path: 'empleados', redirectTo: 'menu/aerolinea/empleados', pathMatch: 'full' },
-  { path: 'register', component: RegisterComponent },
-  { path: 'portal', component: PortalComponent }
+  { path: 'empleados', redirectTo: 'menu/aerolinea/empleados', pathMatch: 'full' }
 ];
 
 @NgModule({
@@ -73,3 +244,4 @@ const routes: Routes = [
   exports: [RouterModule]
 })
 export class AppRoutingModule {}
+

@@ -35,8 +35,16 @@ export class CatalogoService {
     return this.http.get<any[]>(`${this.api}/estado-avion`);
   }
 
+  claseVuelo() {
+    return this.http.get<any[]>(`${this.api}/clase-vuelo`);
+  }
+
   aeropuerto() {
     return this.http.get<any[]>(`${this.api}/aeropuerto`);
+  }
+
+  avion() {
+    return this.http.get<any[]>(`${this.api}/avion`);
   }
 
   turno() {
@@ -69,5 +77,9 @@ export class CatalogoService {
 
   codigoArea() {
     return this.http.get<any[]>(`${this.api}/codigo-area`);
+  }
+
+  tipoAsiento() {
+    return this.http.get<any[]>(`${this.api}/tipo-asiento`);
   }
 }

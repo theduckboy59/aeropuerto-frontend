@@ -29,6 +29,9 @@ import { AeropuertoEditComponent } from './pages/aeropuerto-edit/aeropuerto-edit
 import { DestinosAutorizadosComponent } from './pages/destinos-autorizados/destinos-autorizados.component';
 import { DestinoAutorizadoCreateComponent } from './pages/destino-autorizado-create/destino-autorizado-create.component';
 import { DestinoAutorizadoEditComponent } from './pages/destino-autorizado-edit/destino-autorizado-edit.component';
+import { PasajerosComponent } from './pages/pasajeros/pasajeros.component';
+import { PasajeroEditComponent } from './pages/pasajero-edit/pasajero-edit.component';
+import { EditPasajerosComponent } from './pages/edit-pasajeros/edit-pasajeros.component';
 
 @NgModule({
   declarations: [
@@ -52,7 +55,10 @@ import { DestinoAutorizadoEditComponent } from './pages/destino-autorizado-edit/
     AeropuertoEditComponent,
     DestinosAutorizadosComponent,
     DestinoAutorizadoCreateComponent,
-    DestinoAutorizadoEditComponent
+    DestinoAutorizadoEditComponent,
+    PasajerosComponent,
+    PasajeroEditComponent,
+    EditPasajerosComponent
   ],
   imports: [
     BrowserModule,

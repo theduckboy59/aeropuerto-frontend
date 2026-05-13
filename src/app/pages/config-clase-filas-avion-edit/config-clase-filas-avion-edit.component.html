@@ -1,0 +1,79 @@
+<div class="page-root">
+  <main class="content">
+    <header class="topbar" aria-label="Encabezado">
+      <div class="topbar-left">
+        <div class="badge">A L P</div>
+        <div>
+          <h1 class="title">Editar configuración</h1>
+          <p class="subtitle">Rangos de filas por clase para un avión.</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-secondary" type="button" (click)="regresar()">Regresar</button>
+      </div>
+    </header>
+
+    <section class="card" aria-label="Formulario">
+      <div class="section">
+        <h2 class="section-title">Datos</h2>
+
+        <div class="form-grid">
+          <div class="field">
+            <label class="label">Avión *</label>
+            <select class="control" [(ngModel)]="form.avionId" name="avionId" (change)="onAvionChange()">
+              <option value="">Seleccione</option>
+              <option *ngFor="let a of aviones" [value]="a.id">{{ a.codigoAvion }} - {{ a.filasConfiguradas }} filas</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Clase de vuelo *</label>
+            <select class="control" [(ngModel)]="form.claseVueloId" name="claseVueloId">
+              <option value="">Seleccione</option>
+              <option *ngFor="let c of clasesVuelo" [value]="c.id">{{ c.nombre || c.descripcion || c.label }}</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Fila desde *</label>
+            <input class="control" type="number" [(ngModel)]="form.filaDesde" name="filaDesde" />
+          </div>
+
+          <div class="field">
+            <label class="label">Fila hasta *</label>
+            <input class="control" type="number" [(ngModel)]="form.filaHasta" name="filaHasta" [placeholder]="avionSeleccionado ? 'Máx: ' + avionSeleccionado.filasConfiguradas : ''" />
+          </div>
+
+          <div class="field">
+            <label class="label">Activo</label>
+            <select class="control" [(ngModel)]="form.activo" name="activo">
+              <option [ngValue]="true">Activo</option>
+              <option [ngValue]="false">Inactivo</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="info" *ngIf="avionSeleccionado as a">
+          <div class="info-title">Avión seleccionado</div>
+          <div class="info-grid">
+            <div><span class="k">Código:</span> {{ a.codigoAvion }}</div>
+            <div><span class="k">Filas configuradas:</span> {{ a.filasConfiguradas }}</div>
+          </div>
+          <div class="info-title" style="margin-top:10px" *ngIf="configsActivasAvion.length">Rangos activos (otros)</div>
+          <ul class="ranges" *ngIf="configsActivasAvion.length">
+            <li *ngFor="let c of configsActivasAvion">
+              {{ getClaseNombre(c.claseVueloId) }}: filas {{ c.filaDesde }} a {{ c.filaHasta }}
+            </li>
+          </ul>
+          <p class="muted" *ngIf="!configsActivasAvion.length">Sin otras configuraciones activas para este avión.</p>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-primary" type="button" (click)="guardar()" [disabled]="cargando">Guardar</button>
+          <button class="btn-secondary" type="button" (click)="regresar()">Cancelar</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
