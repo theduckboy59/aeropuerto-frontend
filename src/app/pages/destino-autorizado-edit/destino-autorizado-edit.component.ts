@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CatalogoService } from '../../services/catalogo.service';
+import { AerolineasService } from '../../services/aerolineas.service';
+import { AeropuertosService } from '../../services/aeropuertos.service';
 import { DestinosAutorizadosService } from '../../services/destinos-autorizados.service';
 
 @Component({
@@ -24,7 +25,8 @@ export class DestinoAutorizadoEditComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private catalogo: CatalogoService,
+    private aerolineasService: AerolineasService,
+    private aeropuertosService: AeropuertosService,
     private service: DestinosAutorizadosService,
     private router: Router
   ) {}
@@ -45,12 +47,12 @@ export class DestinoAutorizadoEditComponent implements OnInit {
   }
 
   cargarCatalogos() {
-    this.catalogo.aerolinea().subscribe({
+    this.aerolineasService.listar().subscribe({
       next: (d) => (this.aerolineas = d || []),
       error: () => (this.aerolineas = [])
     });
 
-    this.catalogo.aeropuerto().subscribe({
+    this.aeropuertosService.listar().subscribe({
       next: (d) => (this.aeropuertos = d || []),
       error: () => (this.aeropuertos = [])
     });

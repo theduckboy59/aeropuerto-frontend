@@ -13,14 +13,8 @@ export class AeropuertosComponent implements OnInit {
 
   filtros = {
     nombre: '',
-    pais: '',
-    estadoId: ''
+    pais: ''
   };
-
-  estados = [
-    { id: 1, nombre: 'ACTIVO' },
-    { id: 2, nombre: 'INACTIVO' }
-  ];
 
   private searchTimer: any = null;
 
@@ -35,6 +29,7 @@ export class AeropuertosComponent implements OnInit {
 
   cargar() {
     this.cargando = true;
+
     this.service.listar(this.filtros).subscribe({
       next: (data) => {
         this.cargando = false;
@@ -49,7 +44,10 @@ export class AeropuertosComponent implements OnInit {
   }
 
   onFiltroChange() {
-    if (this.searchTimer) clearTimeout(this.searchTimer);
+    if (this.searchTimer) {
+      clearTimeout(this.searchTimer);
+    }
+
     this.searchTimer = setTimeout(() => this.cargar(), 300);
   }
 
@@ -58,7 +56,11 @@ export class AeropuertosComponent implements OnInit {
   }
 
   limpiar() {
-    this.filtros = { nombre: '', pais: '', estadoId: '' };
+    this.filtros = {
+      nombre: '',
+      pais: ''
+    };
+
     this.cargar();
   }
 
@@ -68,12 +70,19 @@ export class AeropuertosComponent implements OnInit {
 
   editar(item: Aeropuerto) {
     if (!item?.id) return;
-    this.router.navigate(['/menu/aerolinea/aeropuertos/editar', item.id]);
+
+    this.router.navigate([
+      '/menu/aerolinea/aeropuertos/editar',
+      item.id
+    ]);
   }
 
   eliminar(item: Aeropuerto) {
     if (!item?.id) return;
-    if (!confirm('¿Eliminar aeropuerto? (borrado lógico, también puertas)')) return;
+
+    if (!confirm('¿Eliminar aeropuerto? También se inactivarán sus puertas.')) {
+      return;
+    }
 
     this.service.eliminar(item.id).subscribe({
       next: () => {
@@ -91,7 +100,7 @@ export class AeropuertosComponent implements OnInit {
     const puertas = (a?.puertas || [])
       .map(p => (p?.codigo || '').trim())
       .filter(Boolean);
+
     return puertas.length ? puertas.join(', ') : '-';
   }
 }
-

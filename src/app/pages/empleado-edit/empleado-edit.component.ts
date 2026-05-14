@@ -98,57 +98,61 @@ export class EmpleadoEditComponent implements OnInit {
   }
 
   guardar() {
-    const requiredFields = [
-      { key: 'username', label: 'Usuario' },
-      { key: 'email', label: 'Email' },
-      { key: 'tipoEmpleadoId', label: 'Tipo Empleado' },
-      { key: 'aerolineaId', label: 'Aerolínea' },
-      { key: 'nombreCompleto', label: 'Nombre Completo' },
-      { key: 'fechaIngreso', label: 'Fecha Ingreso' },
-      { key: 'turnoId', label: 'Turno' },
-      { key: 'nivelAccesoId', label: 'Nivel Acceso' },
-      { key: 'rolId', label: 'Rol' },
-      { key: 'areaId', label: 'Área' },
-      { key: 'licenciaId', label: 'Licencia' },
-      { key: 'fechaVencimientoLicencia', label: 'Fecha Vencimiento Licencia' }
-    ];
+  const requiredFields = [
+    { key: 'username', label: 'Usuario' },
+    { key: 'email', label: 'Email' },
+    { key: 'tipoEmpleadoId', label: 'Tipo Empleado' },
+    { key: 'aerolineaId', label: 'Aerolínea' },
+    { key: 'nombreCompleto', label: 'Nombre Completo' },
+    { key: 'fechaIngreso', label: 'Fecha Ingreso' },
+    { key: 'turnoId', label: 'Turno' },
+    { key: 'nivelAccesoId', label: 'Nivel Acceso' },
+    { key: 'rolId', label: 'Rol' },
+    { key: 'areaId', label: 'Área' }
+  ];
 
-    const faltante = requiredFields.find(field => {
-      const value = this.form[field.key];
-      return value === null || value === undefined || value === '';
-    });
+  const faltante = requiredFields.find(field => {
+    const value = this.form[field.key];
+    return value === null || value === undefined || value === '';
+  });
 
-    if (faltante) {
-      alert(`Campo requerido: ${faltante.label}`);
-      return;
-    }
-
-    if (this.form.password && this.form.password.length < 8) {
-      alert('Password minimo 8 caracteres');
-      return;
-    }
-
-    if (this.empleadoId === null) {
-      alert('Empleado no encontrado');
-      return;
-    }
-
-    const payload = { ...this.form };
-    if (!payload.password) {
-      delete payload.password;
-    }
-
-    this.service.actualizarEmpleado(this.empleadoId, payload).subscribe({
-      next: () => {
-        alert('Empleado actualizado');
-        this.router.navigate(['/menu/aerolinea/empleados']);
-      },
-      error: (e) => {
-        const message = e.error?.message || 'Error al actualizar empleado';
-        alert(message);
-      }
-    });
+  if (faltante) {
+    alert(`Campo requerido: ${faltante.label}`);
+    return;
   }
+
+  if (this.form.password && this.form.password.length < 8) {
+    alert('Password mínimo 8 caracteres');
+    return;
+  }
+
+  if (this.empleadoId === null) {
+    alert('Empleado no encontrado');
+    return;
+  }
+
+  const payload = {
+    ...this.form,
+    fechaSalida: this.form.fechaSalida || null,
+    licenciaId: this.form.licenciaId || null,
+    fechaVencimientoLicencia: this.form.fechaVencimientoLicencia || null
+  };
+
+  if (!payload.password) {
+    delete payload.password;
+  }
+
+  this.service.actualizarEmpleado(this.empleadoId, payload).subscribe({
+    next: () => {
+      alert('Empleado actualizado');
+      this.router.navigate(['/menu/aerolinea/empleados']);
+    },
+    error: (e) => {
+      const message = e.error?.message || 'Error al actualizar empleado';
+      alert(message);
+    }
+  });
+}
 
   regresar() {
     this.router.navigate(['/menu/aerolinea/empleados']);

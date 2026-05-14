@@ -79,19 +79,19 @@ const routes: Routes = [
         path: 'aerolinea/aerolineas',
         component: AerolineasComponent,
         canActivate: [RoleGuard],
-        data: { roles: ['ROLE_ADMIN_SISTEMA'] }
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
       },
       {
         path: 'aerolinea/aerolineas/nuevo',
         component: AerolineaCreateComponent,
         canActivate: [RoleGuard],
-        data: { roles: ['ROLE_ADMIN_SISTEMA'] }
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
       },
       {
         path: 'aerolinea/aerolineas/editar/:id',
         component: AerolineaEditComponent,
         canActivate: [RoleGuard],
-        data: { roles: ['ROLE_ADMIN_SISTEMA'] }
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
       },
       {
         path: 'aerolinea/aeropuertos',

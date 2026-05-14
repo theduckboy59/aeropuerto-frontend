@@ -3,13 +3,22 @@
     <header class="topbar" aria-label="Encabezado">
       <div class="topbar-left">
         <div class="badge">A L P</div>
+
         <div>
           <h1 class="title">Crear aeropuerto</h1>
-          <p class="subtitle">Registro de aeropuertos y puertas.</p>
+          <p class="subtitle">
+            Registro de aeropuertos y puertas. Los códigos IATA e ICAO serán generados automáticamente por el sistema.
+          </p>
         </div>
       </div>
+
       <div class="topbar-right">
-        <button class="btn-secondary" type="button" (click)="regresar()">Regresar</button>
+        <button
+          class="btn-secondary"
+          type="button"
+          (click)="regresar()">
+          Regresar
+        </button>
       </div>
     </header>
 
@@ -20,27 +29,29 @@
         <div class="form-grid">
           <div class="field field-wide">
             <label class="label">Nombre</label>
-            <input class="control" [(ngModel)]="form.nombre" />
-          </div>
-
-          <div class="field">
-            <label class="label">Código IATA</label>
-            <input class="control" [(ngModel)]="form.codigoIata" />
-          </div>
-
-          <div class="field">
-            <label class="label">Código ICAO</label>
-            <input class="control" [(ngModel)]="form.codigoIcao" />
+            <input
+              class="control"
+              [(ngModel)]="form.nombre"
+              placeholder="Ej: Aeropuerto Internacional La Aurora"
+            />
           </div>
 
           <div class="field">
             <label class="label">País</label>
-            <input class="control" [(ngModel)]="form.pais" />
+            <input
+              class="control"
+              [(ngModel)]="form.pais"
+              placeholder="Ej: Guatemala"
+            />
           </div>
 
           <div class="field">
             <label class="label">Ciudad</label>
-            <input class="control" [(ngModel)]="form.ciudad" />
+            <input
+              class="control"
+              [(ngModel)]="form.ciudad"
+              placeholder="Ej: Ciudad de Guatemala"
+            />
           </div>
         </div>
       </div>
@@ -57,7 +68,13 @@
             (keyup.enter)="agregarPuerta()"
             placeholder="Ej: A1"
           />
-          <button class="btn-secondary" type="button" (click)="agregarPuerta()">Agregar puerta</button>
+
+          <button
+            class="btn-secondary"
+            type="button"
+            (click)="agregarPuerta()">
+            Agregar puerta
+          </button>
         </div>
 
         <div class="table-wrap" *ngIf="puertas.length">
@@ -68,13 +85,24 @@
                 <th>Acciones</th>
               </tr>
             </thead>
+
             <tbody>
               <tr *ngFor="let p of puertas; let i = index">
                 <td>
-                  <input class="control" [(ngModel)]="puertas[i].codigo" placeholder="Código" />
+                  <input
+                    class="control"
+                    [(ngModel)]="puertas[i].codigo"
+                    placeholder="Código"
+                  />
                 </td>
+
                 <td class="table-actions">
-                  <button class="btn-secondary" type="button" (click)="quitarPuerta(i)">Quitar</button>
+                  <button
+                    class="btn-secondary"
+                    type="button"
+                    (click)="quitarPuerta(i)">
+                    Quitar
+                  </button>
                 </td>
               </tr>
             </tbody>
@@ -82,13 +110,22 @@
         </div>
 
         <div class="form-actions">
-          <button class="btn-primary" type="button" (click)="guardar()" [disabled]="cargando">
+          <button
+            class="btn-primary"
+            type="button"
+            (click)="guardar()"
+            [disabled]="cargando">
             {{ cargando ? 'Guardando...' : 'Crear aeropuerto' }}
           </button>
-          <button class="btn-secondary" type="button" (click)="regresar()">Cancelar</button>
+
+          <button
+            class="btn-secondary"
+            type="button"
+            (click)="regresar()">
+            Cancelar
+          </button>
         </div>
       </div>
     </section>
   </main>
 </div>
-

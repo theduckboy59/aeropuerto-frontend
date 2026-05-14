@@ -1,8 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
 import { CatalogoService } from '../../services/catalogo.service';
-import { DisponibilidadService } from '../../services/disponibilidad.service';
 import { EmpleadoService } from '../../services/empleado.service';
 import { TripulacionService } from '../../services/tripulacion.service';
 
@@ -16,7 +14,6 @@ export class TripulacionCreateComponent implements OnInit {
   empleados: any[] = [];
   empleadosDisponibles: any[] = [];
   tipoEmpleado: any[] = [];
-  disponibilidadMap: Record<string, boolean> = {};
   tipoEmpleadoIds: {
     piloto: number | null;
     copiloto: number | null;
@@ -43,7 +40,6 @@ export class TripulacionCreateComponent implements OnInit {
 
   constructor(
     private catalogo: CatalogoService,
-    private disponibilidadService: DisponibilidadService,
     private empleadosService: EmpleadoService,
     private tripulacionService: TripulacionService,
     private router: Router
@@ -79,20 +75,19 @@ export class TripulacionCreateComponent implements OnInit {
       return;
     }
 
-    forkJoin({
-      empleados: this.empleadosService.getEmpleados(),
-      disponibilidades: this.disponibilidadService.getDisponibilidades()
+    this.empleadosService.getEmpleados({
+      aerolineaId: Number(this.form.aerolineaId),
+      estadoId: 1,
+      disponible: true
     }).subscribe({
       next: (data) => {
-        this.empleados = data.empleados || [];
-        this.disponibilidadMap = this.buildDisponibilidadMap(data.disponibilidades || []);
+        this.empleados = data || [];
         this.empleadosDisponibles = this.empleados.filter(e => this.filtraEmpleado(e));
       },
       error: () => {
         this.empleadosService.getEmpleados().subscribe({
           next: (data) => {
             this.empleados = data || [];
-            this.disponibilidadMap = {};
             this.empleadosDisponibles = this.empleados.filter(e => this.filtraEmpleado(e));
           },
           error: (e) => {
@@ -240,8 +235,18 @@ export class TripulacionCreateComponent implements OnInit {
     const mismaAerolinea = String(empleadoAerolineaId) === String(this.form.aerolineaId);
     if (!mismaAerolinea) return false;
 
-    const disponible = this.disponibilidadPorEmpleado(empleado?.id);
-    return disponible === null ? false : disponible === true;
+    const estadoId = empleado?.estadoId ?? empleado?.estado?.id;
+    if (estadoId !== undefined && estadoId !== null && String(estadoId) !== '1') {
+      return false;
+    }
+
+    const disponible = empleado?.disponible;
+    if (disponible !== undefined && disponible !== null) {
+      return Boolean(disponible);
+    }
+
+    const disponibilidad = this.disponibilidadPorEmpleado(empleado?.id);
+    return disponibilidad === null ? true : disponibilidad === true;
   }
 
   private toBool(value: any, fallback: boolean) {
@@ -251,9 +256,12 @@ export class TripulacionCreateComponent implements OnInit {
 
   private disponibilidadPorEmpleado(value: any) {
     if (value === undefined || value === null || value === '') return null;
-    const key = String(value);
-    if (!(key in this.disponibilidadMap)) return null;
-    return this.disponibilidadMap[key];
+    const empleado = this.empleados.find(item => String(item?.id) === String(value));
+    if (!empleado) return null;
+    if (empleado?.disponible !== undefined && empleado?.disponible !== null) {
+      return Boolean(empleado.disponible);
+    }
+    return null;
   }
 
   private setTiposEmpleado(data: any[]) {
@@ -266,15 +274,6 @@ export class TripulacionCreateComponent implements OnInit {
     };
   }
 
-
-  private buildDisponibilidadMap(items: any[]) {
-    return (items || []).reduce((acc: Record<string, boolean>, item: any) => {
-      if (item?.empleadoId !== undefined && item?.empleadoId !== null) {
-        acc[String(item.empleadoId)] = this.toBool(item?.disponible, true);
-      }
-      return acc;
-    }, {});
-  }
 
   private findTipoId(keyword: string) {
     const match = (this.tipoEmpleado || []).find((item: any) => {

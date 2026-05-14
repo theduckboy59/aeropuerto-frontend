@@ -11,6 +11,11 @@ export interface Aerolinea {
   estadoId?: number;
 }
 
+export interface AerolineaRequest {
+  nombre: string;
+  pais: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -22,6 +27,7 @@ export class AerolineasService {
   listar(nombre?: string) {
     const value = (nombre || '').trim();
     const params = value ? new HttpParams().set('nombre', value) : undefined;
+
     return this.http.get<Aerolinea[]>(this.api, { params });
   }
 
@@ -29,16 +35,15 @@ export class AerolineasService {
     return this.http.get<Aerolinea>(`${this.api}/${id}`);
   }
 
-  crear(data: { nombre: string; codigoIata: string; codigoIcao: string; pais: string }) {
-    return this.http.post(this.api, data);
+  crear(data: AerolineaRequest) {
+    return this.http.post<Aerolinea>(this.api, data);
   }
 
-  editar(id: number, data: { nombre: string; codigoIata: string; codigoIcao: string; pais: string }) {
-    return this.http.put(`${this.api}/${id}`, data);
+  editar(id: number, data: AerolineaRequest) {
+    return this.http.put<Aerolinea>(`${this.api}/${id}`, data);
   }
 
   eliminar(id: number) {
-    return this.http.delete(`${this.api}/${id}`);
+    return this.http.delete<void>(`${this.api}/${id}`);
   }
 }
-

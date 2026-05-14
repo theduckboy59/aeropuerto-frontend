@@ -3,14 +3,29 @@
     <header class="topbar" aria-label="Encabezado">
       <div class="topbar-left">
         <div class="badge">A L P</div>
+
         <div>
           <h1 class="title">Aeropuertos + Puertas</h1>
-          <p class="subtitle">Gestión de aeropuertos y sus puertas de embarque.</p>
+          <p class="subtitle">
+            Gestión de aeropuertos y sus puertas de embarque.
+          </p>
         </div>
       </div>
+
       <div class="topbar-right">
-        <button class="btn-primary" type="button" (click)="crear()">Crear aeropuerto</button>
-        <button class="btn-secondary" type="button" routerLink="/menu">Regresar</button>
+        <button
+          class="btn-primary"
+          type="button"
+          (click)="crear()">
+          Crear aeropuerto
+        </button>
+
+        <button
+          class="btn-secondary"
+          type="button"
+          routerLink="/menu">
+          Regresar
+        </button>
       </div>
     </header>
 
@@ -40,19 +55,22 @@
               placeholder="Ej: guatemala"
             />
           </div>
-
-          <div class="field">
-            <label class="label">Estado</label>
-            <select class="control" [(ngModel)]="filtros.estadoId" (change)="cargar()">
-              <option value="">Todos</option>
-              <option *ngFor="let e of estados" [value]="e.id">{{ e.nombre }}</option>
-            </select>
-          </div>
         </div>
 
         <div class="form-actions">
-          <button class="btn-primary" type="button" (click)="buscar()">Buscar</button>
-          <button class="btn-secondary" type="button" (click)="limpiar()">Limpiar</button>
+          <button
+            class="btn-primary"
+            type="button"
+            (click)="buscar()">
+            Buscar
+          </button>
+
+          <button
+            class="btn-secondary"
+            type="button"
+            (click)="limpiar()">
+            Limpiar
+          </button>
         </div>
       </div>
     </section>
@@ -63,34 +81,46 @@
 
         <p class="muted" *ngIf="cargando">Cargando...</p>
 
-        <div class="table-wrap" *ngIf="!cargando && aeropuertos.length; else empty">
+        <div
+          class="table-wrap"
+          *ngIf="!cargando && aeropuertos.length; else empty">
+
           <table class="table">
             <thead>
               <tr>
-                <th>ID</th>
                 <th>Nombre</th>
                 <th>IATA</th>
                 <th>ICAO</th>
                 <th>País</th>
                 <th>Ciudad</th>
                 <th>Puertas</th>
-                <th>Estado</th>
                 <th>Acciones</th>
               </tr>
             </thead>
+
             <tbody>
               <tr *ngFor="let a of aeropuertos">
-                <td>{{ a.id }}</td>
                 <td>{{ a.nombre }}</td>
-                <td>{{ a.codigoIata }}</td>
-                <td>{{ a.codigoIcao }}</td>
+                <td>{{ a.codigoIata || '-' }}</td>
+                <td>{{ a.codigoIcao || '-' }}</td>
                 <td>{{ a.pais }}</td>
                 <td>{{ a.ciudad }}</td>
                 <td class="puertas">{{ getPuertasLabel(a) }}</td>
-                <td>{{ a.estadoId ?? '-' }}</td>
+
                 <td class="table-actions">
-                  <button class="btn-secondary" type="button" (click)="editar(a)">Editar</button>
-                  <button class="btn-secondary" type="button" (click)="eliminar(a)">Eliminar</button>
+                  <button
+                    class="btn-secondary"
+                    type="button"
+                    (click)="editar(a)">
+                    Editar
+                  </button>
+
+                  <button
+                    class="btn-secondary"
+                    type="button"
+                    (click)="eliminar(a)">
+                    Eliminar
+                  </button>
                 </td>
               </tr>
             </tbody>
@@ -104,4 +134,3 @@
     </section>
   </main>
 </div>
-

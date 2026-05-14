@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { CatalogoService } from '../../services/catalogo.service';
+import { AerolineasService } from '../../services/aerolineas.service';
+import { AeropuertosService } from '../../services/aeropuertos.service';
 import { DestinoAutorizado, DestinosAutorizadosService } from '../../services/destinos-autorizados.service';
 import { getApiErrorMessage } from '../../services/shared/api-error.util';
 
@@ -28,7 +29,8 @@ export class DestinosAutorizadosComponent implements OnInit {
 
   constructor(
     private service: DestinosAutorizadosService,
-    private catalogo: CatalogoService,
+    private aerolineasService: AerolineasService,
+    private aeropuertosService: AeropuertosService,
     private router: Router
   ) {}
 
@@ -38,7 +40,7 @@ export class DestinosAutorizadosComponent implements OnInit {
   }
 
   cargarCatalogos() {
-    this.catalogo.aerolinea().subscribe({
+    this.aerolineasService.listar().subscribe({
       next: (d) => {
         this.aerolineas = d || [];
         this.aerolineaMap = this.buildMap(this.aerolineas);
@@ -49,7 +51,7 @@ export class DestinosAutorizadosComponent implements OnInit {
       }
     });
 
-    this.catalogo.aeropuerto().subscribe({
+    this.aeropuertosService.listar().subscribe({
       next: (d) => {
         this.aeropuertos = d || [];
         this.aeropuertoMap = this.buildMap(this.aeropuertos);

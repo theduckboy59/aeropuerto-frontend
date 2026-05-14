@@ -114,7 +114,7 @@
                 <td>{{ e.username }}</td>
                 <td>{{ e.email }}</td>
                 <td>{{ tipoEmpleadoMap[e.tipoEmpleadoId] || e.tipoEmpleadoId }}</td>
-                <td>{{ aerolineaMap[e.aerolineaId] || e.aerolineaId }}</td>
+                <td>{{ e.aerolineaNombre || '-' }}</td>
                 <td>{{ turnoMap[e.turnoId] || e.turnoId }}</td>
                 <td>{{ nivelAccesoMap[e.nivelAccesoId] || e.nivelAccesoId }}</td>
                 <td>{{ rolMap[e.rolId] || e.rolId }}</td>

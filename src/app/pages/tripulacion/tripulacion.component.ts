@@ -11,17 +11,27 @@ import { getApiErrorMessage } from '../../services/shared/api-error.util';
 export class TripulacionComponent implements OnInit {
   tripulaciones: any[] = [];
   tripulacionesFiltradas: any[] = [];
+  tripulacionesVisibles: any[] = [];
+
   aerolineas: any[] = [];
+  estadosTripulacion: any[] = [];
+  tiposEmpleado: any[] = [];
+
   aerolineaMap: Record<string, string> = {};
-  estados = [
-    { id: 1, nombre: 'DISPONIBLE' },
-    { id: 2, nombre: 'ASIGNADA' },
-    { id: 3, nombre: 'INACTIVA' }
-  ];
+  estadoTripulacionMap: Record<string, string> = {};
+  tipoEmpleadoMap: Record<string, string> = {};
 
   filtros = {
     aerolineaId: '',
-    estadoId: ''
+    estadoId: '',
+    q: ''
+  };
+
+  paginacion = {
+    page: 0,
+    size: 10,
+    totalItems: 0,
+    totalPages: 0
   };
 
   detalle: any = null;
@@ -45,17 +55,47 @@ export class TripulacionComponent implements OnInit {
         this.aerolineaMap = this.buildMap(data || []);
       },
       error: () => {
-        this.catalogo.aerolinea().subscribe(d => {
-          this.aerolineas = d || [];
-          this.aerolineaMap = this.buildMap(d || []);
+        this.catalogo.aerolinea().subscribe({
+          next: (data) => {
+            this.aerolineas = data || [];
+            this.aerolineaMap = this.buildMap(data || []);
+          },
+          error: () => {
+            this.aerolineas = [];
+            this.aerolineaMap = {};
+          }
         });
+      }
+    });
+
+    this.catalogo.estadoTripulacion().subscribe({
+      next: (data) => {
+        this.estadosTripulacion = data || [];
+        this.estadoTripulacionMap = this.buildMap(data || []);
+      },
+      error: (e) => {
+        const message = getApiErrorMessage(e, 'Error al cargar estados de tripulación');
+        alert(message);
+      }
+    });
+
+    this.catalogo.tipoEmpleado().subscribe({
+      next: (data) => {
+        this.tiposEmpleado = data || [];
+        this.tipoEmpleadoMap = this.buildMap(data || []);
+      },
+      error: (e) => {
+        const message = getApiErrorMessage(e, 'Error al cargar tipos de empleado');
+        alert(message);
       }
     });
   }
 
   cargarTripulaciones() {
     this.cargando = true;
+
     const aerolineaId = this.filtros.aerolineaId;
+
     const fuente = aerolineaId
       ? this.service.getTripulacionesByAerolinea(Number(aerolineaId))
       : this.service.getTripulaciones();
@@ -64,7 +104,7 @@ export class TripulacionComponent implements OnInit {
       next: (data) => {
         this.cargando = false;
         this.tripulaciones = data || [];
-        this.aplicarFiltroEstado();
+        this.aplicarFiltrosLocales();
       },
       error: (e) => {
         this.cargando = false;
@@ -76,21 +116,28 @@ export class TripulacionComponent implements OnInit {
 
   aplicarFiltros() {
     this.detalle = null;
+    this.paginacion.page = 0;
     this.cargarTripulaciones();
   }
 
   limpiarFiltros() {
     this.filtros = {
       aerolineaId: '',
-      estadoId: ''
+      estadoId: '',
+      q: ''
     };
+
+    this.paginacion.page = 0;
     this.detalle = null;
+
     this.cargarTripulaciones();
   }
 
   verDetalle(tripulacion: any) {
     if (!tripulacion?.id) return;
+
     this.cargandoDetalle = true;
+
     this.service.getTripulacion(tripulacion.id).subscribe({
       next: (data) => {
         this.cargandoDetalle = false;
@@ -104,79 +151,143 @@ export class TripulacionComponent implements OnInit {
     });
   }
 
-  cambiarEstado(tripulacion: any) {
-    if (!tripulacion?.id) return;
-    const actual = Number(tripulacion.estadoTripulacionId || 1);
-    const siguiente = this.getSiguienteEstado(actual);
-    if (!confirm(`Cambiar estado a ${this.getEstadoLabel(siguiente)}?`)) {
-      return;
-    }
-
-    this.service.actualizarEstado(tripulacion.id, siguiente).subscribe({
-      next: () => {
-        tripulacion.estadoTripulacionId = siguiente;
-        if (this.detalle?.id === tripulacion.id) {
-          this.detalle.estadoTripulacionId = siguiente;
-        }
-        this.aplicarFiltroEstado();
-      },
-      error: (e) => {
-        const message = getApiErrorMessage(e, 'Error al cambiar estado');
-        alert(message);
-      }
-    });
-  }
-
   getPiloto(tripulacion: any) {
     const empleados = tripulacion?.empleados || [];
-    const piloto = empleados.find((e: any) => Number(e?.tipoEmpleadoId) === 1);
+
+    const piloto = empleados.find((empleado: any) => {
+      const tipoNombre = this.getTipoEmpleadoLabel(empleado?.tipoEmpleadoId);
+      return tipoNombre.toUpperCase() === 'PILOTO';
+    });
+
     if (!piloto) return '-';
+
     return this.getEmpleadoLabel(piloto);
   }
 
   getEstadoLabel(id: number) {
-    const estado = this.estados.find(e => Number(e.id) === Number(id));
-    return estado?.nombre || '-';
+    return this.estadoTripulacionMap[String(id)] || '-';
   }
 
   getTipoEmpleadoLabel(id: number) {
-    const map: Record<string, string> = {
-      '1': 'Piloto',
-      '2': 'Copiloto',
-      '3': 'Tripulante Cabina',
-      '4': 'Ingeniero Vuelo'
-    };
-    return map[String(id)] || 'Empleado';
+    return this.tipoEmpleadoMap[String(id)] || '-';
+  }
+
+  getLicenciaLabel(empleado: any) {
+    return empleado?.licenciaNombre ||
+      empleado?.licencia?.nombre ||
+      empleado?.licencia ||
+      '-';
+  }
+
+  getFechaVencimientoLicencia(empleado: any) {
+    return empleado?.fechaVencimientoLicencia ||
+      empleado?.licenciaVencimiento ||
+      empleado?.fecha_vencimiento_licencia ||
+      '-';
   }
 
   getEmpleadoLabel(empleado: any) {
-    const codigo = empleado?.codigoEmpleado || empleado?.codigo || empleado?.id || '';
-    const nombre = empleado?.nombreCompleto || empleado?.nombre || empleado?.username || empleado?.email || 'Empleado';
+    const codigo = empleado?.codigoEmpleado ||
+      empleado?.codigo ||
+      empleado?.id ||
+      '';
+
+    const nombre = empleado?.nombreCompleto ||
+      empleado?.nombre ||
+      empleado?.username ||
+      empleado?.email ||
+      'Empleado';
+
     return `${codigo} - ${nombre}`.trim();
   }
 
-  private aplicarFiltroEstado() {
-    const estadoId = this.filtros.estadoId;
-    if (!estadoId) {
-      this.tripulacionesFiltradas = [...this.tripulaciones];
+  cambiarPagina(delta: number) {
+    const siguiente = this.paginacion.page + delta;
+
+    if (
+      siguiente < 0 ||
+      (
+        this.paginacion.totalPages > 0 &&
+        siguiente >= this.paginacion.totalPages
+      )
+    ) {
       return;
     }
 
-    this.tripulacionesFiltradas = this.tripulaciones.filter(t => String(t?.estadoTripulacionId) === String(estadoId));
+    this.paginacion.page = siguiente;
+    this.aplicarFiltrosLocales();
   }
 
-  private getSiguienteEstado(actual: number) {
-    if (actual === 1) return 2;
-    if (actual === 2) return 3;
-    return 1;
+  getEstadoResumen() {
+    if (!this.tripulacionesFiltradas.length) {
+      return '0 de 0';
+    }
+
+    const inicio = this.paginacion.page * this.paginacion.size + 1;
+
+    const fin = Math.min(
+      (this.paginacion.page + 1) * this.paginacion.size,
+      this.tripulacionesFiltradas.length
+    );
+
+    return `${inicio}-${fin} de ${this.tripulacionesFiltradas.length}`;
+  }
+
+  private aplicarFiltrosLocales() {
+    const q = String(this.filtros.q || '').trim().toLowerCase();
+    const estadoId = this.filtros.estadoId;
+
+    this.tripulacionesFiltradas = this.tripulaciones.filter((tripulacion) => {
+      const coincideEstado =
+        !estadoId ||
+        String(tripulacion?.estadoTripulacionId) === String(estadoId);
+
+      if (!coincideEstado) return false;
+
+      if (!q) return true;
+
+      const texto = [
+        tripulacion?.codigo,
+        this.aerolineaMap[String(tripulacion?.aerolineaId)] ||
+          tripulacion?.aerolineaNombre,
+        this.getEstadoLabel(tripulacion?.estadoTripulacionId),
+        this.getPiloto(tripulacion),
+        String(tripulacion?.empleados?.length || 0)
+      ].join(' ').toLowerCase();
+
+      return texto.includes(q);
+    });
+
+    this.paginacion.totalItems = this.tripulacionesFiltradas.length;
+
+    this.paginacion.totalPages = Math.max(
+      1,
+      Math.ceil(this.tripulacionesFiltradas.length / this.paginacion.size)
+    );
+
+    if (this.paginacion.page >= this.paginacion.totalPages) {
+      this.paginacion.page = this.paginacion.totalPages - 1;
+    }
+
+    const inicio = this.paginacion.page * this.paginacion.size;
+    const fin = inicio + this.paginacion.size;
+
+    this.tripulacionesVisibles = this.tripulacionesFiltradas.slice(inicio, fin);
   }
 
   private buildMap(items: any[]) {
     return (items || []).reduce((acc: Record<string, string>, item: any) => {
-      const label = item?.nombre || item?.descripcion || item?.label || '';
-      if (label) {
+      const label =
+        item?.nombre ||
+        item?.descripcion ||
+        item?.label ||
+        item?.name ||
+        '';
+
+      if (label && item?.id != null) {
         acc[String(item.id)] = label;
       }
+
       return acc;
     }, {});
   }

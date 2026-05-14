@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { EmpleadoService } from '../../services/empleado.service';
+import { Empleado, EmpleadoService } from '../../services/empleado.service';
 import { CatalogoService } from '../../services/catalogo.service';
 import { getApiErrorMessage } from '../../services/shared/api-error.util';
 
@@ -10,7 +10,7 @@ import { getApiErrorMessage } from '../../services/shared/api-error.util';
 })
 export class EmpleadosComponent implements OnInit {
 
-  empleados: any[] = [];
+  empleados: Empleado[] = [];
 
   filtros: any = {
     tipoEmpleadoId: '',

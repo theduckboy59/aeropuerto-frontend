@@ -48,23 +48,19 @@
           <table class="table">
             <thead>
               <tr>
-                <th>ID</th>
                 <th>Nombre</th>
                 <th>IATA</th>
                 <th>ICAO</th>
                 <th>País</th>
-                <th>Estado</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let a of aerolineas">
-                <td>{{ a.id }}</td>
                 <td>{{ a.nombre }}</td>
                 <td>{{ a.codigoIata }}</td>
                 <td>{{ a.codigoIcao }}</td>
                 <td>{{ a.pais }}</td>
-                <td>{{ a.estadoId ?? '-' }}</td>
                 <td class="table-actions">
                   <button class="btn-secondary" type="button" (click)="editar(a)">Editar</button>
                   <button class="btn-secondary" type="button" (click)="eliminar(a)">Eliminar</button>

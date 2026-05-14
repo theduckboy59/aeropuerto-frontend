@@ -11,8 +11,6 @@ import { getApiErrorMessage } from '../../services/shared/api-error.util';
 export class AeropuertoCreateComponent {
   form = {
     nombre: '',
-    codigoIata: '',
-    codigoIcao: '',
     pais: '',
     ciudad: ''
   };
@@ -28,35 +26,43 @@ export class AeropuertoCreateComponent {
 
   agregarPuerta() {
     const codigo = (this.nuevaPuerta || '').trim();
-    if (!codigo) return;
-    this.puertas.push({ codigo });
+
+    if (!codigo) {
+      return;
+    }
+
+    this.puertas.push({
+      codigo: codigo.toUpperCase()
+    });
+
     this.nuevaPuerta = '';
   }
 
   quitarPuerta(index: number) {
     this.puertas.splice(index, 1);
-    if (!this.puertas.length) this.puertas.push({ codigo: '' });
+
+    if (!this.puertas.length) {
+      this.puertas.push({ codigo: '' });
+    }
   }
 
   guardar() {
     const msg = this.validar();
+
     if (msg) {
       alert(msg);
       return;
     }
 
-    const puertas = this.normalizarPuertas();
-
     const payload = {
       nombre: this.form.nombre.trim(),
-      codigoIata: this.form.codigoIata.trim(),
-      codigoIcao: this.form.codigoIcao.trim(),
       pais: this.form.pais.trim(),
       ciudad: this.form.ciudad.trim(),
-      puertas
+      puertas: this.normalizarPuertas()
     };
 
     this.cargando = true;
+
     this.service.crear(payload).subscribe({
       next: () => {
         this.cargando = false;
@@ -77,22 +83,24 @@ export class AeropuertoCreateComponent {
 
   private normalizarPuertas() {
     const codigos = (this.puertas || [])
-      .map(p => (p?.codigo || '').trim())
+      .map(p => (p?.codigo || '').trim().toUpperCase())
       .filter(Boolean);
-    const uniq = Array.from(new Set(codigos.map(c => c.toUpperCase()))).map(c => ({ codigo: c }));
-    return uniq;
+
+    return Array.from(new Set(codigos))
+      .map(codigo => ({ codigo }));
   }
 
   private validar() {
     if (!this.form.nombre.trim()) return 'Nombre obligatorio';
-    if (!this.form.codigoIata.trim()) return 'Código IATA obligatorio';
-    if (!this.form.codigoIcao.trim()) return 'Código ICAO obligatorio';
     if (!this.form.pais.trim()) return 'País obligatorio';
     if (!this.form.ciudad.trim()) return 'Ciudad obligatoria';
 
     const puertas = this.normalizarPuertas();
-    if (!puertas.length) return 'Ingrese al menos una puerta';
+
+    if (!puertas.length) {
+      return 'Ingrese al menos una puerta';
+    }
+
     return '';
   }
 }
-

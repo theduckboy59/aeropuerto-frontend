@@ -30,7 +30,35 @@ export class JwtService {
    */
   getRole(token: string): string | null {
     const decoded = this.decodeToken(token);
-    return decoded?.role || null;
+    const role = decoded?.role;
+
+    if (typeof role === 'string' && role.trim()) {
+      return role;
+    }
+
+    const roles = decoded?.roles;
+    if (Array.isArray(roles) && roles.length) {
+      const firstRole = roles[0];
+      if (typeof firstRole === 'string' && firstRole.trim()) {
+        return firstRole;
+      }
+      if (firstRole && typeof firstRole === 'object') {
+        return firstRole.authority || firstRole.name || null;
+      }
+    }
+
+    const authorities = decoded?.authorities;
+    if (Array.isArray(authorities) && authorities.length) {
+      const firstAuthority = authorities[0];
+      if (typeof firstAuthority === 'string' && firstAuthority.trim()) {
+        return firstAuthority;
+      }
+      if (firstAuthority && typeof firstAuthority === 'object') {
+        return firstAuthority.authority || firstAuthority.name || null;
+      }
+    }
+
+    return decoded?.authority || decoded?.scope || null;
   }
 
   /**

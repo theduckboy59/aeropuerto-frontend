@@ -1,16 +1,28 @@
-<div class="page-root">
+<<div class="page-root">
   <main class="content">
     <header class="topbar" aria-label="Encabezado">
       <div class="topbar-left">
         <div class="badge">A L P</div>
         <div>
-          <h1 class="title">Tripulacion</h1>
-          <p class="subtitle">Gestion de tripulacion de aerolinea.</p>
+          <h1 class="title">Tripulación</h1>
+          <p class="subtitle">Gestión de tripulación de aerolínea.</p>
         </div>
       </div>
+
       <div class="topbar-right">
-        <button class="btn-primary" type="button" routerLink="/menu/aerolinea/tripulacion/nuevo">Crear tripulacion</button>
-        <button class="btn-secondary" type="button" routerLink="/menu">Regresar</button>
+        <button
+          class="btn-primary"
+          type="button"
+          routerLink="/menu/aerolinea/tripulacion/nuevo">
+          Crear tripulación
+        </button>
+
+        <button
+          class="btn-secondary"
+          type="button"
+          routerLink="/menu">
+          Regresar
+        </button>
       </div>
     </header>
 
@@ -20,10 +32,25 @@
 
         <div class="form-grid">
           <div class="field">
-            <label class="label">Aerolinea</label>
+            <label class="label">Buscar</label>
+            <input
+              class="control"
+              type="text"
+              [(ngModel)]="filtros.q"
+              placeholder="Código, aerolínea, estado o piloto"
+            />
+          </div>
+
+          <div class="field">
+            <label class="label">Aerolínea</label>
             <select class="control" [(ngModel)]="filtros.aerolineaId">
               <option value="">Todas</option>
-              <option *ngFor="let a of aerolineas" [value]="a.id">{{ a.nombre || a.descripcion || a.label }}</option>
+
+              <option
+                *ngFor="let a of aerolineas"
+                [value]="a.id">
+                {{ a.nombre || a.descripcion || a.label }}
+              </option>
             </select>
           </div>
 
@@ -31,43 +58,74 @@
             <label class="label">Estado</label>
             <select class="control" [(ngModel)]="filtros.estadoId">
               <option value="">Todos</option>
-              <option *ngFor="let e of estados" [value]="e.id">{{ e.nombre }}</option>
+
+              <option
+                *ngFor="let e of estadosTripulacion"
+                [value]="e.id">
+                {{ e.nombre || e.descripcion || e.label || e.name }}
+              </option>
             </select>
           </div>
         </div>
 
         <div class="form-actions">
-          <button class="btn-primary" type="button" (click)="aplicarFiltros()">Aplicar</button>
-          <button class="btn-secondary" type="button" (click)="limpiarFiltros()">Limpiar</button>
+          <button
+            class="btn-primary"
+            type="button"
+            (click)="aplicarFiltros()">
+            Aplicar
+          </button>
+
+          <button
+            class="btn-secondary"
+            type="button"
+            (click)="limpiarFiltros()">
+            Limpiar
+          </button>
         </div>
       </div>
     </section>
 
     <section class="card" aria-label="Listado">
       <div class="section">
-        <h2 class="section-title">Lista de tripulacion</h2>
+        <h2 class="section-title">Lista de tripulación</h2>
 
-        <div class="table-wrap" *ngIf="tripulacionesFiltradas.length; else empty">
+        <div
+          class="form-actions"
+          style="justify-content: space-between; align-items: center;">
+          <div class="muted">
+            Mostrando {{ getEstadoResumen() }}
+          </div>
+        </div>
+
+        <div class="table-wrap" *ngIf="tripulacionesVisibles.length; else empty">
           <table class="table">
             <thead>
               <tr>
-                <th>Codigo</th>
-                <th>Aerolinea</th>
+                <th>Código</th>
+                <th>Aerolínea</th>
                 <th>Estado</th>
                 <th>Piloto</th>
                 <th>Total miembros</th>
                 <th>Acciones</th>
               </tr>
             </thead>
+
             <tbody>
-              <tr *ngFor="let t of tripulacionesFiltradas">
+              <tr *ngFor="let t of tripulacionesVisibles">
                 <td>{{ t.codigo }}</td>
                 <td>{{ aerolineaMap[t.aerolineaId] || t.aerolineaId }}</td>
                 <td>{{ getEstadoLabel(t.estadoTripulacionId) }}</td>
                 <td>{{ getPiloto(t) }}</td>
                 <td>{{ t.empleados?.length || 0 }}</td>
+
                 <td class="table-actions">
-                  <button class="btn-secondary" type="button" (click)="verDetalle(t)">Ver</button>
+                  <button
+                    class="btn-secondary"
+                    type="button"
+                    (click)="verDetalle(t)">
+                    Ver
+                  </button>
                 </td>
               </tr>
             </tbody>
@@ -77,25 +135,55 @@
         <ng-template #empty>
           <p class="muted">No hay tripulaciones para mostrar.</p>
         </ng-template>
+
+        <div
+          class="form-actions"
+          *ngIf="tripulacionesFiltradas.length > paginacion.size">
+          <button
+            class="btn-secondary"
+            type="button"
+            (click)="cambiarPagina(-1)"
+            [disabled]="paginacion.page === 0">
+            Anterior
+          </button>
+
+          <span class="muted">
+            Página {{ paginacion.page + 1 }} de {{ paginacion.totalPages }}
+          </span>
+
+          <button
+            class="btn-secondary"
+            type="button"
+            (click)="cambiarPagina(1)"
+            [disabled]="paginacion.page + 1 >= paginacion.totalPages">
+            Siguiente
+          </button>
+        </div>
       </div>
     </section>
 
     <section class="card" *ngIf="detalle" aria-label="Detalle">
       <div class="section">
-        <h2 class="section-title">Detalle de tripulacion</h2>
+        <h2 class="section-title">Detalle de tripulación</h2>
 
         <div class="detail-grid">
           <div>
-            <div class="detail-label">Codigo</div>
+            <div class="detail-label">Código</div>
             <div class="detail-value">{{ detalle.codigo }}</div>
           </div>
+
           <div>
-            <div class="detail-label">Aerolinea</div>
-            <div class="detail-value">{{ aerolineaMap[detalle.aerolineaId] || detalle.aerolineaId }}</div>
+            <div class="detail-label">Aerolínea</div>
+            <div class="detail-value">
+              {{ aerolineaMap[detalle.aerolineaId] || detalle.aerolineaId }}
+            </div>
           </div>
+
           <div>
             <div class="detail-label">Estado</div>
-            <div class="detail-value">{{ getEstadoLabel(detalle.estadoTripulacionId) }}</div>
+            <div class="detail-value">
+              {{ getEstadoLabel(detalle.estadoTripulacionId) }}
+            </div>
           </div>
         </div>
 
@@ -103,16 +191,21 @@
           <table class="table">
             <thead>
               <tr>
-                <th>Codigo</th>
+                <th>Código empleado</th>
                 <th>Nombre</th>
                 <th>Tipo</th>
+                <th>Licencia</th>
+                <th>Vencimiento licencia</th>
               </tr>
             </thead>
+
             <tbody>
-              <tr *ngFor="let e of detalle.empleados">
+              <tr *ngFor="let e of detalle.empleados || []">
                 <td>{{ e.codigoEmpleado || e.codigo || e.id }}</td>
                 <td>{{ e.nombreCompleto || e.nombre || e.username || e.email }}</td>
                 <td>{{ getTipoEmpleadoLabel(e.tipoEmpleadoId) }}</td>
+                <td>{{ getLicenciaLabel(e) }}</td>
+                <td>{{ getFechaVencimientoLicencia(e) }}</td>
               </tr>
             </tbody>
           </table>

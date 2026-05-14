@@ -11,8 +11,6 @@ import { getApiErrorMessage } from '../../services/shared/api-error.util';
 export class AerolineaCreateComponent {
   form = {
     nombre: '',
-    codigoIata: '',
-    codigoIcao: '',
     pais: ''
   };
 
@@ -25,6 +23,7 @@ export class AerolineaCreateComponent {
 
   guardar() {
     const msg = this.validar();
+
     if (msg) {
       alert(msg);
       return;
@@ -32,12 +31,11 @@ export class AerolineaCreateComponent {
 
     const payload = {
       nombre: this.form.nombre.trim(),
-      codigoIata: this.form.codigoIata.trim(),
-      codigoIcao: this.form.codigoIcao.trim(),
       pais: this.form.pais.trim()
     };
 
     this.cargando = true;
+
     this.service.crear(payload).subscribe({
       next: () => {
         this.cargando = false;
@@ -58,10 +56,8 @@ export class AerolineaCreateComponent {
 
   private validar() {
     if (!this.form.nombre.trim()) return 'Nombre obligatorio';
-    if (!this.form.codigoIata.trim()) return 'Código IATA obligatorio';
-    if (!this.form.codigoIcao.trim()) return 'Código ICAO obligatorio';
     if (!this.form.pais.trim()) return 'País obligatorio';
+
     return '';
   }
 }
-

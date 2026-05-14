@@ -5,7 +5,6 @@ import { environment } from '../../environments/environment';
 export interface PuertaEmbarque {
   id?: number;
   codigo: string;
-  estadoId?: number;
 }
 
 export interface Aeropuerto {
@@ -19,6 +18,13 @@ export interface Aeropuerto {
   puertas?: PuertaEmbarque[];
 }
 
+export interface AeropuertoRequest {
+  nombre: string;
+  pais: string;
+  ciudad: string;
+  puertas: Array<{ codigo: string }>;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -27,17 +33,22 @@ export class AeropuertosService {
 
   constructor(private http: HttpClient) {}
 
-  listar(filtros?: { nombre?: string; pais?: string; estadoId?: string | number }) {
+  listar(filtros?: { nombre?: string; pais?: string }) {
     let params = new HttpParams();
+
     const nombre = (filtros?.nombre ?? '').toString().trim();
     const pais = (filtros?.pais ?? '').toString().trim();
-    const estadoId = (filtros?.estadoId ?? '').toString().trim();
 
-    if (nombre) params = params.set('nombre', nombre);
-    if (pais) params = params.set('pais', pais);
-    if (estadoId) params = params.set('estadoId', estadoId);
+    if (nombre) {
+      params = params.set('nombre', nombre);
+    }
+
+    if (pais) {
+      params = params.set('pais', pais);
+    }
 
     const options = params.keys().length ? { params } : {};
+
     return this.http.get<Aeropuerto[]>(this.api, options);
   }
 
@@ -45,33 +56,15 @@ export class AeropuertosService {
     return this.http.get<Aeropuerto>(`${this.api}/${id}`);
   }
 
-  crear(data: {
-    nombre: string;
-    codigoIata: string;
-    codigoIcao: string;
-    pais: string;
-    ciudad: string;
-    puertas: Array<{ codigo: string }>;
-  }) {
-    return this.http.post(this.api, data);
+  crear(data: AeropuertoRequest) {
+    return this.http.post<Aeropuerto>(this.api, data);
   }
 
-  editar(
-    id: number,
-    data: {
-      nombre: string;
-      codigoIata: string;
-      codigoIcao: string;
-      pais: string;
-      ciudad: string;
-      puertas: Array<{ codigo: string }>;
-    }
-  ) {
-    return this.http.put(`${this.api}/${id}`, data);
+  editar(id: number, data: AeropuertoRequest) {
+    return this.http.put<Aeropuerto>(`${this.api}/${id}`, data);
   }
 
   eliminar(id: number) {
-    return this.http.delete(`${this.api}/${id}`);
+    return this.http.delete<void>(`${this.api}/${id}`);
   }
 }
-

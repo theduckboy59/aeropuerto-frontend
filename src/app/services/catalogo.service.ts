@@ -7,6 +7,8 @@ import { environment } from '../../environments/environment';
 })
 export class CatalogoService {
 
+  private aerolineasApi = `${environment.apiUrl}/aerolineas`;
+  private aeropuertosApi = `${environment.apiUrl}/aeropuertos`;
   private api = `${environment.apiUrl}/catalogos`;
 
   constructor(private http: HttpClient) {}
@@ -19,16 +21,20 @@ export class CatalogoService {
     return this.http.get<any[]>(`${this.api}/tipos-empleado`);
   }
 
+  estadoTripulacion() {
+    return this.http.get<any[]>(`${this.api}/estado-tripulacion`);
+  }
+
   status() {
     return this.http.get<any[]>(`${this.api}/status`);
   }
 
   aerolinea() {
-    return this.http.get<any[]>(`${this.api}/aerolinea`);
+    return this.http.get<any[]>(this.aerolineasApi);
   }
 
   aerolineas() {
-    return this.http.get<any[]>(`${this.api}/aerolineas`);
+    return this.http.get<any[]>(this.aerolineasApi);
   }
 
   estadoAvion() {
@@ -40,7 +46,11 @@ export class CatalogoService {
   }
 
   aeropuerto() {
-    return this.http.get<any[]>(`${this.api}/aeropuerto`);
+    return this.http.get<any[]>(this.aeropuertosApi);
+  }
+
+  aeropuertos() {
+    return this.http.get<any[]>(this.aeropuertosApi);
   }
 
   avion() {
