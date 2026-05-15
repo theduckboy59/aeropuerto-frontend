@@ -6,20 +6,38 @@ import { Page } from './shared/page';
 
 export interface Avion {
   id: number;
+
   aerolineaId: number;
+  aerolineaNombre?: string;
+
   estadoAvionId: number;
+  estadoAvionNombre?: string;
+
   modeloAvionId: number;
+  modeloFabricante?: string;
+  modeloCodigo?: string;
+  modeloNombre?: string;
+
   codigoAvion: string;
-  numeroSerie?: string;
+  numeroSerie?: string | null;
   anio: number;
   filasConfiguradas: number;
   cantidadVuelos?: number;
-  estadoId: number;
+
+  estadoId?: number;
   createdAt?: string;
   updatedAt?: string;
 }
 
-export type AvionCreate = Omit<Avion, 'id' | 'createdAt' | 'updatedAt'>;
+export interface AvionCreate {
+  aerolineaId: number;
+  estadoAvionId: number;
+  modeloAvionId: number;
+  numeroSerie?: string | null;
+  anio: number;
+  filasConfiguradas: number;
+}
+
 export type AvionUpdate = Partial<AvionCreate>;
 
 @Injectable({
@@ -32,13 +50,16 @@ export class AvionService {
 
   getAviones(filters: Record<string, any> = {}) {
     let params = new HttpParams();
+
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== null && value !== undefined && value !== '') {
         params = params.set(key, String(value));
       }
     });
 
-    return this.http.get<Page<Avion>>(this.api, { params }).pipe(map((res) => res?.content ?? []));
+    return this.http
+      .get<Page<Avion>>(this.api, { params })
+      .pipe(map((res) => res?.content ?? []));
   }
 
   getAvion(id: number) {
@@ -46,15 +67,14 @@ export class AvionService {
   }
 
   crearAvion(data: AvionCreate) {
-    return this.http.post(this.api, data);
+    return this.http.post<Avion>(this.api, data);
   }
 
   actualizarAvion(id: number, data: AvionUpdate) {
-    return this.http.put(`${this.api}/${id}`, data);
+    return this.http.put<Avion>(`${this.api}/${id}`, data);
   }
 
   eliminarAvion(id: number) {
-    return this.http.delete(`${this.api}/${id}`);
+    return this.http.delete<void>(`${this.api}/${id}`);
   }
 }
-

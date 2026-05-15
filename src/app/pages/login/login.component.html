@@ -44,7 +44,9 @@
               </div>
             </label>
 
-            <button class="ig-btn" type="submit">Entrar</button>
+            <button class="ig-btn" type="submit" [disabled]="loading">
+              {{ loading ? 'Ingresando...' : 'Entrar' }}
+            </button>
           </form>
         </div>
 

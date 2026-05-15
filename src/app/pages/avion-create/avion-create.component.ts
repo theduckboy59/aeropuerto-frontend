@@ -41,16 +41,15 @@ export class AvionCreateComponent implements OnInit {
       aerolineaId: '',
       estadoAvionId: '',
       modeloAvionId: '',
-      codigoAvion: '',
       numeroSerie: '',
       anio: '',
-      filasConfiguradas: '',
-      estadoId: 1
+      filasConfiguradas: ''
     };
   }
 
   cargarCatalogos(): void {
     this.cargando = true;
+
     forkJoin({
       aerolineas: this.catalogo.aerolinea(),
       estadosAvion: this.catalogo.estadoAvion(),
@@ -61,8 +60,13 @@ export class AvionCreateComponent implements OnInit {
         this.estadosAvion = estadosAvion ?? [];
         this.modelosAvion = modelosAvion ?? [];
 
-        const activo = this.estadosAvion.find((e: any) => (e.nombre ?? e.codigo) === 'ACTIVO');
-        if (activo?.id != null) this.form.estadoAvionId = Number(activo.id);
+        const activo = this.estadosAvion.find((e: any) =>
+          String(e.nombre ?? e.codigo ?? '').toUpperCase() === 'ACTIVO'
+        );
+
+        if (activo?.id != null) {
+          this.form.estadoAvionId = Number(activo.id);
+        }
 
         this.cargando = false;
       },
@@ -76,7 +80,10 @@ export class AvionCreateComponent implements OnInit {
 
   onModeloChange(): void {
     const modeloAvionId = Number(this.form.modeloAvionId);
-    this.modeloSeleccionado = this.modelosAvion.find((m) => m.id === modeloAvionId) ?? null;
+
+    this.modeloSeleccionado =
+      this.modelosAvion.find((m) => m.id === modeloAvionId) ?? null;
+
     this.form.filasConfiguradas = '';
   }
 
@@ -85,7 +92,6 @@ export class AvionCreateComponent implements OnInit {
       { key: 'aerolineaId', label: 'Aerolínea' },
       { key: 'estadoAvionId', label: 'Estado operativo' },
       { key: 'modeloAvionId', label: 'Modelo' },
-      { key: 'codigoAvion', label: 'Código avión' },
       { key: 'anio', label: 'Año' },
       { key: 'filasConfiguradas', label: 'Filas configuradas' }
     ];
@@ -101,6 +107,7 @@ export class AvionCreateComponent implements OnInit {
     }
 
     const anio = Number(this.form.anio);
+
     if (Number.isNaN(anio) || anio < 1950) {
       alert('Año inválido (mínimo 1950)');
       return;
@@ -112,8 +119,15 @@ export class AvionCreateComponent implements OnInit {
     }
 
     const filas = Number(this.form.filasConfiguradas);
-    if (Number.isNaN(filas) || filas < this.modeloSeleccionado.filasMin || filas > this.modeloSeleccionado.filasMax) {
-      alert(`Filas inválidas: debe estar entre ${this.modeloSeleccionado.filasMin} y ${this.modeloSeleccionado.filasMax}`);
+
+    if (
+      Number.isNaN(filas) ||
+      filas < this.modeloSeleccionado.filasMin ||
+      filas > this.modeloSeleccionado.filasMax
+    ) {
+      alert(
+        `Filas inválidas: debe estar entre ${this.modeloSeleccionado.filasMin} y ${this.modeloSeleccionado.filasMax}`
+      );
       return;
     }
 
@@ -121,20 +135,24 @@ export class AvionCreateComponent implements OnInit {
       aerolineaId: Number(this.form.aerolineaId),
       estadoAvionId: Number(this.form.estadoAvionId),
       modeloAvionId: Number(this.form.modeloAvionId),
-      codigoAvion: String(this.form.codigoAvion).trim(),
-      numeroSerie: this.form.numeroSerie ? String(this.form.numeroSerie).trim() : undefined,
+      numeroSerie: this.form.numeroSerie
+        ? String(this.form.numeroSerie).trim()
+        : null,
       anio,
-      filasConfiguradas: filas,
-      estadoId: Number(this.form.estadoId ?? 1)
+      filasConfiguradas: filas
     };
 
-    this.avionService.crearAvion(payload as any).subscribe({
+    this.cargando = true;
+
+    this.avionService.crearAvion(payload).subscribe({
       next: () => {
+        this.cargando = false;
         alert('Avión creado correctamente');
         this.router.navigate(['/menu/aerolinea/aviones']);
       },
       error: (err) => {
         console.error(err);
+        this.cargando = false;
         alert(err.error?.message || 'Error al crear avión');
       }
     });

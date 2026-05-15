@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
 import { Router } from '@angular/router';
 import { JwtService } from '../../services/jwt.service';
-import { getApiErrorMessage } from '../../services/shared/api-error.util';
 
 @Component({
   selector: 'app-login',
@@ -29,6 +28,7 @@ export class LoginComponent {
   login() {
     if (!this.email || !this.password) {
       this.errorMessage = 'Por favor ingrese email y contraseña';
+      alert(this.errorMessage);
       return;
     }
 
@@ -54,13 +54,15 @@ export class LoginComponent {
             this.router.navigate(['/menu']);
           } else {
             this.errorMessage = 'Error: No se recibió token';
+            alert(this.errorMessage);
           }
           this.loading = false;
         },
         error: (err) => {
           this.loading = false;
           console.log('ERROR:', err);
-              this.errorMessage = getApiErrorMessage(err, 'Error al iniciar sesión');
+          this.errorMessage = 'Credenciales invalidas';
+          alert(this.errorMessage);
         }
       });
   }

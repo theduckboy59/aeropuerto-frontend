@@ -1,0 +1,135 @@
+<div class="page-root">
+  <main class="content">
+    <header class="topbar" aria-label="Encabezado">
+      <div class="topbar-left">
+        <div class="badge">A L P</div>
+        <div>
+          <h1 class="title">Crear modelo de avión</h1>
+          <p class="subtitle">
+            Registro de modelos de aviones. Los datos técnicos son utilizados para configurar asientos y capacidad.
+          </p>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <button class="btn-secondary" type="button" (click)="regresar()">
+          Regresar
+        </button>
+      </div>
+    </header>
+
+    <section class="card" aria-label="Formulario">
+      <div class="section">
+        <h2 class="section-title">Datos del modelo</h2>
+
+        <div class="form-grid">
+          <div class="field field-wide">
+            <label class="label">Fabricante</label>
+            <input
+              class="control"
+              [(ngModel)]="form.fabricante"
+              placeholder="Ej. Boeing"
+            />
+          </div>
+
+          <div class="field field-wide">
+            <label class="label">Código de modelo</label>
+            <input
+              class="control"
+              [(ngModel)]="form.codigoModelo"
+              placeholder="Ej. 737-800"
+            />
+          </div>
+
+          <div class="field field-wide">
+            <label class="label">Nombre</label>
+            <input
+              class="control"
+              [(ngModel)]="form.nombre"
+              placeholder="Ej. Boeing 737-800"
+            />
+          </div>
+
+          <div class="field">
+            <label class="label">Niveles</label>
+            <input
+              class="control"
+              type="number"
+              min="1"
+              [(ngModel)]="form.niveles"
+              placeholder="1"
+            />
+          </div>
+
+          <div class="field">
+            <label class="label">Pasillos</label>
+            <input
+              class="control"
+              type="number"
+              min="1"
+              [(ngModel)]="form.pasillos"
+              placeholder="1"
+            />
+          </div>
+
+          <div class="field field-wide">
+            <label class="label">Configuración</label>
+            <input
+              class="control"
+              [(ngModel)]="form.configuracion"
+              placeholder="Ej. 3-3-3"
+            />
+          </div>
+
+          <div class="field">
+            <label class="label">Total de columnas</label>
+            <input
+              class="control"
+              type="number"
+              min="1"
+              [(ngModel)]="form.totalColumnas"
+              placeholder="1"
+            />
+          </div>
+
+          <div class="field">
+            <label class="label">Filas mínimas</label>
+            <input
+              class="control"
+              type="number"
+              min="1"
+              [(ngModel)]="form.filasMin"
+              placeholder="1"
+            />
+          </div>
+
+          <div class="field">
+            <label class="label">Filas máximas</label>
+            <input
+              class="control"
+              type="number"
+              min="1"
+              [(ngModel)]="form.filasMax"
+              placeholder="1"
+            />
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button
+            class="btn-primary"
+            type="button"
+            (click)="guardar()"
+            [disabled]="cargando">
+
+            {{ cargando ? 'Guardando...' : 'Crear modelo' }}
+          </button>
+
+          <button class="btn-secondary" type="button" (click)="regresar()">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>

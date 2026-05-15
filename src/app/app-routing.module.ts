@@ -33,6 +33,10 @@ import { PasajeroEditComponent } from './pages/pasajero-edit/pasajero-edit.compo
 import { EditPasajerosComponent } from './pages/edit-pasajeros/edit-pasajeros.component';
 import { RoleGuard } from './guards/role.guard';
 
+import { ModeloAvionComponent } from './pages/modelo-avion/modelo-avion.component';
+import { ModeloAvionCreateComponent } from './pages/modelo-avion-create/modelo-avion-create.component';
+import { ModeloAvionEditComponent } from './pages/modelo-avion-edit/modelo-avion-edit.component';
+
 const routes: Routes = [
   { path: '', component: PortalComponent },
   { path: 'login', component: LoginComponent },
@@ -44,7 +48,7 @@ const routes: Routes = [
     canActivate: [RoleGuard],
     children: [
       { path: '', component: DashboardComponent },
-      // Rutas para Administrador de Aerolínea
+
       {
         path: 'aerolinea/empleados',
         component: EmpleadosComponent,
@@ -178,7 +182,6 @@ const routes: Routes = [
         data: { title: 'Vuelos (Aerolínea)', roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
       },
 
-      // Rutas para pasajeros
       {
         path: 'vuelos/reservar',
         component: PlaceholderComponent,
@@ -192,7 +195,6 @@ const routes: Routes = [
         data: { title: 'Abordaje', roles: ['ROLE_ADMIN_ABORDAJE', 'ROLE_ADMIN_SISTEMA'] }
       },
 
-      // Rutas para consultas
       {
         path: 'consultas/vuelos',
         component: PlaceholderComponent,
@@ -233,6 +235,18 @@ const routes: Routes = [
         component: PasajeroEditComponent,
         canActivate: [RoleGuard],
         data: { title: 'Editar pasajero (legacy)', roles: ['ROLE_ADMIN_ABORDAJE', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/modelo-avion',
+        component: ModeloAvionComponent
+      },
+      {
+        path: 'aerolinea/modelo-avion/nuevo',
+        component: ModeloAvionCreateComponent
+      },
+      {
+        path: 'aerolinea/modelo-avion/editar/:id',
+        component: ModeloAvionEditComponent
       }
     ]
   },
@@ -244,4 +258,3 @@ const routes: Routes = [
   exports: [RouterModule]
 })
 export class AppRoutingModule {}
-

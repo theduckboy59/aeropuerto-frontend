@@ -21,7 +21,12 @@ export class RoleGuard implements CanActivate {
     const token = this.authService.getToken();
 
     if (!token || this.jwtService.isTokenExpired(token)) {
-      this.router.navigate(['/login']);
+      this.router.navigate(['/login'], {
+        queryParams: {
+          reason: 'expired',
+          attempted: state.url
+        }
+      });
       return false;
     }
 
@@ -31,7 +36,13 @@ export class RoleGuard implements CanActivate {
       const userRole = this.jwtService.getRole(token);
 
       if (!userRole || !requiredRoles.includes(userRole)) {
-        this.router.navigate(['/menu']);
+        this.router.navigate(['/menu'], {
+          queryParams: {
+            reason: 'role',
+            attempted: state.url,
+            role: userRole || ''
+          }
+        });
         return false;
       }
     }

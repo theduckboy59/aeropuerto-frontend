@@ -221,6 +221,36 @@
   background: #f8fafc;
 }
 
+.diagnostic {
+  margin: 14px 16px 0;
+  border: 1px solid #f59e0b;
+  border-radius: 10px;
+  background: #fffbeb;
+  color: #78350f;
+  padding: 12px 14px;
+  box-shadow: 0 10px 20px rgba(120, 53, 15, 0.08);
+}
+
+.diagnostic-title {
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.diagnostic-message {
+  margin-top: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.diagnostic-session {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 @media (max-width: 900px) {
   .body {
     grid-template-columns: 1fr;

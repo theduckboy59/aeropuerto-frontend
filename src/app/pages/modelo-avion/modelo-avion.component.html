@@ -1,0 +1,109 @@
+<div class="page-root">
+  <main class="content">
+    <header class="topbar" aria-label="Encabezado">
+      <div class="topbar-left">
+        <div class="badge">A L P</div>
+
+        <div>
+          <h1 class="title">Modelos de avión</h1>
+          <p class="subtitle">
+            Catálogo técnico usado para registrar aviones y definir configuración de asientos.
+          </p>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <button class="btn-primary" type="button" (click)="crear()">
+          Crear modelo
+        </button>
+
+        <button class="btn-secondary" type="button" routerLink="/menu">
+          Regresar
+        </button>
+      </div>
+    </header>
+
+    <section class="card" aria-label="Filtros">
+      <div class="section">
+        <h2 class="section-title">Filtros</h2>
+
+        <div class="form-grid">
+          <div class="field field-wide">
+            <label class="label">Buscar</label>
+            <input
+              class="control"
+              [(ngModel)]="filtros.q"
+              (input)="onFiltroChange()"
+              placeholder="Fabricante, código o nombre"
+            />
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-primary" type="button" (click)="buscar()">
+            Buscar
+          </button>
+
+          <button class="btn-secondary" type="button" (click)="limpiar()">
+            Limpiar
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-label="Listado">
+      <div class="section">
+        <h2 class="section-title">Lista de modelos</h2>
+
+        <p class="muted" *ngIf="cargando">Cargando...</p>
+
+        <div class="table-wrap" *ngIf="!cargando && modelos.length > 0; else empty">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Fabricante</th>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Niveles</th>
+                <th>Pasillos</th>
+                <th>Configuración</th>
+                <th>Columnas</th>
+                <th>Filas</th>
+                <th>Capacidad ref.</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr *ngFor="let m of modelos">
+                <td>{{ m.fabricante }}</td>
+                <td>{{ m.codigoModelo }}</td>
+                <td>{{ m.nombre }}</td>
+                <td>{{ m.niveles }}</td>
+                <td>{{ m.pasillos }}</td>
+                <td>{{ m.configuracion }}</td>
+                <td>{{ m.totalColumnas }}</td>
+                <td>{{ m.filasMin }} a {{ m.filasMax }}</td>
+                <td>{{ getCapacidadReferencia(m) }}</td>
+
+                <td class="table-actions">
+                  <button class="btn-secondary" type="button" (click)="editar(m)">
+                    Editar
+                  </button>
+
+                  <button class="btn-secondary" type="button" (click)="inactivar(m)">
+                    Inactivar
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <ng-template #empty>
+          <p class="muted">No hay modelos para mostrar.</p>
+        </ng-template>
+      </div>
+    </section>
+  </main>
+</div>

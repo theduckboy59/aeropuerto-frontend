@@ -3,9 +3,15 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { forkJoin } from 'rxjs';
+
 import { Avion, AvionService } from '../../services/avion.service';
 import { CatalogoService } from '../../services/catalogo.service';
-import { ConfigClaseFilasAvion, ConfigClaseFilasAvionService } from '../../services/config-clase-filas-avion.service';
+import {
+  ConfigClaseFilasAvion,
+  ConfigClaseFilasAvionCompleta,
+  ConfigClaseFilasAvionRequest,
+  ConfigClaseFilasAvionService
+} from '../../services/config-clase-filas-avion.service';
 import { getApiErrorMessage } from '../../services/shared/api-error.util';
 
 @Component({
@@ -20,12 +26,16 @@ export class ConfigClaseFilasAvionEditComponent implements OnInit {
 
   aviones: Avion[] = [];
   clasesVuelo: any[] = [];
-
-  form: any = this.getEmptyForm();
-  avionSeleccionado: Avion | null = null;
+  configsCompletas: ConfigClaseFilasAvionCompleta[] = [];
   configsActivasAvion: ConfigClaseFilasAvion[] = [];
 
+  form: any = this.getEmptyForm();
+
+  avionSeleccionado: Avion | null = null;
+  configActual: ConfigClaseFilasAvion | null = null;
+
   cargando = false;
+  guardando = false;
 
   constructor(
     private avionService: AvionService,
@@ -38,13 +48,14 @@ export class ConfigClaseFilasAvionEditComponent implements OnInit {
   ngOnInit(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
     this.id = idParam ? Number(idParam) : null;
+
     if (this.id === null || Number.isNaN(this.id)) {
       alert('Configuración no encontrada');
       this.regresar();
       return;
     }
 
-    this.cargarTodo(this.id);
+    this.cargarTodo();
   }
 
   private getEmptyForm() {
@@ -57,26 +68,40 @@ export class ConfigClaseFilasAvionEditComponent implements OnInit {
     };
   }
 
-  private cargarTodo(id: number): void {
+  private cargarTodo(): void {
     this.cargando = true;
+
     forkJoin({
       aviones: this.avionService.getAviones({ size: 100 }),
       clases: this.catalogo.claseVuelo(),
-      config: this.configService.getById(id)
+      configs: this.configService.listarAvionesActivosCompletos()
     }).subscribe({
-      next: ({ aviones, clases, config }) => {
+      next: ({ aviones, clases, configs }) => {
         this.aviones = aviones ?? [];
-        this.clasesVuelo = clases ?? [];
+        this.clasesVuelo = this.filtrarClasesVendibles(clases ?? []);
+        this.configsCompletas = configs ?? [];
+
+        const encontrado = this.buscarRangoPorId(Number(this.id));
+
+        if (!encontrado) {
+          this.cargando = false;
+          alert('No se encontró el rango seleccionado.');
+          this.regresar();
+          return;
+        }
+
+        this.configActual = encontrado.rango;
 
         this.form = {
-          avionId: config.avionId,
-          claseVueloId: config.claseVueloId,
-          filaDesde: config.filaDesde,
-          filaHasta: config.filaHasta,
-          activo: config.activo
+          avionId: encontrado.rango.avionId,
+          claseVueloId: encontrado.rango.claseVueloId,
+          filaDesde: encontrado.rango.filaDesde,
+          filaHasta: encontrado.rango.filaHasta,
+          activo: encontrado.rango.activo
         };
 
         this.onAvionChange(false);
+
         this.cargando = false;
       },
       error: (err) => {
@@ -88,28 +113,31 @@ export class ConfigClaseFilasAvionEditComponent implements OnInit {
     });
   }
 
-  onAvionChange(resetFilas = true): void {
+  onAvionChange(limpiarFilas = true): void {
     const avionId = Number(this.form.avionId);
-    this.avionSeleccionado = this.aviones.find((a) => Number(a.id) === avionId) ?? null;
 
-    if (resetFilas) {
+    this.avionSeleccionado =
+      this.aviones.find((a) => Number(a.id) === avionId) ?? null;
+
+    if (limpiarFilas) {
       this.form.filaDesde = '';
       this.form.filaHasta = '';
     }
 
     this.configsActivasAvion = [];
-    if (!this.avionSeleccionado || this.id == null) return;
 
-    this.configService.listar({ avionId, activo: true, page: 0, size: 100 }).subscribe({
-      next: (page) => {
-        const content: ConfigClaseFilasAvion[] = page?.content ?? [];
-        this.configsActivasAvion = content.filter((c) => Number(c.id) !== Number(this.id));
-      },
-      error: (err) => {
-        console.error(err);
-        alert(getApiErrorMessage(err, 'Error cargando configuraciones del avión'));
-      }
-    });
+    const completa = this.configsCompletas.find(
+      (c) => Number(c.avionId) === avionId
+    );
+
+    if (!completa) {
+      return;
+    }
+
+    this.configsActivasAvion = (completa.configuraciones ?? [])
+      .filter((c) => c.id !== null)
+      .filter((c) => Number(c.id) !== Number(this.id))
+      .filter((c) => c.activo !== false);
   }
 
   guardar(): void {
@@ -118,77 +146,35 @@ export class ConfigClaseFilasAvionEditComponent implements OnInit {
       return;
     }
 
-    const requiredFields = [
-      { key: 'avionId', label: 'Avión' },
-      { key: 'claseVueloId', label: 'Clase de vuelo' },
-      { key: 'filaDesde', label: 'Fila desde' },
-      { key: 'filaHasta', label: 'Fila hasta' }
-    ];
+    const validacion = this.validar();
 
-    const faltante = requiredFields.find((f) => {
-      const v = this.form[f.key];
-      return v === null || v === undefined || v === '';
+    if (validacion) {
+      alert(validacion);
+      return;
+    }
+
+    const payload: ConfigClaseFilasAvionRequest = {
+      avionId: Number(this.form.avionId),
+      claseVueloId: Number(this.form.claseVueloId),
+      filaDesde: Number(this.form.filaDesde),
+      filaHasta: Number(this.form.filaHasta),
+      activo: Boolean(this.form.activo)
+    };
+
+    this.guardando = true;
+
+    this.configService.actualizarRango(this.id, payload).subscribe({
+      next: () => {
+        this.guardando = false;
+        alert('Rango actualizado correctamente');
+        this.regresar();
+      },
+      error: (err) => {
+        console.error(err);
+        this.guardando = false;
+        alert(getApiErrorMessage(err, 'Error actualizando rango'));
+      }
     });
-    if (faltante) {
-      alert(`Campo requerido: ${faltante.label}`);
-      return;
-    }
-
-    if (!this.avionSeleccionado) {
-      alert('Seleccione un avión');
-      return;
-    }
-
-    const filaDesde = Number(this.form.filaDesde);
-    const filaHasta = Number(this.form.filaHasta);
-    const claseVueloId = Number(this.form.claseVueloId);
-    const activo = !!this.form.activo;
-
-    if (Number.isNaN(filaDesde) || filaDesde <= 0) {
-      alert('La fila inicial debe ser mayor a 0.');
-      return;
-    }
-    if (Number.isNaN(filaHasta) || filaHasta < filaDesde) {
-      alert('La fila final no puede ser menor que la fila inicial.');
-      return;
-    }
-    if (filaHasta > Number(this.avionSeleccionado.filasConfiguradas)) {
-      alert('La fila final no puede ser mayor a las filas configuradas del avión.');
-      return;
-    }
-
-    if (activo) {
-      const claseYaExiste = this.configsActivasAvion.some((c) => Number(c.claseVueloId) === claseVueloId);
-      if (claseYaExiste) {
-        alert('El avión ya tiene una configuración activa para esa clase de vuelo.');
-        return;
-      }
-
-      const cruce = this.configsActivasAvion.some((c) => filaDesde <= Number(c.filaHasta) && filaHasta >= Number(c.filaDesde));
-      if (cruce) {
-        alert('El rango de filas se cruza con otra clase ya configurada para este avión.');
-        return;
-      }
-    }
-
-    this.configService
-      .actualizar(this.id, {
-        avionId: Number(this.form.avionId),
-        claseVueloId,
-        filaDesde,
-        filaHasta,
-        activo
-      })
-      .subscribe({
-        next: () => {
-          alert('Configuración actualizada correctamente.');
-          this.regresar();
-        },
-        error: (err) => {
-          console.error(err);
-          alert(getApiErrorMessage(err, 'Error al actualizar'));
-        }
-      });
   }
 
   regresar(): void {
@@ -196,8 +182,84 @@ export class ConfigClaseFilasAvionEditComponent implements OnInit {
   }
 
   getClaseNombre(id: any): string {
-    const c = this.clasesVuelo.find((x: any) => String(x?.id) === String(id));
-    return c?.nombre || c?.descripcion || c?.label || String(id || '');
+    const clase = this.clasesVuelo.find((c: any) => Number(c.id) === Number(id));
+
+    return clase
+      ? clase.nombre || clase.descripcion || clase.label || String(id)
+      : String(id || '');
   }
 
+  private validar(): string {
+    if (!this.form.avionId) {
+      return 'Seleccione un avión.';
+    }
+
+    if (!this.avionSeleccionado) {
+      return 'Seleccione un avión válido.';
+    }
+
+    if (!this.form.claseVueloId) {
+      return 'Seleccione una clase.';
+    }
+
+    if (this.form.filaDesde === '' || this.form.filaHasta === '') {
+      return 'Ingrese fila desde y fila hasta.';
+    }
+
+    const desde = Number(this.form.filaDesde);
+    const hasta = Number(this.form.filaHasta);
+    const filasMax = Number(this.avionSeleccionado.filasConfiguradas);
+
+    if (Number.isNaN(desde) || desde <= 0) {
+      return 'La fila desde debe ser mayor a 0.';
+    }
+
+    if (Number.isNaN(hasta) || hasta < desde) {
+      return 'La fila hasta no puede ser menor que la fila desde.';
+    }
+
+    if (hasta > filasMax) {
+      return `La fila hasta no puede superar las ${filasMax} filas configuradas del avión.`;
+    }
+
+    return '';
+  }
+
+  private buscarRangoPorId(rangoId: number): {
+    completa: ConfigClaseFilasAvionCompleta;
+    rango: ConfigClaseFilasAvion;
+  } | null {
+    for (const completa of this.configsCompletas) {
+      const rango = (completa.configuraciones ?? []).find(
+        (r) => Number(r.id) === rangoId
+      );
+
+      if (rango) {
+        return {
+          completa,
+          rango
+        };
+      }
+    }
+
+    return null;
+  }
+
+  private filtrarClasesVendibles(clases: any[]): any[] {
+    return clases.filter((clase: any) => {
+      const nombre = this.normalizar(
+        clase.nombre ?? clase.descripcion ?? clase.label ?? ''
+      );
+
+      return nombre === 'ECONOMICA' || nombre === 'EJECUTIVA';
+    });
+  }
+
+  private normalizar(valor: string): string {
+    return String(valor ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toUpperCase();
+  }
 }

@@ -32,6 +32,9 @@ import { DestinoAutorizadoEditComponent } from './pages/destino-autorizado-edit/
 import { PasajerosComponent } from './pages/pasajeros/pasajeros.component';
 import { PasajeroEditComponent } from './pages/pasajero-edit/pasajero-edit.component';
 import { EditPasajerosComponent } from './pages/edit-pasajeros/edit-pasajeros.component';
+import { ModeloAvionComponent } from './pages/modelo-avion/modelo-avion.component';
+import { ModeloAvionCreateComponent } from './pages/modelo-avion-create/modelo-avion-create.component';
+import { ModeloAvionEditComponent } from './pages/modelo-avion-edit/modelo-avion-edit.component';
 
 @NgModule({
   declarations: [
@@ -58,7 +61,10 @@ import { EditPasajerosComponent } from './pages/edit-pasajeros/edit-pasajeros.co
     DestinoAutorizadoEditComponent,
     PasajerosComponent,
     PasajeroEditComponent,
-    EditPasajerosComponent
+    EditPasajerosComponent,
+    ModeloAvionComponent,
+    ModeloAvionCreateComponent,
+    ModeloAvionEditComponent
   ],
   imports: [
     BrowserModule,

@@ -240,6 +240,13 @@
   transform: translateY(-1px);
 }
 
+.ig-btn:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.2);
+  opacity: 0.72;
+  transform: none;
+}
+
 .ig-btn:active {
   transform: translateY(0);
 }

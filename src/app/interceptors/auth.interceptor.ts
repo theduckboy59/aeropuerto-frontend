@@ -52,10 +52,21 @@ export class AuthInterceptor implements HttpInterceptor {
         if (error.status === 401) {
           // Token expirado o inválido
           this.authService.logout();
-          this.router.navigate(['/login']);
+          this.router.navigate(['/login'], {
+            queryParams: {
+              reason: 'unauthorized',
+              attempted: req.url
+            }
+          });
         } else if (error.status === 403) {
           // Acceso denegado por roles
-          this.router.navigate(['/menu']);
+          this.router.navigate(['/menu'], {
+            queryParams: {
+              reason: 'forbidden',
+              attempted: req.url,
+              role: this.authService.getRole() || ''
+            }
+          });
         }
 
         return throwError(() => error);

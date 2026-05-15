@@ -3,77 +3,134 @@
     <header class="topbar" aria-label="Encabezado">
       <div class="topbar-left">
         <div class="badge">A L P</div>
+
         <div>
-          <h1 class="title">Editar configuración</h1>
-          <p class="subtitle">Rangos de filas por clase para un avión.</p>
+          <h1 class="title">Editar rango</h1>
+          <p class="subtitle">
+            Actualiza un rango de filas para una clase del avión.
+          </p>
         </div>
       </div>
+
       <div class="topbar-right">
-        <button class="btn-secondary" type="button" (click)="regresar()">Regresar</button>
+        <button class="btn-secondary" type="button" (click)="regresar()">
+          Regresar
+        </button>
       </div>
     </header>
 
     <section class="card" aria-label="Formulario">
       <div class="section">
-        <h2 class="section-title">Datos</h2>
+        <h2 class="section-title">Datos del rango</h2>
 
-        <div class="form-grid">
+        <p class="muted" *ngIf="cargando">
+          Cargando rango...
+        </p>
+
+        <div class="form-grid" *ngIf="!cargando">
           <div class="field">
-            <label class="label">Avión *</label>
-            <select class="control" [(ngModel)]="form.avionId" name="avionId" (change)="onAvionChange()">
-              <option value="">Seleccione</option>
-              <option *ngFor="let a of aviones" [value]="a.id">{{ a.codigoAvion }} - {{ a.filasConfiguradas }} filas</option>
-            </select>
+  
           </div>
 
           <div class="field">
-            <label class="label">Clase de vuelo *</label>
-            <select class="control" [(ngModel)]="form.claseVueloId" name="claseVueloId">
+            <label class="label">Clase *</label>
+
+            <select
+              class="control"
+              [(ngModel)]="form.claseVueloId"
+              name="claseVueloId">
+
               <option value="">Seleccione</option>
-              <option *ngFor="let c of clasesVuelo" [value]="c.id">{{ c.nombre || c.descripcion || c.label }}</option>
+
+              <option
+                *ngFor="let c of clasesVuelo"
+                [value]="c.id">
+
+                {{ c.nombre || c.descripcion || c.label }}
+              </option>
             </select>
           </div>
 
           <div class="field">
             <label class="label">Fila desde *</label>
-            <input class="control" type="number" [(ngModel)]="form.filaDesde" name="filaDesde" />
+
+            <input
+              class="control"
+              type="number"
+              min="1"
+              [max]="avionSeleccionado?.filasConfiguradas || null"
+              [(ngModel)]="form.filaDesde"
+              name="filaDesde"
+            />
           </div>
 
           <div class="field">
             <label class="label">Fila hasta *</label>
-            <input class="control" type="number" [(ngModel)]="form.filaHasta" name="filaHasta" [placeholder]="avionSeleccionado ? 'Máx: ' + avionSeleccionado.filasConfiguradas : ''" />
-          </div>
 
-          <div class="field">
-            <label class="label">Activo</label>
-            <select class="control" [(ngModel)]="form.activo" name="activo">
-              <option [ngValue]="true">Activo</option>
-              <option [ngValue]="false">Inactivo</option>
-            </select>
+            <input
+              class="control"
+              type="number"
+              min="1"
+              [max]="avionSeleccionado?.filasConfiguradas || null"
+              [(ngModel)]="form.filaHasta"
+              name="filaHasta"
+              [placeholder]="avionSeleccionado ? 'Máx: ' + avionSeleccionado.filasConfiguradas : ''"
+            />
           </div>
         </div>
 
-        <div class="info" *ngIf="avionSeleccionado as a">
-          <div class="info-title">Avión seleccionado</div>
-          <div class="info-grid">
-            <div><span class="k">Código:</span> {{ a.codigoAvion }}</div>
-            <div><span class="k">Filas configuradas:</span> {{ a.filasConfiguradas }}</div>
+        <div class="model-info" *ngIf="avionSeleccionado">
+          <div class="model-title">Información del avión</div>
+
+          <div class="model-grid">
+            <div>
+              <span class="k">Código:</span>
+              {{ avionSeleccionado.codigoAvion }}
+            </div>
+
+            <div>
+              <span class="k">Filas configuradas:</span>
+              {{ avionSeleccionado.filasConfiguradas }}
+            </div>
           </div>
-          <div class="info-title" style="margin-top:10px" *ngIf="configsActivasAvion.length">Rangos activos (otros)</div>
-          <ul class="ranges" *ngIf="configsActivasAvion.length">
+        </div>
+
+        <div class="model-info" *ngIf="avionSeleccionado">
+          <div class="model-title">Otros rangos activos</div>
+
+          <ul *ngIf="configsActivasAvion.length; else sinRangos">
             <li *ngFor="let c of configsActivasAvion">
-              {{ getClaseNombre(c.claseVueloId) }}: filas {{ c.filaDesde }} a {{ c.filaHasta }}
+              {{ getClaseNombre(c.claseVueloId) }}:
+              filas {{ c.filaDesde }} a {{ c.filaHasta }}
             </li>
           </ul>
-          <p class="muted" *ngIf="!configsActivasAvion.length">Sin otras configuraciones activas para este avión.</p>
+
+          <ng-template #sinRangos>
+            <p class="muted">
+              No hay otros rangos activos para este avión.
+            </p>
+          </ng-template>
         </div>
 
         <div class="form-actions">
-          <button class="btn-primary" type="button" (click)="guardar()" [disabled]="cargando">Guardar</button>
-          <button class="btn-secondary" type="button" (click)="regresar()">Cancelar</button>
+          <button
+            class="btn-primary"
+            type="button"
+            (click)="guardar()"
+            [disabled]="guardando || cargando">
+
+            {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
+          </button>
+
+          <button
+            class="btn-secondary"
+            type="button"
+            (click)="regresar()">
+
+            Cancelar
+          </button>
         </div>
       </div>
     </section>
   </main>
 </div>
-

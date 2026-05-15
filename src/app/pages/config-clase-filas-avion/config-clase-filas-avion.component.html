@@ -1,105 +1,355 @@
 <div class="page-root">
   <main class="content">
-    <header class="topbar" aria-label="Encabezado">
-      <div class="topbar-left">
-        <div class="badge">A L P</div>
-        <div>
-          <h1 class="title">Configurar clases por filas</h1>
-          <p class="subtitle">Define rangos de filas por clase (sin crear asientos manualmente).</p>
-        </div>
+    <header class="header-card">
+      <div>
+        <span class="badge">Aerolínea</span>
+        <h1>Configuración de filas por clase</h1>
+        <p>
+          Carga automáticamente los aviones activos. Edita un rango a la vez;
+          las filas no cubiertas se calculan como inhabilitadas.
+        </p>
       </div>
-      <div class="topbar-right">
-        <button class="btn-primary" type="button" (click)="nuevo()">Nuevo</button>
-        <button class="btn-secondary" type="button" routerLink="/menu">Regresar</button>
-      </div>
+
+      <button class="btn-secundario" type="button" routerLink="/menu">
+        Regresar
+      </button>
     </header>
 
-    <section class="card" aria-label="Filtros">
-      <div class="section">
-        <h2 class="section-title">Filtros</h2>
+    <section class="form-card">
+      <div class="section-header">
+        <div>
+          <h2>Buscar avión</h2>
+          <p>La búsqueda se aplica solo sobre aviones activos.</p>
+        </div>
+      </div>
 
-        <div class="form-grid">
-          <div class="field">
-            <label class="label">Avión</label>
-            <select class="control" [(ngModel)]="filtros.avionId" name="avionId" (change)="buscar()">
-              <option value="">Todos</option>
-              <option *ngFor="let a of aviones" [value]="a.id">{{ a.codigoAvion }} - {{ a.filasConfiguradas }} filas</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label class="label">Clase de vuelo</label>
-            <select class="control" [(ngModel)]="filtros.claseVueloId" name="claseVueloId" (change)="buscar()">
-              <option value="">Todas</option>
-              <option *ngFor="let c of clasesVuelo" [value]="c.id">{{ c.nombre || c.descripcion || c.label }}</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label class="label">Estado</label>
-            <select class="control" [(ngModel)]="filtros.activo" name="activo" (change)="buscar()">
-              <option value="">Todos</option>
-              <option value="true">Activo</option>
-              <option value="false">Inactivo</option>
-            </select>
-          </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nombre / código / modelo del avión</label>
+          <input
+            class="control"
+            [(ngModel)]="filtros.q"
+            name="q"
+            (keyup.enter)="buscar()"
+            placeholder="Ej. AV-0001, Boeing, Airbus"
+          />
         </div>
 
-        <div class="form-actions">
-          <button class="btn-primary" type="button" (click)="buscar()">Buscar</button>
-          <button class="btn-secondary" type="button" (click)="limpiar()">Limpiar</button>
+        <div class="form-group">
+          <label>Estado de configuración</label>
+          <select
+            class="control"
+            [(ngModel)]="filtros.estado"
+            name="estado"
+            (change)="aplicarFiltros()">
+
+            <option value="">Todos</option>
+            <option value="configurado">Configurado</option>
+            <option value="sin_configurar">Sin configurar</option>
+          </select>
         </div>
+      </div>
+
+      <div class="acciones">
+        <button class="btn-principal" type="button" (click)="buscar()">
+          Buscar
+        </button>
+
+        <button class="btn-secundario" type="button" (click)="limpiar()">
+          Limpiar
+        </button>
       </div>
     </section>
 
-    <section class="card" aria-label="Listado">
-      <div class="section">
-        <h2 class="section-title">Configuraciones</h2>
+    <section class="list-card">
+      <div class="section-header">
+        <div>
+          <h2>Aviones activos</h2>
+          <p>Listado de configuraciones actuales.</p>
+        </div>
+      </div>
 
-        <p class="muted" *ngIf="cargando">Cargando...</p>
-        <p class="muted" *ngIf="!cargando && errorMsg">{{ errorMsg }}</p>
+      <p class="mensaje info" *ngIf="cargando">
+        Cargando configuraciones...
+      </p>
 
-        <div class="table-wrap" *ngIf="!cargando && !errorMsg && configs.length; else empty">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Avión</th>
-                <th>Clase</th>
-                <th>Fila desde</th>
-                <th>Fila hasta</th>
-                <th>Estado</th>
-                <th>Actualización</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let c of configs">
-                <td>{{ c.id }}</td>
-                <td>{{ avionMap[c.avionId] || c.avionId }}</td>
-                <td>{{ claseMap[c.claseVueloId] || c.claseVueloId }}</td>
-                <td>{{ c.filaDesde }}</td>
-                <td>{{ c.filaHasta }}</td>
-                <td>{{ getEstadoLabel(c.activo) }}</td>
-                <td>{{ getFechaActualizacion(c) }}</td>
-                <td class="table-actions">
-                  <button class="btn-secondary" type="button" (click)="editar(c.id)">Editar</button>
-                  <button class="btn-danger" type="button" (click)="desactivar(c)" *ngIf="c.activo">Desactivar</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      <p class="mensaje error" *ngIf="!cargando && errorMsg">
+        {{ errorMsg }}
+      </p>
+
+      <div
+        class="avion-grid"
+        *ngIf="!cargando && !errorMsg && configsPagina.length; else emptyState">
+
+        <article class="avion-card" *ngFor="let item of configsPagina">
+          <div class="avion-card-header">
+            <div>
+              <h3>{{ item.codigoAvion }}</h3>
+              <p>
+                {{ item.modeloFabricante || '' }}
+                {{ item.modeloNombre || '' }}
+                <span *ngIf="item.modeloCodigo">({{ item.modeloCodigo }})</span>
+              </p>
+            </div>
+
+            <span
+              class="estado-pill"
+              [class.ok]="item.configurado"
+              [class.empty]="!item.configurado">
+
+              {{ item.configurado ? 'Configurado' : 'Sin configurar' }}
+            </span>
+          </div>
+
+          <div class="summary-grid">
+            <div>
+              <span>Filas configuradas</span>
+              <strong>{{ item.filasConfiguradas }}</strong>
+            </div>
+
+            <div>
+              <span>Última actualización</span>
+              <strong>{{ getFechaActualizacion(item) }}</strong>
+            </div>
+          </div>
+
+          <div class="rangos">
+            <div class="rango-row">
+              <div>
+                <span class="rango-label">Ejecutiva</span>
+                <strong>{{ getRangoLabel(item, 'EJECUTIVA') }}</strong>
+              </div>
+
+              <button
+                class="btn-mini"
+                type="button"
+                (click)="abrirCrearRango(item, 'EJECUTIVA')">
+
+                Agregar
+              </button>
+            </div>
+
+            <div class="rango-row">
+              <div>
+                <span class="rango-label">Económica</span>
+                <strong>{{ getRangoLabel(item, 'ECONOMICA') }}</strong>
+              </div>
+
+              <button
+                class="btn-mini"
+                type="button"
+                (click)="abrirCrearRango(item, 'ECONOMICA')">
+
+                Agregar
+              </button>
+            </div>
+
+            <div class="rango-row muted-row">
+              <div>
+                <span class="rango-label">Inhabilitado automático</span>
+                <strong>{{ getInhabilitadoLabel(item) }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="rangos-editables" *ngIf="getRangosEditables(item).length">
+            <h4>Rangos activos</h4>
+
+            <div class="chip-list">
+              <div
+                class="range-chip"
+                *ngFor="let rango of getRangosEditables(item)">
+
+                <span>
+                  {{ getNombreClase(rango) }}:
+                  {{ rango.filaDesde }} - {{ rango.filaHasta }}
+                </span>
+
+                <button
+                  type="button"
+                  class="chip-action"
+                  (click)="abrirEditarRango(item, rango)">
+
+                  Editar
+                </button>
+
+                <button
+                  type="button"
+                  class="chip-action danger"
+                  (click)="eliminarRango(item, rango)">
+
+                  Quitar
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card-actions">
+            <button
+              class="btn-secundario"
+              type="button"
+              (click)="abrirCrearRango(item)">
+
+              Nuevo rango
+            </button>
+
+            <button
+              class="btn-peligro"
+              type="button"
+              (click)="reiniciarConfiguracion(item)"
+              [disabled]="!item.configurado">
+
+              Reiniciar configuración
+            </button>
+          </div>
+        </article>
+      </div>
+
+      <ng-template #emptyState>
+        <p class="mensaje info" *ngIf="!cargando && !errorMsg">
+          No hay aviones activos para mostrar.
+        </p>
+      </ng-template>
+
+      <div class="pager" *ngIf="totalPages > 1">
+        <button
+          class="btn-secundario"
+          type="button"
+          (click)="cambiarPagina(-1)"
+          [disabled]="page === 0">
+
+          Anterior
+        </button>
+
+        <span>
+          Página {{ page + 1 }} de {{ totalPages }}
+        </span>
+
+        <button
+          class="btn-secundario"
+          type="button"
+          (click)="cambiarPagina(1)"
+          [disabled]="page + 1 >= totalPages">
+
+          Siguiente
+        </button>
+      </div>
+    </section>
+
+    <section class="form-card editor-panel" *ngIf="panelAbierto && avionEditando">
+      <div class="section-header">
+        <div>
+          <h2>
+            {{ form.modo === 'editar' ? 'Editar rango' : 'Nuevo rango' }}
+          </h2>
+
+          <p>
+            Avión {{ avionEditando.codigoAvion }} —
+            {{ avionEditando.filasConfiguradas }} filas configuradas.
+          </p>
         </div>
 
-        <ng-template #empty>
-          <p class="muted" *ngIf="!errorMsg">No hay configuraciones para mostrar.</p>
-        </ng-template>
+        <button class="btn-secundario" type="button" (click)="cerrarPanel()">
+          Cerrar
+        </button>
+      </div>
 
-        <div class="pager" *ngIf="totalPages > 1">
-          <button class="btn-secondary" type="button" (click)="cambiarPagina(-1)" [disabled]="page === 0">Anterior</button>
-          <div class="pager-info">Página {{ page + 1 }} de {{ totalPages }} ({{ totalElements }} registros)</div>
-          <button class="btn-secondary" type="button" (click)="cambiarPagina(1)" [disabled]="page + 1 >= totalPages">Siguiente</button>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Clase</label>
+
+          <select
+            class="control"
+            [(ngModel)]="form.claseVueloId"
+            name="claseVueloId">
+
+            <option [ngValue]="null">Seleccione</option>
+
+            <option
+              *ngFor="let clase of getClaseVendibles()"
+              [ngValue]="clase.id">
+
+              {{ clase.nombre || clase.descripcion || clase.label }}
+            </option>
+          </select>
         </div>
+
+        <div class="form-group">
+          <label>Fila desde</label>
+
+          <input
+            class="control"
+            type="number"
+            min="1"
+            [max]="avionEditando.filasConfiguradas"
+            [(ngModel)]="form.filaDesde"
+            name="filaDesde"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Fila hasta</label>
+
+          <input
+            class="control"
+            type="number"
+            min="1"
+            [max]="avionEditando.filasConfiguradas"
+            [(ngModel)]="form.filaHasta"
+            name="filaHasta"
+          />
+        </div>
+      </div>
+
+      <div class="mensaje info">
+        El rango nuevo tiene prioridad. Si cruza con otro rango, el backend lo recorta automáticamente.
+      </div>
+
+      <div class="acciones">
+        <button
+          class="btn-principal"
+          type="button"
+          (click)="guardarRango()"
+          [disabled]="guardando">
+
+          {{ guardando ? 'Guardando...' : 'Confirmar cambios' }}
+        </button>
+
+        <button
+          class="btn-secundario"
+          type="button"
+          (click)="generarSugerencia()">
+
+          Sugerir siguiente rango
+        </button>
+
+        <button
+          class="btn-secundario"
+          type="button"
+          (click)="cerrarPanel()">
+
+          Cancelar
+        </button>
+      </div>
+
+      <div class="sugerencia-box" *ngIf="sugerencia">
+        <strong>{{ sugerencia.mensaje }}</strong>
+
+        <p *ngIf="sugerencia.filaDesdeSugerida !== null && sugerencia.filaHastaSugerida !== null">
+          Clase sugerida:
+          <b>{{ sugerencia.claseSugerida }}</b>,
+          filas
+          <b>{{ sugerencia.filaDesdeSugerida }} - {{ sugerencia.filaHastaSugerida }}</b>.
+        </p>
+
+        <button
+          class="btn-secundario"
+          type="button"
+          (click)="aplicarSugerencia()"
+          *ngIf="sugerencia.filaDesdeSugerida !== null && sugerencia.filaHastaSugerida !== null">
+
+          Aplicar sugerencia al formulario
+        </button>
       </div>
     </section>
   </main>

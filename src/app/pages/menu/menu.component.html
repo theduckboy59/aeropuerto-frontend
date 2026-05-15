@@ -36,6 +36,7 @@
 
           <details class="subgroup" open>
             <summary class="subgroup-title">Operación Aérea</summary>
+            <a class="nav-item sub" routerLink="/menu/aerolinea/modelo-avion" routerLinkActive="active">Modelos de avión</a>
             <a class="nav-item sub" routerLink="/menu/aerolinea/aviones" routerLinkActive="active">Gestión Avión</a>
             <a class="nav-item sub" routerLink="/menu/aerolinea/asiento-ubi" routerLinkActive="active">Ubicación Asientos</a>
             <a class="nav-item sub" routerLink="/menu/aerolinea/config-clase-filas-avion" routerLinkActive="active">Configurar clases por filas</a>
@@ -78,6 +79,12 @@
     </aside>
 
     <main class="content" role="main" aria-label="Contenido">
+      <section class="diagnostic" *ngIf="diagnosticMessage || sessionInfo">
+        <div class="diagnostic-title">Diagnostico de carga</div>
+        <div class="diagnostic-message" *ngIf="diagnosticMessage">{{ diagnosticMessage }}</div>
+        <div class="diagnostic-session">{{ sessionInfo }}</div>
+      </section>
+
       <router-outlet></router-outlet>
     </main>
   </div>
