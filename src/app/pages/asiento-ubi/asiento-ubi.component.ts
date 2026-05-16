@@ -1,94 +1,80 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
 import { Avion } from '../../services/avion.service';
 import { CatalogoService } from '../../services/catalogo.service';
-import { ModeloAvion, ModeloAvionService } from '../../services/modelo-avion.service';
 import {
-  ConfigClaseFilasAvion,
-  ConfigClaseFilasAvionService
-} from '../../services/config-clase-filas-avion.service';
-import { AsientoUbiService } from '../../services/asiento-ubi.service';
+  AsientoUbi,
+  AsientoUbiFiltros,
+  AsientoUbiService
+} from '../../services/asiento-ubi.service';
 import { getApiErrorMessage } from '../../services/shared/api-error.util';
 
 @Component({
   selector: 'app-asiento-ubi',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './asiento-ubi.component.html',
   styleUrls: ['./asiento-ubi.component.css']
 })
 export class AsientoUbiComponent implements OnInit {
   aviones: Avion[] = [];
-  modelos: ModeloAvion[] = [];
   clases: any[] = [];
   tiposAsiento: any[] = [];
 
-  selectedAvionId: number | null = null;
-  selectedAvion: Avion | null = null;
-  selectedModelo: ModeloAvion | null = null;
+  asientos: AsientoUbi[] = [];
 
-  configs: ConfigClaseFilasAvion[] = [];
-  asientos: any[] = [];
+  cargandoCatalogos = false;
+  cargandoAsientos = false;
 
-  cargando = false;
   errorMsg: string | null = null;
 
-  totalElements = 0;
   page = 0;
-  size = 50;
 
-  filtros: any = {
-    avionId: null,
-    claseVueloId: '',
-    tipoAsientoId: '',
-    nivel: '',
-    fila: '',
-    columna: '',
-    numeroAsiento: ''
-  };
+  /*
+   * Por defecto 3000 para que pueda mostrar tus 2702 asientos
+   * en una sola carga.
+   */
+  size = 3000;
+
+  totalElements = 0;
+
+  filtros = this.getFiltrosVacios();
 
   constructor(
-    private modeloService: ModeloAvionService,
     private catalogo: CatalogoService,
-    private configService: ConfigClaseFilasAvionService,
     private asientoService: AsientoUbiService
   ) {}
 
   ngOnInit(): void {
-    this.cargarCatalogosIniciales();
+    this.cargarInicial();
   }
 
-  cargarCatalogosIniciales(): void {
-    this.cargando = true;
+  cargarInicial(): void {
+    this.cargandoCatalogos = true;
     this.errorMsg = null;
 
     const aviones$ = this.catalogo.avion().pipe(
-      map((d: any) => ({ ok: true, data: d })),
+      map((data: any) => ({ ok: true, data })),
       catchError((err) => of({ ok: false, err, source: '/catalogos/avion' }))
     );
 
-    const modelos$ = this.modeloService.getModelos({ size: 100 }).pipe(
-      map((d: any) => ({ ok: true, data: d })),
-      catchError((err) => of({ ok: false, err, source: '/modelo-avion?size=100' }))
-    );
-
     const clases$ = this.catalogo.claseVuelo().pipe(
-      map((d: any) => ({ ok: true, data: d })),
+      map((data: any) => ({ ok: true, data })),
       catchError((err) => of({ ok: false, err, source: '/catalogos/clase-vuelo' }))
     );
 
     const tiposAsiento$ = this.catalogo.tipoAsiento().pipe(
-      map((d: any) => ({ ok: true, data: d })),
+      map((data: any) => ({ ok: true, data })),
       catchError((err) => of({ ok: false, err, source: '/catalogos/tipo-asiento' }))
     );
 
     forkJoin({
       aviones: aviones$,
-      modelos: modelos$,
       clases: clases$,
       tiposAsiento: tiposAsiento$
     }).subscribe({
@@ -99,12 +85,6 @@ export class AsientoUbiComponent implements OnInit {
           this.aviones = res.aviones.data ?? [];
         } else {
           errores.push(this.formatCatalogError(res.aviones.err, res.aviones.source));
-        }
-
-        if (res.modelos.ok) {
-          this.modelos = res.modelos.data ?? [];
-        } else {
-          errores.push(this.formatCatalogError(res.modelos.err, res.modelos.source));
         }
 
         if (res.clases.ok) {
@@ -119,205 +99,86 @@ export class AsientoUbiComponent implements OnInit {
           errores.push(this.formatCatalogError(res.tiposAsiento.err, res.tiposAsiento.source));
         }
 
-        this.cargando = false;
+        this.cargandoCatalogos = false;
 
         if (errores.length) {
           this.errorMsg = errores.join('\n');
-          alert(this.errorMsg);
         }
+
+        this.buscarAsientos(0);
       },
       error: (err) => {
         console.error(err);
-        this.cargando = false;
+        this.cargandoCatalogos = false;
         this.errorMsg = getApiErrorMessage(err, 'Error cargando catálogos');
-        alert(this.errorMsg);
+        this.buscarAsientos(0);
       }
     });
   }
 
-  onSelectAvion(): void {
-    if (!this.selectedAvionId) {
-      this.selectedAvion = null;
-      this.selectedModelo = null;
-      this.configs = [];
-      this.asientos = [];
-      this.totalElements = 0;
-      return;
-    }
-
-    const avionId = Number(this.selectedAvionId);
-
-    this.selectedAvion =
-      this.aviones.find((a) => Number(a.id) === avionId) ?? null;
-
-    if (this.selectedAvion?.modeloAvionId) {
-      this.selectedModelo =
-        this.modelos.find((m) => Number(m.id) === Number(this.selectedAvion!.modeloAvionId)) ?? null;
-    } else {
-      this.selectedModelo = null;
-    }
-
-    this.filtros.avionId = avionId;
-    this.page = 0;
-
-    this.cargarConfiguracionAvion(avionId);
-    this.buscarAsientos(0, this.size);
-  }
-
-  cargarConfiguracionAvion(avionId: number): void {
-    this.configService.obtenerCompleta(avionId).subscribe({
-      next: (res) => {
-        this.configs = (res.configuraciones ?? [])
-          .filter((c) => c.id !== null)
-          .filter((c) => c.claseVueloId !== null);
-      },
-      error: (err) => {
-        console.error(err);
-        this.configs = [];
-      }
-    });
-  }
-
-  generarAsientos(regenerar = false): void {
-    if (!this.selectedAvion) {
-      alert('Seleccione un avión.');
-      return;
-    }
-
-    if (!this.configs.length) {
-      alert('El avión no tiene rangos vendibles configurados.');
-      return;
-    }
-
-    if (regenerar) {
-      if (this.selectedAvion.cantidadVuelos && this.selectedAvion.cantidadVuelos > 0) {
-        alert('No se pueden regenerar asientos porque el avión ya tiene vuelos asociados.');
-        return;
-      }
-
-      if (!confirm('¿Regenerar los asientos? Se eliminará la distribución actual y se volverá a crear.')) {
-        return;
-      }
-    }
-
-    this.asientoService.generar(this.selectedAvion.id, regenerar).subscribe({
-      next: (res: any) => {
-        alert(res?.mensaje || 'Asientos generados correctamente.');
-        this.buscarAsientos(0, this.size);
-      },
-      error: (err) => {
-        console.error(err);
-        alert(getApiErrorMessage(err, 'Error generando asientos'));
-      }
-    });
-  }
-
-  limpiarAsientos(): void {
-    if (!this.selectedAvion) {
-      alert('Seleccione un avión.');
-      return;
-    }
-
-    if (this.selectedAvion.cantidadVuelos && this.selectedAvion.cantidadVuelos > 0) {
-      alert('No se pueden eliminar los asientos porque el avión ya tiene vuelos asociados.');
-      return;
-    }
-
-    if (!confirm('¿Eliminar los asientos generados para este avión?')) {
-      return;
-    }
-
-    this.asientoService.limpiarAvion(this.selectedAvion.id).subscribe({
-      next: (res: any) => {
-        alert(res?.mensaje || 'Asientos eliminados correctamente.');
-        this.asientos = [];
-        this.totalElements = 0;
-      },
-      error: (err) => {
-        console.error(err);
-        alert(getApiErrorMessage(err, 'Error eliminando asientos'));
-      }
-    });
-  }
-
-  buscarAsientos(page = this.page, size = this.size): void {
-    if (!this.filtros.avionId) {
-      return;
-    }
-
+  buscarAsientos(page = 0): void {
     this.page = page;
-    this.size = size;
+    this.cargandoAsientos = true;
+    this.errorMsg = null;
 
-    const params: any = {
-      ...this.filtros,
-      page,
-      size
+    const params: AsientoUbiFiltros = {
+      avionId: this.normalizarNumeroFiltro(this.filtros.avionId),
+      claseVueloId: this.normalizarNumeroFiltro(this.filtros.claseVueloId),
+      tipoAsientoId: this.normalizarNumeroFiltro(this.filtros.tipoAsientoId),
+      vendible: this.normalizarVendibleFiltro(this.filtros.vendible),
+      nivel: this.normalizarNumeroFiltro(this.filtros.nivel),
+      fila: this.normalizarNumeroFiltro(this.filtros.fila),
+      columna: this.normalizarTextoFiltro(this.filtros.columna),
+      numeroAsiento: this.normalizarTextoFiltro(this.filtros.numeroAsiento),
+      page: this.page,
+      size: Number(this.size)
     };
-
-    Object.entries(params).forEach(([key, value]) => {
-      if (value === null || value === undefined || value === '') {
-        delete params[key];
-      }
-    });
 
     this.asientoService.listar(params).subscribe({
       next: (res) => {
-        this.asientos = res.content ?? [];
-        this.totalElements = res.totalElements ?? 0;
+        this.asientos = res?.content ?? [];
+        this.totalElements = res?.totalElements ?? 0;
+        this.cargandoAsientos = false;
       },
       error: (err) => {
         console.error(err);
-        alert(getApiErrorMessage(err, 'Error cargando asientos'));
+        this.asientos = [];
+        this.totalElements = 0;
+        this.cargandoAsientos = false;
+        this.errorMsg = getApiErrorMessage(err, 'Error cargando asientos');
       }
     });
   }
 
-  limpiarFiltrosAsientos(): void {
-    this.filtros = {
-      avionId: this.selectedAvionId,
-      claseVueloId: '',
-      tipoAsientoId: '',
-      nivel: '',
-      fila: '',
-      columna: '',
-      numeroAsiento: ''
-    };
-
-    this.buscarAsientos(0, this.size);
+  limpiarFiltros(): void {
+    this.filtros = this.getFiltrosVacios();
+    this.buscarAsientos(0);
   }
 
-  obtenerNombreClase(claseVueloId: number | null | undefined): string {
-    if (claseVueloId === null || claseVueloId === undefined) {
-      return 'Sin clase';
+  cambiarSize(): void {
+    const sizeNumber = Number(this.size);
+
+    if (Number.isNaN(sizeNumber) || sizeNumber <= 0) {
+      this.size = 3000;
     }
 
-    const clase = this.clases.find((x: any) => Number(x.id) === Number(claseVueloId));
-
-    return clase
-      ? clase.nombre || clase.descripcion || clase.label || String(claseVueloId)
-      : String(claseVueloId);
+    this.buscarAsientos(0);
   }
 
-  obtenerNombreTipoAsiento(tipoAsientoId: number | null | undefined): string {
-    if (tipoAsientoId === null || tipoAsientoId === undefined) {
-      return 'Sin tipo';
+  paginaAnterior(): void {
+    if (this.page <= 0) {
+      return;
     }
 
-    const tipo = this.tiposAsiento.find((x: any) => Number(x.id) === Number(tipoAsientoId));
-
-    return tipo
-      ? tipo.nombre || tipo.descripcion || tipo.label || String(tipoAsientoId)
-      : String(tipoAsientoId);
+    this.buscarAsientos(this.page - 1);
   }
 
-  obtenerCodigoAvion(avionId: number | null | undefined): string {
-    if (avionId === null || avionId === undefined) {
-      return '-';
+  paginaSiguiente(): void {
+    if ((this.page + 1) >= this.getTotalPages()) {
+      return;
     }
 
-    const avion = this.aviones.find((x) => Number(x.id) === Number(avionId));
-
-    return avion ? avion.codigoAvion : String(avionId);
+    this.buscarAsientos(this.page + 1);
   }
 
   getTotalPages(): number {
@@ -326,6 +187,116 @@ export class AsientoUbiComponent implements OnInit {
     }
 
     return Math.ceil((this.totalElements || 0) / this.size);
+  }
+
+  getAvionLabel(avionId: number | null | undefined): string {
+    if (avionId === null || avionId === undefined) {
+      return '-';
+    }
+
+    const avion = this.aviones.find((a) => Number(a.id) === Number(avionId));
+
+    if (!avion) {
+      return String(avionId);
+    }
+
+    return avion.codigoAvion || String(avionId);
+  }
+
+  getClaseLabel(asiento: AsientoUbi): string {
+    if (asiento.claseVueloNombre) {
+      return asiento.claseVueloNombre;
+    }
+
+    if (asiento.claseVueloId === null || asiento.claseVueloId === undefined) {
+      return 'INHABILITADO';
+    }
+
+    const clase = this.clases.find((c: any) => Number(c.id) === Number(asiento.claseVueloId));
+
+    return clase
+      ? clase.nombre || clase.descripcion || clase.label || String(asiento.claseVueloId)
+      : String(asiento.claseVueloId);
+  }
+
+  getTipoAsientoLabel(asiento: AsientoUbi): string {
+    if (asiento.tipoAsientoNombre) {
+      return asiento.tipoAsientoNombre;
+    }
+
+    if (asiento.tipoAsientoId === null || asiento.tipoAsientoId === undefined) {
+      return '-';
+    }
+
+    const tipo = this.tiposAsiento.find((t: any) => Number(t.id) === Number(asiento.tipoAsientoId));
+
+    return tipo
+      ? tipo.nombre || tipo.descripcion || tipo.label || String(asiento.tipoAsientoId)
+      : String(asiento.tipoAsientoId);
+  }
+
+  getVendibleLabel(asiento: AsientoUbi): string {
+    return asiento.vendible ? 'Vendible' : 'Inhabilitado';
+  }
+
+  getVendibleClass(asiento: AsientoUbi): string {
+    return asiento.vendible ? 'pill ok' : 'pill muted';
+  }
+
+  getRangoMostrado(): string {
+    if (!this.totalElements) {
+      return '0';
+    }
+
+    const desde = this.page * this.size + 1;
+    const hasta = Math.min((this.page + 1) * this.size, this.totalElements);
+
+    return `${desde} - ${hasta}`;
+  }
+
+  private getFiltrosVacios() {
+    return {
+      avionId: '',
+      claseVueloId: '',
+      tipoAsientoId: '',
+      vendible: '',
+      nivel: '',
+      fila: '',
+      columna: '',
+      numeroAsiento: ''
+    };
+  }
+
+  private normalizarNumeroFiltro(value: any): number | null {
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+
+    const numberValue = Number(value);
+
+    return Number.isNaN(numberValue) ? null : numberValue;
+  }
+
+  private normalizarTextoFiltro(value: any): string | null {
+    const texto = String(value ?? '').trim();
+
+    return texto ? texto.toUpperCase() : null;
+  }
+
+  private normalizarVendibleFiltro(value: any): boolean | null {
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+
+    if (value === true || value === 'true') {
+      return true;
+    }
+
+    if (value === false || value === 'false') {
+      return false;
+    }
+
+    return null;
   }
 
   private formatCatalogError(err: any, source: string): string {

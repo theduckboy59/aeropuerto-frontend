@@ -1,218 +1,310 @@
-<div class="page">
-  <div *ngIf="errorMsg" class="alert error">
-    {{ errorMsg }}
-  </div>
+<div class="page-root">
+  <main class="content">
+    <header class="header-card">
+      <div>
+        <span class="badge">Aerolínea</span>
 
-  <h2>Ubicación de asientos del avión</h2>
+        <h1>Consulta de asientos</h1>
 
-  <p>
-    Genera y consulta la distribución física de asientos según el modelo, filas configuradas
-    y rangos vendibles del avión.
-  </p>
+        <p>
+          Visualiza los asientos físicos generados automáticamente por el backend.
+          Esta pantalla solo consulta información; no crea, edita ni elimina asientos.
+        </p>
+      </div>
 
-  <section class="controls">
-    <label>
-      Avión
+      <button
+        class="btn-secundario"
+        type="button"
+        routerLink="/menu">
+        Regresar
+      </button>
+    </header>
 
-      <select [(ngModel)]="selectedAvionId" (change)="onSelectAvion()">
-        <option [ngValue]="null">-- Seleccione --</option>
+    <section class="form-card">
+      <div class="section-header">
+        <div>
+          <h2>Buscar con filtros</h2>
 
-        <option
-          *ngFor="let a of aviones"
-          [ngValue]="a.id">
+          <p>
+            Puedes consultar todos los asientos o filtrar por avión, clase, tipo,
+            nivel, fila, columna, número de asiento y estado vendible.
+          </p>
+        </div>
+      </div>
 
-          {{ a.codigoAvion }} - {{ a.filasConfiguradas }} filas
-        </option>
-      </select>
-    </label>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Avión</label>
 
-    <div *ngIf="selectedAvion" class="summary">
-      <h4>Resumen avión</h4>
+          <select
+            class="control"
+            [(ngModel)]="filtros.avionId"
+            name="avionId">
 
-      <div>Avión: {{ selectedAvion.codigoAvion }}</div>
-      <div>Filas configuradas: {{ selectedAvion.filasConfiguradas }}</div>
-      <div>Cantidad vuelos: {{ selectedAvion.cantidadVuelos || 0 }}</div>
-    </div>
+            <option value="">Todos</option>
 
-    <div *ngIf="selectedModelo" class="summary">
-      <h4>Modelo</h4>
+            <option
+              *ngFor="let a of aviones"
+              [value]="a.id">
 
-      <div>Nombre: {{ selectedModelo.nombre }}</div>
-      <div>Niveles: {{ selectedModelo.niveles }}</div>
-      <div>Pasillos: {{ selectedModelo.pasillos }}</div>
-      <div>Configuración: {{ selectedModelo.configuracion }}</div>
-      <div>Total columnas: {{ selectedModelo.totalColumnas }}</div>
-    </div>
+              {{ a.codigoAvion }} - {{ a.filasConfiguradas }} filas
+            </option>
+          </select>
+        </div>
 
-    <div class="summary" *ngIf="selectedAvion">
-      <h4>Rangos vendibles configurados</h4>
+        <div class="form-group">
+          <label>Clase</label>
 
-      <ul *ngIf="configs.length; else sinConfigs">
-        <li *ngFor="let c of configs">
-          {{ obtenerNombreClase(c.claseVueloId) }}:
-          filas {{ c.filaDesde }} a {{ c.filaHasta }}
-        </li>
-      </ul>
+          <select
+            class="control"
+            [(ngModel)]="filtros.claseVueloId"
+            name="claseVueloId">
 
-      <ng-template #sinConfigs>
-        <p>Este avión todavía no tiene rangos vendibles configurados.</p>
+            <option value="">Todas</option>
+
+            <option
+              *ngFor="let c of clases"
+              [value]="c.id">
+
+              {{ c.nombre || c.descripcion || c.label }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Tipo asiento</label>
+
+          <select
+            class="control"
+            [(ngModel)]="filtros.tipoAsientoId"
+            name="tipoAsientoId">
+
+            <option value="">Todos</option>
+
+            <option
+              *ngFor="let t of tiposAsiento"
+              [value]="t.id">
+
+              {{ t.nombre || t.descripcion || t.label }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Estado venta</label>
+
+          <select
+            class="control"
+            [(ngModel)]="filtros.vendible"
+            name="vendible">
+
+            <option value="">Todos</option>
+            <option value="true">Vendibles</option>
+            <option value="false">Inhabilitados</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Nivel</label>
+
+          <input
+            class="control"
+            type="number"
+            min="1"
+            [(ngModel)]="filtros.nivel"
+            name="nivel"
+            placeholder="Ej. 1"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Fila</label>
+
+          <input
+            class="control"
+            type="number"
+            min="1"
+            [(ngModel)]="filtros.fila"
+            name="fila"
+            placeholder="Ej. 15"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Columna</label>
+
+          <input
+            class="control"
+            [(ngModel)]="filtros.columna"
+            name="columna"
+            placeholder="Ej. A"
+            maxlength="2"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Número asiento</label>
+
+          <input
+            class="control"
+            [(ngModel)]="filtros.numeroAsiento"
+            name="numeroAsiento"
+            placeholder="Ej. 15A"
+            maxlength="10"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Registros por página</label>
+
+          <select
+            class="control"
+            [(ngModel)]="size"
+            name="size"
+            (change)="cambiarSize()">
+
+            <option [ngValue]="50">50</option>
+            <option [ngValue]="100">100</option>
+            <option [ngValue]="200">200</option>
+            <option [ngValue]="500">500</option>
+            <option [ngValue]="1000">1000</option>
+            <option [ngValue]="3000">3000</option>
+            <option [ngValue]="5000">5000</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="acciones">
+        <button
+          class="btn-principal"
+          type="button"
+          (click)="buscarAsientos(0)"
+          [disabled]="cargandoAsientos">
+
+          {{ cargandoAsientos ? 'Buscando...' : 'Buscar' }}
+        </button>
+
+        <button
+          class="btn-secundario"
+          type="button"
+          (click)="limpiarFiltros()"
+          [disabled]="cargandoAsientos">
+
+          Limpiar
+        </button>
+      </div>
+    </section>
+
+    <section class="list-card">
+      <div class="section-header">
+        <div>
+          <h2>Listado de asientos</h2>
+
+          <p *ngIf="totalElements">
+            Mostrando {{ getRangoMostrado() }} de {{ totalElements }} registros.
+          </p>
+
+          <p *ngIf="!totalElements">
+            No hay registros cargados.
+          </p>
+        </div>
+      </div>
+
+      <p class="mensaje info" *ngIf="cargandoCatalogos">
+        Cargando catálogos...
+      </p>
+
+      <p class="mensaje info" *ngIf="cargandoAsientos">
+        Cargando asientos...
+      </p>
+
+      <p class="mensaje error" *ngIf="errorMsg">
+        {{ errorMsg }}
+      </p>
+
+      <div
+        class="table-wrap"
+        *ngIf="!cargandoAsientos && asientos.length; else emptyState">
+
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Avión</th>
+              <th>Nivel</th>
+              <th>Fila</th>
+              <th>Columna</th>
+              <th>Asiento</th>
+              <th>Clase</th>
+              <th>Estado</th>
+              <th>Tipo</th>
+              <th>Bloque</th>
+              <th>Lado</th>
+              <th>Actualizado</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let s of asientos">
+              <td>{{ s.id }}</td>
+              <td>{{ getAvionLabel(s.avionId) }}</td>
+              <td>{{ s.nivel }}</td>
+              <td>{{ s.fila }}</td>
+              <td>{{ s.columna }}</td>
+
+              <td>
+                <strong>{{ s.numeroAsiento }}</strong>
+              </td>
+
+              <td>{{ getClaseLabel(s) }}</td>
+
+              <td>
+                <span [class]="getVendibleClass(s)">
+                  {{ getVendibleLabel(s) }}
+                </span>
+              </td>
+
+              <td>{{ getTipoAsientoLabel(s) }}</td>
+              <td>{{ s.bloque || '-' }}</td>
+              <td>{{ s.lado || '-' }}</td>
+              <td>{{ s.updatedAt || '-' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #emptyState>
+        <p
+          class="mensaje info"
+          *ngIf="!cargandoAsientos">
+
+          No hay asientos para mostrar.
+        </p>
       </ng-template>
-    </div>
 
-    <div class="actions">
-      <button
-        type="button"
-        (click)="generarAsientos(false)"
-        [disabled]="!selectedAvion">
+      <div class="pager" *ngIf="totalElements > size">
+        <button
+          class="btn-secundario"
+          type="button"
+          (click)="paginaAnterior()"
+          [disabled]="page <= 0 || cargandoAsientos">
 
-        Generar asientos
-      </button>
+          Anterior
+        </button>
 
-      <button
-        type="button"
-        (click)="generarAsientos(true)"
-        [disabled]="!selectedAvion">
+        <span>
+          Página {{ page + 1 }} de {{ getTotalPages() }}
+        </span>
 
-        Regenerar asientos
-      </button>
+        <button
+          class="btn-secundario"
+          type="button"
+          (click)="paginaSiguiente()"
+          [disabled]="(page + 1) >= getTotalPages() || cargandoAsientos">
 
-      <button
-        type="button"
-        (click)="limpiarAsientos()"
-        [disabled]="!selectedAvion">
-
-        Limpiar asientos
-      </button>
-    </div>
-  </section>
-
-  <section class="filters">
-    <h4>Filtros</h4>
-
-    <label>
-      Clase
-
-      <select [(ngModel)]="filtros.claseVueloId">
-        <option value="">--</option>
-
-        <option
-          *ngFor="let c of clases"
-          [value]="c.id">
-
-          {{ c.nombre || c.descripcion || c.label }}
-        </option>
-      </select>
-    </label>
-
-    <label>
-      Tipo asiento
-
-      <select [(ngModel)]="filtros.tipoAsientoId">
-        <option value="">--</option>
-
-        <option
-          *ngFor="let t of tiposAsiento"
-          [value]="t.id">
-
-          {{ t.nombre || t.descripcion || t.label }}
-        </option>
-      </select>
-    </label>
-
-    <label>
-      Nivel
-      <input type="number" [(ngModel)]="filtros.nivel" />
-    </label>
-
-    <label>
-      Fila
-      <input type="number" [(ngModel)]="filtros.fila" />
-    </label>
-
-    <label>
-      Columna
-      <input [(ngModel)]="filtros.columna" />
-    </label>
-
-    <label>
-      Número asiento
-      <input [(ngModel)]="filtros.numeroAsiento" />
-    </label>
-
-    <div class="filter-actions">
-      <button type="button" (click)="buscarAsientos()">
-        Buscar
-      </button>
-
-      <button type="button" (click)="limpiarFiltrosAsientos()">
-        Limpiar
-      </button>
-    </div>
-  </section>
-
-  <section class="table">
-    <h4>Asientos</h4>
-
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Avión</th>
-          <th>Nivel</th>
-          <th>Fila</th>
-          <th>Columna</th>
-          <th>Asiento</th>
-          <th>Clase</th>
-          <th>Tipo</th>
-          <th>Bloque</th>
-          <th>Lado</th>
-          <th>Actualizado</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        <tr *ngFor="let s of asientos">
-          <td>{{ s.id }}</td>
-          <td>{{ obtenerCodigoAvion(s.avionId) }}</td>
-          <td>{{ s.nivel }}</td>
-          <td>{{ s.fila }}</td>
-          <td>{{ s.columna }}</td>
-          <td>{{ s.numeroAsiento }}</td>
-          <td>{{ obtenerNombreClase(s.claseVueloId) }}</td>
-          <td>{{ obtenerNombreTipoAsiento(s.tipoAsientoId ?? s.tipoAsiento) }}</td>
-          <td>{{ s.bloque }}</td>
-          <td>{{ s.lado }}</td>
-          <td>{{ s.updatedAt || '-' }}</td>
-        </tr>
-
-        <tr *ngIf="!asientos.length">
-          <td colspan="11">
-            No hay asientos para mostrar.
-          </td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div class="pagination" *ngIf="totalElements > size">
-      <button
-        type="button"
-        (click)="buscarAsientos(page - 1, size)"
-        [disabled]="page <= 0">
-
-        Anterior
-      </button>
-
-      <span>
-        Página {{ page + 1 }} / {{ getTotalPages() }}
-      </span>
-
-      <button
-        type="button"
-        (click)="buscarAsientos(page + 1, size)"
-        [disabled]="(page + 1) * size >= totalElements">
-
-        Siguiente
-      </button>
-    </div>
-  </section>
+          Siguiente
+        </button>
+      </div>
+    </section>
+  </main>
 </div>
