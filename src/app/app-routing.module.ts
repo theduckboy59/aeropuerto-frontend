@@ -56,21 +56,15 @@ const routes: Routes = [
       {
         path: 'aerolinea/empleados',
         component: EmpleadosComponent,
-        canActivate: [RoleGuard],
-        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
-      },
+        canActivate: [RoleGuard]},
       {
         path: 'aerolinea/empleados/nuevo',
         component: EmpleadoFormComponent,
-        canActivate: [RoleGuard],
-        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
-      },
+        canActivate: [RoleGuard]},
       {
         path: 'aerolinea/empleados/editar/:id',
         component: EmpleadoEditComponent,
-        canActivate: [RoleGuard],
-        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
-      },
+        canActivate: [RoleGuard]},
       {
         path: 'aerolinea/tripulacion',
         component: TripulacionComponent,
