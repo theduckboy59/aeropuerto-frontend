@@ -1,0 +1,286 @@
+<div class="page-root">
+  <main class="content">
+
+    <header class="topbar" aria-label="Encabezado">
+      <div class="topbar-left">
+        <div class="badge">A L P</div>
+
+        <div>
+          <h1 class="title">Vuelos</h1>
+          <p class="subtitle">
+            Gestión de vuelos programados. El listado muestra únicamente vuelos activos.
+          </p>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <button class="btn-primary" type="button" (click)="crear()">
+          Crear vuelo
+        </button>
+
+        <button class="btn-secondary" type="button" routerLink="/menu">
+          Regresar
+        </button>
+      </div>
+    </header>
+
+    <section class="card" aria-label="Filtros">
+      <div class="section">
+        <h2 class="section-title">Filtros</h2>
+
+        <p class="muted" *ngIf="cargandoCatalogos">
+          Cargando catálogos...
+        </p>
+
+        <div class="form-grid">
+
+          <div class="field field-wide">
+            <label class="label">Búsqueda general</label>
+            <input
+              class="control"
+              [(ngModel)]="filtros.q"
+              (input)="onFiltroChange()"
+              (keyup.enter)="buscar()"
+              placeholder="Código, salida o llegada"
+            />
+          </div>
+
+          <div class="field">
+            <label class="label">Aerolínea</label>
+            <select
+              class="control"
+              [(ngModel)]="filtros.aerolineaId"
+              name="aerolineaId"
+              (change)="onAerolineaFiltroChange()">
+
+              <option value="">Todas</option>
+
+              <option
+                *ngFor="let a of aerolineas"
+                [value]="a.id">
+
+                {{ a.nombre || a.descripcion || a.label || a.id }}
+              </option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Aeropuerto salida</label>
+            <select
+              class="control"
+              [(ngModel)]="filtros.aeropuertoSalidaId"
+              name="aeropuertoSalidaId"
+              (change)="buscar()">
+
+              <option value="">Todos</option>
+
+              <option
+                *ngFor="let a of aeropuertosFiltro"
+                [value]="a.id">
+
+                {{ getAeropuertoOptionLabel(a) }}
+              </option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Aeropuerto llegada</label>
+            <select
+              class="control"
+              [(ngModel)]="filtros.aeropuertoLlegadaId"
+              name="aeropuertoLlegadaId"
+              (change)="buscar()">
+
+              <option value="">Todos</option>
+
+              <option
+                *ngFor="let a of aeropuertosFiltro"
+                [value]="a.id">
+
+                {{ getAeropuertoOptionLabel(a) }}
+              </option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Buscar salida</label>
+            <input
+              class="control"
+              [(ngModel)]="filtros.buscarSalida"
+              (input)="onFiltroChange()"
+              (keyup.enter)="buscar()"
+              placeholder="Ej: Aurora"
+            />
+          </div>
+
+          <div class="field">
+            <label class="label">Buscar llegada</label>
+            <input
+              class="control"
+              [(ngModel)]="filtros.buscarLlegada"
+              (input)="onFiltroChange()"
+              (keyup.enter)="buscar()"
+              placeholder="Ej: Tocumen"
+            />
+          </div>
+
+          <div class="field">
+            <label class="label">Fecha salida</label>
+            <input
+              class="control"
+              type="date"
+              [(ngModel)]="filtros.fechaSalida"
+              (change)="buscar()"
+            />
+          </div>
+
+          <div class="field">
+            <label class="label">Hora salida</label>
+            <input
+              class="control"
+              type="time"
+              [(ngModel)]="filtros.horaSalida"
+              (change)="buscar()"
+            />
+          </div>
+
+          <div class="field">
+            <label class="label">Fecha llegada</label>
+            <input
+              class="control"
+              type="date"
+              [(ngModel)]="filtros.fechaLlegada"
+              (change)="buscar()"
+            />
+          </div>
+
+          <div class="field">
+            <label class="label">Hora llegada</label>
+            <input
+              class="control"
+              type="time"
+              [(ngModel)]="filtros.horaLlegada"
+              (change)="buscar()"
+            />
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-primary" type="button" (click)="buscar()">
+            Buscar
+          </button>
+
+          <button class="btn-secondary" type="button" (click)="limpiar()">
+            Limpiar
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-label="Listado">
+      <div class="section">
+        <h2 class="section-title">Lista</h2>
+
+        <p class="muted" *ngIf="cargandoVuelos">
+          Cargando vuelos...
+        </p>
+
+        <p class="muted" *ngIf="!cargandoVuelos && totalElements">
+          Mostrando {{ getRangoMostrado() }} de {{ totalElements }} registros.
+        </p>
+
+        <div
+          class="table-wrap"
+          *ngIf="!cargandoVuelos && vuelos.length; else empty">
+
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Aerolínea</th>
+                <th>Salida</th>
+                <th>Llegada</th>
+                <th>Fecha salida</th>
+                <th>Hora salida</th>
+                <th>Fecha llegada</th>
+                <th>Hora llegada</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr *ngFor="let v of vuelos">
+                <td>
+                  <strong>{{ v.codigoVuelo || '-' }}</strong>
+                </td>
+
+                <td>{{ getAerolineaLabel(v) }}</td>
+
+                <td>{{ getAeropuertoSalidaLabel(v) }}</td>
+
+                <td>{{ getAeropuertoLlegadaLabel(v) }}</td>
+
+                <td>{{ v.fechaSalida || '-' }}</td>
+
+                <td>{{ v.horaSalida || '-' }}</td>
+
+                <td>{{ v.fechaLlegada || '-' }}</td>
+
+                <td>{{ v.horaLlegada || '-' }}</td>
+
+                <td class="table-actions">
+                  <button
+                    class="btn-secondary"
+                    type="button"
+                    (click)="editar(v)">
+
+                    Editar
+                  </button>
+
+                  <button
+                    class="btn-secondary"
+                    type="button"
+                    (click)="eliminar(v)">
+
+                    Eliminar
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <ng-template #empty>
+          <p class="muted" *ngIf="!cargandoVuelos">
+            No hay vuelos para mostrar.
+          </p>
+        </ng-template>
+
+        <div class="form-actions" *ngIf="totalPages > 1">
+          <button
+            class="btn-secondary"
+            type="button"
+            (click)="paginaAnterior()"
+            [disabled]="page <= 0 || cargandoVuelos">
+
+            Anterior
+          </button>
+
+          <span class="muted">
+            Página {{ page + 1 }} de {{ totalPages }}
+          </span>
+
+          <button
+            class="btn-secondary"
+            type="button"
+            (click)="paginaSiguiente()"
+            [disabled]="page + 1 >= totalPages || cargandoVuelos">
+
+            Siguiente
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>

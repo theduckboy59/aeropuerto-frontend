@@ -37,6 +37,10 @@ import { ModeloAvionComponent } from './pages/modelo-avion/modelo-avion.componen
 import { ModeloAvionCreateComponent } from './pages/modelo-avion-create/modelo-avion-create.component';
 import { ModeloAvionEditComponent } from './pages/modelo-avion-edit/modelo-avion-edit.component';
 
+import { VuelosComponent } from './pages/vuelos/vuelos.component';
+import { VueloCreateComponent } from './pages/vuelo-create/vuelo-create.component';
+import { VueloEditComponent } from './pages/vuelo-edit/vuelo-edit.component';
+
 const routes: Routes = [
   { path: '', component: PortalComponent },
   { path: 'login', component: LoginComponent },
@@ -177,9 +181,21 @@ const routes: Routes = [
       },
       {
         path: 'aerolinea/vuelos',
-        component: PlaceholderComponent,
+        component: VuelosComponent,
         canActivate: [RoleGuard],
-        data: { title: 'Vuelos (Aerolínea)', roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/vuelos/editar/:id',
+        component: VueloEditComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/vuelos/nuevo',
+        component: VueloCreateComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
       },
 
       {
