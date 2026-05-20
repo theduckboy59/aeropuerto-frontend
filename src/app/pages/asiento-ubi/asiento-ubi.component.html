@@ -229,7 +229,6 @@
         <table class="table">
           <thead>
             <tr>
-              <th>ID</th>
               <th>Avión</th>
               <th>Nivel</th>
               <th>Fila</th>
@@ -246,7 +245,6 @@
 
           <tbody>
             <tr *ngFor="let s of asientos">
-              <td>{{ s.id }}</td>
               <td>{{ getAvionLabel(s.avionId) }}</td>
               <td>{{ s.nivel }}</td>
               <td>{{ s.fila }}</td>

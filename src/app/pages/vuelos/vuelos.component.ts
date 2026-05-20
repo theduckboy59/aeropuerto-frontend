@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
 
 import { CatalogoService } from '../../services/catalogo.service';
 import { DestinoAutorizado, DestinosAutorizadosService } from '../../services/destinos-autorizados.service';
@@ -17,9 +16,10 @@ export class VuelosComponent implements OnInit {
   private readonly ESTADO_ACTIVO_ID = 1;
 
   vuelos: Vuelo[] = [];
-
   aerolineas: any[] = [];
+  aeropuertos: any[] = [];
   destinosAutorizados: DestinoAutorizado[] = [];
+
   aeropuertosFiltro: any[] = [];
 
   aerolineaMap: Record<number, string> = {};
@@ -32,77 +32,84 @@ export class VuelosComponent implements OnInit {
   totalElements = 0;
   totalPages = 0;
 
-  cargandoCatalogos = false;
+  cargando = false;
   cargandoVuelos = false;
 
   private searchTimer: any = null;
 
   constructor(
-    private vueloService: VueloService,
+    private router: Router,
     private catalogo: CatalogoService,
     private destinosService: DestinosAutorizadosService,
-    private router: Router
+    private vueloService: VueloService
   ) {}
 
   ngOnInit(): void {
-    this.cargarCatalogosYVuelos();
+    this.cargarCatalogos();
   }
 
-  cargarCatalogosYVuelos(): void {
-    this.cargandoCatalogos = true;
+  cargarCatalogos(): void {
+    this.cargando = true;
 
-    forkJoin({
-      aerolineas: this.catalogo.aerolineas(),
-      destinos: this.destinosService.listar({
-        estadoId: this.ESTADO_ACTIVO_ID
-      })
-    }).subscribe({
-      next: ({ aerolineas, destinos }) => {
+    this.catalogo.aerolineas().subscribe({
+      next: (aerolineas) => {
         this.aerolineas = aerolineas ?? [];
-        this.destinosAutorizados = destinos ?? [];
+        this.buildAerolineaMap();
 
-        this.aerolineaMap = Object.fromEntries(
-          this.aerolineas.map((a: any) => [
-            Number(a.id),
-            a.nombre ?? a.descripcion ?? a.label ?? String(a.id)
-          ])
-        );
+        this.catalogo.aeropuertos().subscribe({
+          next: (aeropuertos) => {
+            this.aeropuertos = aeropuertos ?? [];
+            this.buildAeropuertoMap();
 
-        this.aeropuertoMap = this.buildAeropuertoMap(this.destinosAutorizados);
-        this.actualizarAeropuertosFiltro();
-
-        this.cargandoCatalogos = false;
-        this.cargarVuelos(0);
+            this.destinosService.listar({
+              estadoId: this.ESTADO_ACTIVO_ID
+            }).subscribe({
+              next: (destinos) => {
+                this.destinosAutorizados = destinos ?? [];
+                this.actualizarAeropuertosFiltro();
+                this.cargando = false;
+                this.cargarVuelos(0);
+              },
+              error: (err) => {
+                console.error(err);
+                this.destinosAutorizados = [];
+                this.actualizarAeropuertosFiltro();
+                this.cargando = false;
+                this.cargarVuelos(0);
+              }
+            });
+          },
+          error: (err) => {
+            console.error(err);
+            this.cargando = false;
+            alert(getApiErrorMessage(err, 'Error cargando aeropuertos'));
+          }
+        });
       },
       error: (err) => {
         console.error(err);
-        this.cargandoCatalogos = false;
-        alert(getApiErrorMessage(err, 'Error cargando catálogos'));
+        this.cargando = false;
+        alert(getApiErrorMessage(err, 'Error cargando aerolíneas'));
       }
     });
   }
 
-  cargarVuelos(page = this.page): void {
+  cargarVuelos(page: number = 0): void {
     this.page = page;
     this.cargandoVuelos = true;
 
     const filtros: VueloFiltros = {
-      q: this.normalizarTextoFiltro(this.filtros.q),
-      buscarSalida: this.normalizarTextoFiltro(this.filtros.buscarSalida),
-      buscarLlegada: this.normalizarTextoFiltro(this.filtros.buscarLlegada),
-
-      aerolineaId: this.normalizarNumeroFiltro(this.filtros.aerolineaId),
-
-      aeropuertoSalidaId: this.normalizarNumeroFiltro(this.filtros.aeropuertoSalidaId),
-      aeropuertoLlegadaId: this.normalizarNumeroFiltro(this.filtros.aeropuertoLlegadaId),
-
-      fechaSalida: this.normalizarTextoFiltro(this.filtros.fechaSalida),
-      horaSalida: this.normalizarTextoFiltro(this.filtros.horaSalida),
-
-      fechaLlegada: this.normalizarTextoFiltro(this.filtros.fechaLlegada),
-      horaLlegada: this.normalizarTextoFiltro(this.filtros.horaLlegada),
-
-      page: this.page,
+      q: this.clean(this.filtros.q),
+      buscarSalida: this.clean(this.filtros.buscarSalida),
+      buscarLlegada: this.clean(this.filtros.buscarLlegada),
+      aerolineaId: this.clean(this.filtros.aerolineaId),
+      aeropuertoSalidaId: this.clean(this.filtros.aeropuertoSalidaId),
+      aeropuertoLlegadaId: this.clean(this.filtros.aeropuertoLlegadaId),
+      fechaSalida: this.clean(this.filtros.fechaSalida),
+      horaSalida: this.normalizarHora(this.filtros.horaSalida),
+      fechaLlegada: this.clean(this.filtros.fechaLlegada),
+      horaLlegada: this.normalizarHora(this.filtros.horaLlegada),
+      page,
       size: this.size
     };
 
@@ -111,6 +118,8 @@ export class VuelosComponent implements OnInit {
         this.vuelos = res?.content ?? [];
         this.totalElements = res?.totalElements ?? 0;
         this.totalPages = res?.totalPages ?? 0;
+        this.page = res?.number ?? page;
+        this.size = res?.size ?? this.size;
         this.cargandoVuelos = false;
       },
       error: (err) => {
@@ -201,6 +210,24 @@ export class VuelosComponent implements OnInit {
     this.cargarVuelos(this.page + 1);
   }
 
+  actualizarAeropuertosFiltro(): void {
+    const aerolineaId = this.toNumberOrNull(this.filtros.aerolineaId);
+
+    if (!aerolineaId) {
+      this.aeropuertosFiltro = [...this.aeropuertos];
+      return;
+    }
+
+    const idsAutorizados = new Set(
+      this.destinosAutorizados
+        .filter((d) => Number(d.aerolineaId) === aerolineaId)
+        .map((d) => Number(d.aeropuertoId))
+    );
+
+    this.aeropuertosFiltro = this.aeropuertos
+      .filter((a) => idsAutorizados.has(Number(a.id)));
+  }
+
   getAerolineaLabel(vuelo: Vuelo): string {
     if (vuelo.aerolineaNombre) {
       return vuelo.aerolineaNombre;
@@ -257,95 +284,35 @@ export class VuelosComponent implements OnInit {
     return this.buildAeropuertoLabel(aeropuerto);
   }
 
-  getRangoMostrado(): string {
-    if (!this.totalElements) {
-      return '0';
-    }
-
-    const inicio = this.page * this.size + 1;
-    const fin = Math.min((this.page + 1) * this.size, this.totalElements);
-
-    return `${inicio}-${fin}`;
-  }
-
-  private actualizarAeropuertosFiltro(): void {
-    const aerolineaId = this.normalizarNumeroFiltro(this.filtros.aerolineaId);
-
-    let destinos = this.destinosAutorizados;
-
-    if (aerolineaId !== null) {
-      destinos = destinos.filter((d) =>
-        Number(d.aerolineaId) === Number(aerolineaId)
-      );
-    }
-
-    this.aeropuertosFiltro = this.mapDestinosToAeropuertos(destinos);
-  }
-
-  private mapDestinosToAeropuertos(destinos: DestinoAutorizado[]): any[] {
-    const map = new Map<number, any>();
-
-    (destinos ?? []).forEach((d) => {
-      const id = Number(d.aeropuertoId);
-
-      if (!id || map.has(id)) {
-        return;
-      }
-
-      map.set(id, {
-        id,
-        nombre: d.aeropuertoNombre ?? `Aeropuerto ${id}`,
-        pais: d.pais ?? ''
-      });
-    });
-
-    return Array.from(map.values()).sort((a, b) =>
-      this.getAeropuertoOptionLabel(a).localeCompare(
-        this.getAeropuertoOptionLabel(b)
-      )
-    );
-  }
-
-  private buildAeropuertoMap(destinos: DestinoAutorizado[]): Record<number, string> {
-    const result: Record<number, string> = {};
-
-    this.mapDestinosToAeropuertos(destinos).forEach((a) => {
-      result[Number(a.id)] = this.getAeropuertoOptionLabel(a);
-    });
-
-    return result;
-  }
-
-  private buildAeropuertoLabel(a: any): string {
-    if (!a) {
+  buildAeropuertoLabel(aeropuerto: any): string {
+    if (!aeropuerto) {
       return '-';
     }
 
-    const nombre = a.nombre ?? a.aeropuertoNombre ?? a.descripcion ?? a.label ?? '';
-    const codigoIata = a.codigoIata ?? a.aeropuertoCodigoIata ?? '';
-    const codigoIcao = a.codigoIcao ?? a.aeropuertoCodigoIcao ?? '';
-    const pais = a.pais ?? '';
+    const codigoIata = aeropuerto.codigoIata ? ` (${aeropuerto.codigoIata})` : '';
+    const codigoIcao = aeropuerto.codigoIcao ? ` / ${aeropuerto.codigoIcao}` : '';
 
-    const codigos = [codigoIata, codigoIcao]
-      .map((x) => String(x || '').trim())
-      .filter(Boolean)
-      .join('/');
+    return `${aeropuerto.nombre ?? aeropuerto.aeropuertoNombre ?? aeropuerto.id}${codigoIata}${codigoIcao}`;
+  }
 
-    const base = nombre || `Aeropuerto ${a.id ?? ''}`;
+  private buildAerolineaMap(): void {
+    this.aerolineaMap = {};
 
-    if (codigos && pais) {
-      return `${base} (${codigos}) - ${pais}`;
-    }
+    this.aerolineas.forEach((a) => {
+      if (a?.id !== null && a?.id !== undefined) {
+        this.aerolineaMap[Number(a.id)] = a.nombre ?? String(a.id);
+      }
+    });
+  }
 
-    if (codigos) {
-      return `${base} (${codigos})`;
-    }
+  private buildAeropuertoMap(): void {
+    this.aeropuertoMap = {};
 
-    if (pais) {
-      return `${base} - ${pais}`;
-    }
-
-    return base;
+    this.aeropuertos.forEach((a) => {
+      if (a?.id !== null && a?.id !== undefined) {
+        this.aeropuertoMap[Number(a.id)] = this.buildAeropuertoLabel(a);
+      }
+    });
   }
 
   private getFiltrosVacios() {
@@ -353,35 +320,45 @@ export class VuelosComponent implements OnInit {
       q: '',
       buscarSalida: '',
       buscarLlegada: '',
-
       aerolineaId: '',
-
       aeropuertoSalidaId: '',
       aeropuertoLlegadaId: '',
-
       fechaSalida: '',
       horaSalida: '',
-
       fechaLlegada: '',
       horaLlegada: ''
     };
   }
 
-  private normalizarTextoFiltro(value: any): string | null {
-    const text = String(value ?? '').trim();
+  private clean(value: any): any {
+    if (value === null || value === undefined) {
+      return '';
+    }
 
-    return text ? text : null;
+    return String(value).trim();
   }
 
-  private normalizarNumeroFiltro(value: any): number | null {
-    const text = String(value ?? '').trim();
+  private normalizarHora(value: any): string {
+    const hora = this.clean(value);
 
-    if (!text) {
+    if (!hora) {
+      return '';
+    }
+
+    if (hora.length === 5) {
+      return `${hora}:00`;
+    }
+
+    return hora;
+  }
+
+  private toNumberOrNull(value: any): number | null {
+    if (value === null || value === undefined || value === '') {
       return null;
     }
 
-    const number = Number(text);
+    const n = Number(value);
 
-    return Number.isNaN(number) ? null : number;
+    return Number.isNaN(n) ? null : n;
   }
 }

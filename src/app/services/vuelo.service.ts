@@ -1,5 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 export interface Page<T> {
@@ -34,6 +35,9 @@ export interface Vuelo {
   aeropuertoLlegadaCodigoIata?: string | null;
   aeropuertoLlegadaCodigoIcao?: string | null;
 
+  puertaEmbarqueSalida?: string | null;
+  puertaEmbarqueLlegada?: string | null;
+
   fechaSalida: string | null;
   horaSalida: string | null;
 
@@ -49,6 +53,9 @@ export interface VueloRequest {
 
   aeropuertoSalidaId: number | null;
   aeropuertoLlegadaId: number | null;
+
+  puertaEmbarqueSalida: string | null;
+  puertaEmbarqueLlegada: string | null;
 
   fechaSalida: string | null;
   horaSalida: string | null;
@@ -84,39 +91,79 @@ export class VueloService {
 
   private api = `${environment.apiUrl}/vuelos`;
 
-  constructor(
-    private http: HttpClient
-  ) {}
+  constructor(private http: HttpClient) {}
 
-  listar(filtros: VueloFiltros = {}) {
+  listar(filtros: VueloFiltros = {}): Observable<Page<Vuelo>> {
     let params = new HttpParams();
 
     Object.entries(filtros).forEach(([key, value]) => {
-      if (value !== null && value !== undefined && value !== '') {
-        params = params.set(key, String(value));
+      if (value !== null && value !== undefined && String(value).trim() !== '') {
+        params = params.set(key, String(value).trim());
       }
     });
 
     return this.http.get<Page<Vuelo>>(this.api, { params });
   }
 
-  obtener(id: number) {
+  obtener(id: number): Observable<Vuelo> {
     return this.http.get<Vuelo>(`${this.api}/${id}`);
   }
 
-  obtenerPorCodigo(codigoVuelo: string) {
-    return this.http.get<Vuelo>(`${this.api}/codigo/${codigoVuelo}`);
+  obtenerPorCodigo(codigo: string): Observable<Vuelo> {
+    return this.http.get<Vuelo>(
+      `${this.api}/codigo/${encodeURIComponent(codigo)}`
+    );
   }
 
-  crear(data: VueloRequest) {
-    return this.http.post<Vuelo>(this.api, data);
+  crear(request: VueloRequest): Observable<Vuelo> {
+    return this.http.post<Vuelo>(this.api, this.normalizarPayload(request));
   }
 
-  editar(id: number, data: VueloRequest) {
-    return this.http.put<Vuelo>(`${this.api}/${id}`, data);
+  actualizar(id: number, request: VueloRequest): Observable<Vuelo> {
+    return this.http.put<Vuelo>(
+      `${this.api}/${id}`,
+      this.normalizarPayload(request)
+    );
   }
 
-  eliminar(id: number) {
+  editar(id: number, request: VueloRequest): Observable<Vuelo> {
+    return this.actualizar(id, request);
+  }
+
+  eliminar(id: number): Observable<void> {
     return this.http.delete<void>(`${this.api}/${id}`);
+  }
+
+  private normalizarPayload(request: VueloRequest): VueloRequest {
+    return {
+      aerolineaId: request.aerolineaId,
+      aeropuertoSalidaId: request.aeropuertoSalidaId,
+      aeropuertoLlegadaId: request.aeropuertoLlegadaId,
+      puertaEmbarqueSalida: this.cleanText(request.puertaEmbarqueSalida),
+      puertaEmbarqueLlegada: this.cleanText(request.puertaEmbarqueLlegada),
+      fechaSalida: request.fechaSalida,
+      horaSalida: this.normalizarHora(request.horaSalida),
+      fechaLlegada: request.fechaLlegada,
+      horaLlegada: this.normalizarHora(request.horaLlegada)
+    };
+  }
+
+  private cleanText(value: string | null | undefined): string | null {
+    const limpio = (value ?? '').toString().trim().toUpperCase();
+    return limpio || null;
+  }
+
+  private normalizarHora(value: string | null | undefined): string | null {
+    const hora = (value ?? '').toString().trim();
+
+    if (!hora) {
+      return null;
+    }
+
+    if (hora.length === 5) {
+      return `${hora}:00`;
+    }
+
+    return hora;
   }
 }

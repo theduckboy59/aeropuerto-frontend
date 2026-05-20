@@ -8,165 +8,177 @@
         <div>
           <h1 class="title">Crear vuelo</h1>
           <p class="subtitle">
-            Programa un vuelo usando únicamente destinos autorizados para la aerolínea.
+            Registro de vuelos programados. El código se genera automáticamente.
           </p>
         </div>
       </div>
 
       <div class="topbar-right">
-        <button
-          class="btn-secondary"
-          type="button"
-          (click)="regresar()">
-
+        <button class="btn-secondary" type="button" (click)="regresar()">
           Regresar
         </button>
       </div>
     </header>
 
     <section class="card" aria-label="Formulario">
-      <div class="section">
-        <h2 class="section-title">Datos del vuelo</h2>
+      <h2 class="section-title">Datos del vuelo</h2>
 
-        <p class="muted" *ngIf="cargando">
-          Cargando aerolíneas...
-        </p>
+      <p class="muted" *ngIf="cargando">
+        Cargando catálogos...
+      </p>
 
-        <p class="muted" *ngIf="cargandoDestinos">
-          Cargando destinos autorizados...
-        </p>
+      <div class="form-grid" *ngIf="!cargando">
 
-        <div class="form-grid">
+        <div class="field field-wide">
+          <label class="label">Aerolínea *</label>
 
-          <div class="field field-wide">
-            <label class="label">Aerolínea *</label>
+          <select
+            class="control"
+            [(ngModel)]="form.aerolineaId"
+            name="aerolineaId"
+            (ngModelChange)="onAerolineaChange()">
 
-            <select
-              class="control"
-              [(ngModel)]="form.aerolineaId"
-              name="aerolineaId"
-              (change)="onAerolineaChange()">
-
-              <option value="">Seleccione</option>
-
-              <option
-                *ngFor="let a of aerolineas"
-                [value]="a.id">
-
-                {{ a.nombre || a.descripcion || a.label || a.id }}
-              </option>
-            </select>
-          </div>
-
-          <div class="field field-wide" *ngIf="form.aerolineaId && !cargandoDestinos && !aeropuertosAutorizados.length">
-            <p class="muted">
-              No se encontraron aeropuertos autorizados para la aerolínea seleccionada.
-            </p>
-          </div>
-
-          <div class="field">
-            <label class="label">Aeropuerto salida *</label>
-
-            <select
-              class="control"
-              [(ngModel)]="form.aeropuertoSalidaId"
-              name="aeropuertoSalidaId"
-              [disabled]="!form.aerolineaId || cargandoDestinos || !aeropuertosAutorizados.length">
-
-              <option value="">Seleccione</option>
-
-              <option
-                *ngFor="let a of aeropuertosAutorizados"
-                [value]="a.id">
-
-                {{ getAeropuertoLabel(a) }}
-              </option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label class="label">Fecha salida *</label>
-
-            <input
-              class="control"
-              type="date"
-              [(ngModel)]="form.fechaSalida"
-              name="fechaSalida"
-            />
-          </div>
-
-          <div class="field">
-            <label class="label">Hora salida *</label>
-
-            <input
-              class="control"
-              type="time"
-              [(ngModel)]="form.horaSalida"
-              name="horaSalida"
-            />
-          </div>
-
-          <div class="field">
-            <label class="label">Aeropuerto llegada *</label>
-
-            <select
-              class="control"
-              [(ngModel)]="form.aeropuertoLlegadaId"
-              name="aeropuertoLlegadaId"
-              [disabled]="!form.aerolineaId || cargandoDestinos || !aeropuertosAutorizados.length">
-
-              <option value="">Seleccione</option>
-
-              <option
-                *ngFor="let a of aeropuertosAutorizados"
-                [value]="a.id">
-
-                {{ getAeropuertoLabel(a) }}
-              </option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label class="label">Fecha llegada *</label>
-
-            <input
-              class="control"
-              type="date"
-              [(ngModel)]="form.fechaLlegada"
-              name="fechaLlegada"
-            />
-          </div>
-
-          <div class="field">
-            <label class="label">Hora llegada *</label>
-
-            <input
-              class="control"
-              type="time"
-              [(ngModel)]="form.horaLlegada"
-              name="horaLlegada"
-            />
-          </div>
+            <option value="">Seleccione aerolínea</option>
+            <option *ngFor="let a of aerolineas" [value]="a.id">
+              {{ a.nombre }}
+            </option>
+          </select>
         </div>
 
-        <div class="form-actions">
-          <button
-            class="btn-primary"
-            type="button"
-            (click)="guardar()"
-            [disabled]="guardando || cargando || cargandoDestinos">
+        <div class="field">
+          <label class="label">Aeropuerto salida *</label>
 
-            {{ guardando ? 'Guardando...' : 'Crear vuelo' }}
-          </button>
+          <select
+            class="control"
+            [(ngModel)]="form.aeropuertoSalidaId"
+            name="aeropuertoSalidaId"
+            (ngModelChange)="onAeropuertoSalidaChange()"
+            [disabled]="!form.aerolineaId || cargandoDestinos">
 
-          <button
-            class="btn-secondary"
-            type="button"
-            (click)="regresar()">
+            <option value="">
+              {{ cargandoDestinos ? 'Cargando...' : 'Seleccione salida' }}
+            </option>
 
-            Cancelar
-          </button>
+            <option *ngFor="let a of aeropuertosAutorizados" [value]="a.id">
+              {{ getAeropuertoLabel(a) }}
+            </option>
+          </select>
         </div>
+
+        <div class="field">
+          <label class="label">Puerta salida *</label>
+
+          <select
+            class="control"
+            [(ngModel)]="form.puertaEmbarqueSalida"
+            name="puertaEmbarqueSalida"
+            [disabled]="!form.aeropuertoSalidaId">
+
+            <option value="">Seleccione puerta</option>
+            <option *ngFor="let p of getPuertasSalida()" [value]="p.codigo">
+              {{ getPuertaLabel(p) }}
+            </option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label">Fecha salida *</label>
+
+          <input
+            class="control"
+            type="date"
+            [(ngModel)]="form.fechaSalida"
+            name="fechaSalida"
+          />
+        </div>
+
+        <div class="field">
+          <label class="label">Hora salida *</label>
+
+          <input
+            class="control"
+            type="time"
+            [(ngModel)]="form.horaSalida"
+            name="horaSalida"
+          />
+        </div>
+
+        <div class="field">
+          <label class="label">Aeropuerto llegada *</label>
+
+          <select
+            class="control"
+            [(ngModel)]="form.aeropuertoLlegadaId"
+            name="aeropuertoLlegadaId"
+            (ngModelChange)="onAeropuertoLlegadaChange()"
+            [disabled]="!form.aerolineaId || cargandoDestinos">
+
+            <option value="">
+              {{ cargandoDestinos ? 'Cargando...' : 'Seleccione llegada' }}
+            </option>
+
+            <option *ngFor="let a of aeropuertosAutorizados" [value]="a.id">
+              {{ getAeropuertoLabel(a) }}
+            </option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label">Puerta llegada *</label>
+
+          <select
+            class="control"
+            [(ngModel)]="form.puertaEmbarqueLlegada"
+            name="puertaEmbarqueLlegada"
+            [disabled]="!form.aeropuertoLlegadaId">
+
+            <option value="">Seleccione puerta</option>
+            <option *ngFor="let p of getPuertasLlegada()" [value]="p.codigo">
+              {{ getPuertaLabel(p) }}
+            </option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label">Fecha llegada *</label>
+
+          <input
+            class="control"
+            type="date"
+            [(ngModel)]="form.fechaLlegada"
+            name="fechaLlegada"
+          />
+        </div>
+
+        <div class="field">
+          <label class="label">Hora llegada *</label>
+
+          <input
+            class="control"
+            type="time"
+            [(ngModel)]="form.horaLlegada"
+            name="horaLlegada"
+          />
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button
+          class="btn-primary"
+          type="button"
+          (click)="guardar()"
+          [disabled]="guardando || cargando || cargandoDestinos">
+
+          {{ guardando ? 'Guardando...' : 'Crear vuelo' }}
+        </button>
+
+        <button
+          class="btn-secondary"
+          type="button"
+          (click)="regresar()">
+
+          Cancelar
+        </button>
       </div>
     </section>
 

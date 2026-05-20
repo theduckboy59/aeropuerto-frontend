@@ -67,11 +67,6 @@
               [placeholder]="modeloSeleccionado ? (modeloSeleccionado.filasMin + ' a ' + modeloSeleccionado.filasMax) : ''"
             />
           </div>
-
-          <div class="field">
-            <label class="label">EstadoId *</label>
-            <input class="control" type="number" [(ngModel)]="form.estadoId" name="estadoId" />
-          </div>
         </div>
 
         <div class="model-info" *ngIf="modeloSeleccionado as ms">

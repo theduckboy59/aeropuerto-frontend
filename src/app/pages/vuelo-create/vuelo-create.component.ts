@@ -16,6 +16,7 @@ export class VueloCreateComponent implements OnInit {
   private readonly ESTADO_ACTIVO_ID = 1;
 
   aerolineas: any[] = [];
+  aeropuertos: any[] = [];
   destinosAutorizados: DestinoAutorizado[] = [];
   aeropuertosAutorizados: any[] = [];
 
@@ -42,11 +43,21 @@ export class VueloCreateComponent implements OnInit {
     this.catalogo.aerolineas().subscribe({
       next: (aerolineas) => {
         this.aerolineas = aerolineas ?? [];
-        this.cargando = false;
+
+        this.catalogo.aeropuertos().subscribe({
+          next: (aeropuertos) => {
+            this.aeropuertos = aeropuertos ?? [];
+            this.cargando = false;
+          },
+          error: (err) => {
+            console.error(err);
+            this.cargando = false;
+            alert(getApiErrorMessage(err, 'Error cargando aeropuertos'));
+          }
+        });
       },
       error: (err) => {
         console.error(err);
-        this.aerolineas = [];
         this.cargando = false;
         alert(getApiErrorMessage(err, 'Error cargando aerolíneas'));
       }
@@ -56,6 +67,9 @@ export class VueloCreateComponent implements OnInit {
   onAerolineaChange(): void {
     this.form.aeropuertoSalidaId = '';
     this.form.aeropuertoLlegadaId = '';
+    this.form.puertaEmbarqueSalida = '';
+    this.form.puertaEmbarqueLlegada = '';
+
     this.destinosAutorizados = [];
     this.aeropuertosAutorizados = [];
 
@@ -77,12 +91,15 @@ export class VueloCreateComponent implements OnInit {
     }).subscribe({
       next: (destinos) => {
         this.destinosAutorizados = destinos ?? [];
-        this.aeropuertosAutorizados = this.mapDestinosToAeropuertos(this.destinosAutorizados);
-        this.cargandoDestinos = false;
 
-        if (!this.aeropuertosAutorizados.length) {
-          alert('No se encontraron aeropuertos autorizados para la aerolínea.');
-        }
+        const idsAutorizados = new Set(
+          this.destinosAutorizados.map((d) => Number(d.aeropuertoId))
+        );
+
+        this.aeropuertosAutorizados = this.aeropuertos
+          .filter((a) => idsAutorizados.has(Number(a.id)));
+
+        this.cargandoDestinos = false;
       },
       error: (err) => {
         console.error(err);
@@ -94,22 +111,32 @@ export class VueloCreateComponent implements OnInit {
     });
   }
 
-  guardar(): void {
-    const mensaje = this.validar();
+  onAeropuertoSalidaChange(): void {
+    this.form.puertaEmbarqueSalida = '';
+  }
 
-    if (mensaje) {
-      alert(mensaje);
+  onAeropuertoLlegadaChange(): void {
+    this.form.puertaEmbarqueLlegada = '';
+  }
+
+  guardar(): void {
+    const msg = this.validar();
+
+    if (msg) {
+      alert(msg);
       return;
     }
 
     const payload: VueloRequest = {
-      aerolineaId: this.toNumberOrNull(this.form.aerolineaId),
-      aeropuertoSalidaId: this.toNumberOrNull(this.form.aeropuertoSalidaId),
-      aeropuertoLlegadaId: this.toNumberOrNull(this.form.aeropuertoLlegadaId),
+      aerolineaId: Number(this.form.aerolineaId),
+      aeropuertoSalidaId: Number(this.form.aeropuertoSalidaId),
+      aeropuertoLlegadaId: Number(this.form.aeropuertoLlegadaId),
+      puertaEmbarqueSalida: this.cleanText(this.form.puertaEmbarqueSalida),
+      puertaEmbarqueLlegada: this.cleanText(this.form.puertaEmbarqueLlegada),
       fechaSalida: this.form.fechaSalida,
-      horaSalida: this.form.horaSalida,
+      horaSalida: this.normalizarHora(this.form.horaSalida),
       fechaLlegada: this.form.fechaLlegada,
-      horaLlegada: this.form.horaLlegada
+      horaLlegada: this.normalizarHora(this.form.horaLlegada)
     };
 
     this.guardando = true;
@@ -132,116 +159,91 @@ export class VueloCreateComponent implements OnInit {
     this.router.navigate(['/menu/aerolinea/vuelos']);
   }
 
+  getPuertasSalida(): any[] {
+    const aeropuerto = this.getAeropuertoById(this.form.aeropuertoSalidaId);
+    return this.getPuertasActivas(aeropuerto);
+  }
+
+  getPuertasLlegada(): any[] {
+    const aeropuerto = this.getAeropuertoById(this.form.aeropuertoLlegadaId);
+    return this.getPuertasActivas(aeropuerto);
+  }
+
   getAeropuertoLabel(aeropuerto: any): string {
     if (!aeropuerto) {
       return '-';
     }
 
-    const nombre = aeropuerto.nombre ?? aeropuerto.aeropuertoNombre ?? aeropuerto.descripcion ?? aeropuerto.label ?? '';
-    const codigoIata = aeropuerto.codigoIata ?? aeropuerto.aeropuertoCodigoIata ?? '';
-    const codigoIcao = aeropuerto.codigoIcao ?? aeropuerto.aeropuertoCodigoIcao ?? '';
-    const pais = aeropuerto.pais ?? '';
+    const codigoIata = aeropuerto.codigoIata ? ` (${aeropuerto.codigoIata})` : '';
+    const codigoIcao = aeropuerto.codigoIcao ? ` / ${aeropuerto.codigoIcao}` : '';
 
-    const codigos = [codigoIata, codigoIcao]
-      .map((x) => String(x || '').trim())
-      .filter(Boolean)
-      .join('/');
+    return `${aeropuerto.nombre ?? aeropuerto.aeropuertoNombre ?? aeropuerto.id}${codigoIata}${codigoIcao}`;
+  }
 
-    const base = nombre || `Aeropuerto ${aeropuerto.id ?? ''}`;
-
-    if (codigos && pais) {
-      return `${base} (${codigos}) - ${pais}`;
-    }
-
-    if (codigos) {
-      return `${base} (${codigos})`;
-    }
-
-    if (pais) {
-      return `${base} - ${pais}`;
-    }
-
-    return base;
+  getPuertaLabel(puerta: any): string {
+    return puerta?.codigo ?? String(puerta ?? '-');
   }
 
   private validar(): string {
-    if (!this.toNumberOrNull(this.form.aerolineaId)) {
-      return 'Debe seleccionar una aerolínea';
+    if (!this.form.aerolineaId) {
+      return 'Aerolínea obligatoria';
     }
 
-    if (!this.aeropuertosAutorizados.length) {
-      return 'No se encontraron aeropuertos autorizados para la aerolínea.';
+    if (!this.form.aeropuertoSalidaId) {
+      return 'Aeropuerto de salida obligatorio';
     }
 
-    if (!this.toNumberOrNull(this.form.aeropuertoSalidaId)) {
-      return 'Debe seleccionar el aeropuerto de salida';
-    }
-
-    if (!this.form.fechaSalida) {
-      return 'Debe seleccionar la fecha de salida';
-    }
-
-    if (!this.form.horaSalida) {
-      return 'Debe seleccionar la hora de salida';
-    }
-
-    if (!this.toNumberOrNull(this.form.aeropuertoLlegadaId)) {
-      return 'Debe seleccionar el aeropuerto de llegada';
-    }
-
-    if (!this.form.fechaLlegada) {
-      return 'Debe seleccionar la fecha de llegada';
-    }
-
-    if (!this.form.horaLlegada) {
-      return 'Debe seleccionar la hora de llegada';
+    if (!this.form.aeropuertoLlegadaId) {
+      return 'Aeropuerto de llegada obligatorio';
     }
 
     if (Number(this.form.aeropuertoSalidaId) === Number(this.form.aeropuertoLlegadaId)) {
       return 'No se puede seleccionar el mismo aeropuerto de salida y llegada.';
     }
 
-    const salida = this.buildDateTime(this.form.fechaSalida, this.form.horaSalida);
-    const llegada = this.buildDateTime(this.form.fechaLlegada, this.form.horaLlegada);
-
-    if (!salida || !llegada) {
-      return 'Debe ingresar fechas y horas válidas';
+    if (!this.cleanText(this.form.puertaEmbarqueSalida)) {
+      return 'Puerta de embarque de salida obligatoria';
     }
 
-    if (llegada.getTime() <= salida.getTime()) {
+    if (!this.cleanText(this.form.puertaEmbarqueLlegada)) {
+      return 'Puerta de embarque de llegada obligatoria';
+    }
+
+    if (!this.form.fechaSalida) {
+      return 'Fecha de salida obligatoria';
+    }
+
+    if (!this.form.horaSalida) {
+      return 'Hora de salida obligatoria';
+    }
+
+    if (!this.form.fechaLlegada) {
+      return 'Fecha de llegada obligatoria';
+    }
+
+    if (!this.form.horaLlegada) {
+      return 'Hora de llegada obligatoria';
+    }
+
+    const salida = new Date(`${this.form.fechaSalida}T${this.normalizarHora(this.form.horaSalida)}`);
+    const llegada = new Date(`${this.form.fechaLlegada}T${this.normalizarHora(this.form.horaLlegada)}`);
+
+    if (Number.isNaN(salida.getTime()) || Number.isNaN(llegada.getTime())) {
+      return 'Fecha u hora inválida';
+    }
+
+    if (llegada <= salida) {
       return 'La fecha y hora de llegada debe ser mayor a la fecha y hora de salida.';
     }
 
-    const minimoPermitido = new Date();
-    minimoPermitido.setHours(minimoPermitido.getHours() + 5);
+    const minimo = new Date();
+    minimo.setHours(minimo.getHours() + 5);
 
-    if (salida.getTime() < minimoPermitido.getTime()) {
+    if (salida < minimo) {
       return 'Tiempo mínimo para la preparación 5 horas a partir de la hora actual.';
     }
 
     return '';
-  }
-
-  private mapDestinosToAeropuertos(destinos: DestinoAutorizado[]): any[] {
-    const map = new Map<number, any>();
-
-    (destinos ?? []).forEach((d) => {
-      const id = Number(d.aeropuertoId);
-
-      if (!id || map.has(id)) {
-        return;
-      }
-
-      map.set(id, {
-        id,
-        nombre: d.aeropuertoNombre ?? `Aeropuerto ${id}`,
-        pais: d.pais ?? ''
-      });
-    });
-
-    return Array.from(map.values()).sort((a, b) =>
-      this.getAeropuertoLabel(a).localeCompare(this.getAeropuertoLabel(b))
-    );
   }
 
   private getEmptyForm() {
@@ -249,6 +251,8 @@ export class VueloCreateComponent implements OnInit {
       aerolineaId: '',
       aeropuertoSalidaId: '',
       aeropuertoLlegadaId: '',
+      puertaEmbarqueSalida: '',
+      puertaEmbarqueLlegada: '',
       fechaSalida: '',
       horaSalida: '',
       fechaLlegada: '',
@@ -256,25 +260,57 @@ export class VueloCreateComponent implements OnInit {
     };
   }
 
-  private toNumberOrNull(value: any): number | null {
-    const text = String(value ?? '').trim();
+  private getAeropuertoById(id: any): any | null {
+    const n = this.toNumberOrNull(id);
 
-    if (!text) {
+    if (!n) {
       return null;
     }
 
-    const number = Number(text);
-
-    return Number.isNaN(number) ? null : number;
+    return this.aeropuertos.find((a) => Number(a.id) === n) ?? null;
   }
 
-  private buildDateTime(fecha: string, hora: string): Date | null {
-    if (!fecha || !hora) {
+  private getPuertasActivas(aeropuerto: any): any[] {
+    const puertas = aeropuerto?.puertas ?? [];
+
+    if (!Array.isArray(puertas)) {
+      return [];
+    }
+
+    return puertas.filter((p) => {
+      if (p?.estadoId === null || p?.estadoId === undefined) {
+        return true;
+      }
+
+      return Number(p.estadoId) === this.ESTADO_ACTIVO_ID;
+    });
+  }
+
+  private toNumberOrNull(value: any): number | null {
+    if (value === null || value === undefined || value === '') {
       return null;
     }
 
-    const date = new Date(`${fecha}T${hora}:00`);
+    const n = Number(value);
 
-    return Number.isNaN(date.getTime()) ? null : date;
+    return Number.isNaN(n) ? null : n;
+  }
+
+  private cleanText(value: any): string {
+    return (value ?? '').toString().trim().toUpperCase();
+  }
+
+  private normalizarHora(value: any): string {
+    const hora = (value ?? '').toString().trim();
+
+    if (!hora) {
+      return '';
+    }
+
+    if (hora.length === 5) {
+      return `${hora}:00`;
+    }
+
+    return hora;
   }
 }

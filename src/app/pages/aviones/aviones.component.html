@@ -3,14 +3,21 @@
     <header class="topbar" aria-label="Encabezado">
       <div class="topbar-left">
         <div class="badge">A L P</div>
+
         <div>
           <h1 class="title">Aviones</h1>
           <p class="subtitle">Gestión de aviones de aerolínea.</p>
         </div>
       </div>
+
       <div class="topbar-right">
-        <button class="btn-primary" type="button" (click)="irNuevo()">Crear avión</button>
-        <button class="btn-secondary" type="button" (click)="irMenu()">Regresar</button>
+        <button class="btn-primary" type="button" (click)="irNuevo()">
+          Crear avión
+        </button>
+
+        <button class="btn-secondary" type="button" (click)="irMenu()">
+          Regresar
+        </button>
       </div>
     </header>
 
@@ -21,42 +28,64 @@
         <div class="form-grid">
           <div class="field">
             <label class="label">Búsqueda</label>
-            <input class="control" #qInput (input)="filtros.q = qInput.value" [value]="filtros.q" placeholder="código / modelo" />
+            <input
+              class="control"
+              [(ngModel)]="filtros.q"
+              placeholder="Código / modelo"
+            />
           </div>
 
           <div class="field">
             <label class="label">Aerolínea</label>
-            <select class="control" #aerolineaSel (change)="filtros.aerolineaId = aerolineaSel.value" [value]="filtros.aerolineaId">
+            <select class="control" [(ngModel)]="filtros.aerolineaId">
               <option value="">Todas</option>
-              <option *ngFor="let a of aerolineas" [value]="a.id">{{ a.nombre || a.descripcion || a.label }}</option>
+
+              <option *ngFor="let a of aerolineas" [value]="a.id">
+                {{ a.nombre || a.descripcion || a.label }}
+              </option>
             </select>
           </div>
 
           <div class="field">
             <label class="label">Estado avión</label>
-            <select class="control" #estadoAvionSel (change)="filtros.estadoAvionId = estadoAvionSel.value" [value]="filtros.estadoAvionId">
+            <select class="control" [(ngModel)]="filtros.estadoAvionId">
               <option value="">Todos</option>
-              <option *ngFor="let e of estadosAvion" [value]="e.id">{{ e.nombre || e.codigo || e.label }}</option>
+
+              <option *ngFor="let e of estadosAvion" [value]="e.id">
+                {{ e.nombre || e.codigo || e.label }}
+              </option>
             </select>
           </div>
 
           <div class="field">
             <label class="label">Modelo</label>
-            <select class="control" #modeloSel (change)="filtros.modeloAvionId = modeloSel.value" [value]="filtros.modeloAvionId">
+            <select class="control" [(ngModel)]="filtros.modeloAvionId">
               <option value="">Todos</option>
-              <option *ngFor="let m of modelosAvion" [value]="m.id">{{ m.fabricante }} - {{ m.nombre }}</option>
+
+              <option *ngFor="let m of modelosAvion" [value]="m.id">
+                {{ m.fabricante }} - {{ m.nombre }}
+              </option>
             </select>
           </div>
 
           <div class="field">
             <label class="label">Año</label>
-            <input class="control" type="number" #anioInput (input)="filtros.anio = anioInput.value" [value]="filtros.anio" />
+            <input
+              class="control"
+              type="number"
+              [(ngModel)]="filtros.anio"
+            />
           </div>
         </div>
 
         <div class="form-actions">
-          <button class="btn-primary" type="button" (click)="aplicarFiltros()">Aplicar</button>
-          <button class="btn-secondary" type="button" (click)="limpiarFiltros()">Limpiar</button>
+          <button class="btn-primary" type="button" (click)="aplicarFiltros()">
+            Aplicar
+          </button>
+
+          <button class="btn-secondary" type="button" (click)="limpiarFiltros()">
+            Limpiar
+          </button>
         </div>
       </div>
     </section>
@@ -65,7 +94,9 @@
       <div class="section">
         <h2 class="section-title">Lista de aviones</h2>
 
-        <p class="muted" *ngIf="cargandoAviones">Cargando aviones...</p>
+        <p class="muted" *ngIf="cargandoAviones">
+          Cargando aviones...
+        </p>
 
         <div class="table-wrap" *ngIf="!cargandoAviones && aviones.length; else empty">
           <table class="table">
@@ -77,20 +108,41 @@
                 <th>Estado</th>
                 <th>Año</th>
                 <th>Filas</th>
+                <th>Asientos</th>
                 <th>Acciones</th>
               </tr>
             </thead>
+
             <tbody>
               <tr *ngFor="let a of aviones">
                 <td>{{ a.codigoAvion }}</td>
-                <td>{{ aerolineaMap[a.aerolineaId] || a.aerolineaId }}</td>
-                <td>{{ modeloAvionMap[a.modeloAvionId] || a.modeloAvionId }}</td>
-                <td>{{ estadoAvionMap[a.estadoAvionId] || a.estadoAvionId }}</td>
+
+                <td>
+                  {{ a.aerolineaNombre || aerolineaMap[a.aerolineaId] || a.aerolineaId }}
+                </td>
+
+                <td>
+                  {{ a.modeloNombre || modeloAvionMap[a.modeloAvionId] || a.modeloAvionId }}
+                </td>
+
+                <td>
+                  {{ a.estadoAvionNombre || estadoAvionMap[a.estadoAvionId] || a.estadoAvionId }}
+                </td>
+
                 <td>{{ a.anio }}</td>
+
                 <td>{{ a.filasConfiguradas }}</td>
+
+                <td>{{ a.cantidadAsientos ?? 0 }}</td>
+
                 <td class="table-actions">
-                  <button class="btn-secondary" type="button" (click)="irEditar(a.id)">Editar</button>
-                  <button class="btn-danger" type="button" (click)="eliminar(a)">Eliminar</button>
+                  <button class="btn-secondary" type="button" (click)="irEditar(a.id)">
+                    Editar
+                  </button>
+
+                  <button class="btn-danger" type="button" (click)="eliminar(a)">
+                    Eliminar
+                  </button>
                 </td>
               </tr>
             </tbody>

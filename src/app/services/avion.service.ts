@@ -21,7 +21,9 @@ export interface Avion {
   codigoAvion: string;
   numeroSerie?: string | null;
   anio: number;
+
   filasConfiguradas: number;
+  cantidadAsientos?: number;
   cantidadVuelos?: number;
 
   estadoId?: number;
@@ -74,7 +76,13 @@ export class AvionService {
     return this.http.put<Avion>(`${this.api}/${id}`, data);
   }
 
-  eliminarAvion(id: number) {
-    return this.http.delete<void>(`${this.api}/${id}`);
+  cambiarEstado(id: number, estadoId: number) {
+    const params = new HttpParams().set('estadoId', String(estadoId));
+
+    return this.http.patch<void>(
+      `${this.api}/${id}/estado`,
+      null,
+      { params }
+    );
   }
 }

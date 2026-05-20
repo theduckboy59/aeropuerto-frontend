@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
+
 import { Avion, AvionService } from '../../services/avion.service';
 import { CatalogoService } from '../../services/catalogo.service';
 import { ModeloAvion, ModeloAvionService } from '../../services/modelo-avion.service';
@@ -10,7 +12,10 @@ import { getApiErrorMessage } from '../../services/shared/api-error.util';
 @Component({
   selector: 'app-aviones',
   standalone: true,
-  imports: [CommonModule],
+  imports: [
+    CommonModule,
+    FormsModule
+  ],
   templateUrl: './aviones.component.html',
   styleUrl: './aviones.component.css'
 })
@@ -21,14 +26,7 @@ export class AvionesComponent implements OnInit {
 
   aviones: Avion[] = [];
 
-  filtros: any = {
-    q: '',
-    aerolineaId: '',
-    estadoAvionId: '',
-    modeloAvionId: '',
-    estadoId: '',
-    anio: ''
-  };
+  filtros: any = this.getDefaultFiltros();
 
   aerolineaMap: Record<number, string> = {};
   estadoAvionMap: Record<number, string> = {};
@@ -48,6 +46,17 @@ export class AvionesComponent implements OnInit {
     this.cargarCatalogosYAviones();
   }
 
+  private getDefaultFiltros(): any {
+    return {
+      q: '',
+      aerolineaId: '',
+      estadoAvionId: '',
+      modeloAvionId: '',
+      estadoId: 1,
+      anio: ''
+    };
+  }
+
   cargarCatalogosYAviones(): void {
     this.cargandoCatalogos = true;
 
@@ -61,9 +70,26 @@ export class AvionesComponent implements OnInit {
         this.estadosAvion = estadosAvion ?? [];
         this.modelosAvion = modelosAvion ?? [];
 
-        this.aerolineaMap = Object.fromEntries(this.aerolineas.map((a: any) => [Number(a.id), a.nombre ?? a.descripcion ?? a.label ?? String(a.id)]));
-        this.estadoAvionMap = Object.fromEntries(this.estadosAvion.map((e: any) => [Number(e.id), e.nombre ?? e.codigo ?? e.label ?? String(e.id)]));
-        this.modeloAvionMap = Object.fromEntries(this.modelosAvion.map((m) => [Number(m.id), `${m.fabricante} ${m.nombre}`.trim()]));
+        this.aerolineaMap = Object.fromEntries(
+          this.aerolineas.map((a: any) => [
+            Number(a.id),
+            a.nombre ?? a.descripcion ?? a.label ?? String(a.id)
+          ])
+        );
+
+        this.estadoAvionMap = Object.fromEntries(
+          this.estadosAvion.map((e: any) => [
+            Number(e.id),
+            e.nombre ?? e.codigo ?? e.label ?? String(e.id)
+          ])
+        );
+
+        this.modeloAvionMap = Object.fromEntries(
+          this.modelosAvion.map((m) => [
+            Number(m.id),
+            `${m.fabricante} ${m.nombre}`.trim()
+          ])
+        );
 
         this.cargandoCatalogos = false;
         this.cargarAviones();
@@ -78,7 +104,13 @@ export class AvionesComponent implements OnInit {
 
   cargarAviones(extraFilters: Record<string, any> = {}): void {
     this.cargandoAviones = true;
-    const filters = { page: 0, size: 100, ...this.filtros, ...extraFilters };
+
+    const filters = {
+      page: 0,
+      size: 100,
+      ...this.filtros,
+      ...extraFilters
+    };
 
     this.avionService.getAviones(filters).subscribe({
       next: (data) => {
@@ -98,20 +130,23 @@ export class AvionesComponent implements OnInit {
   }
 
   limpiarFiltros(): void {
-    this.filtros = { q: '', aerolineaId: '', estadoAvionId: '', modeloAvionId: '', estadoId: '', anio: '' };
+    this.filtros = this.getDefaultFiltros();
     this.cargarAviones();
   }
 
   eliminar(avion: Avion): void {
-    if (!confirm(`¿Eliminar avión ${avion.codigoAvion}?`)) return;
-    this.avionService.eliminarAvion(avion.id).subscribe({
+    if (!confirm(`¿Inactivar avión ${avion.codigoAvion}?`)) {
+      return;
+    }
+
+    this.avionService.cambiarEstado(avion.id, 2).subscribe({
       next: () => {
-        alert('Avión eliminado');
+        alert('Avión inactivado');
         this.cargarAviones();
       },
       error: (err) => {
         console.error(err);
-        alert(getApiErrorMessage(err, 'Error al eliminar avión'));
+        alert(getApiErrorMessage(err, 'Error al inactivar avión'));
       }
     });
   }
@@ -127,5 +162,4 @@ export class AvionesComponent implements OnInit {
   irMenu(): void {
     this.router.navigate(['/menu']);
   }
-
 }
