@@ -18,28 +18,38 @@ import { EmpleadoEditComponent } from './pages/empleado-edit/empleado-edit.compo
 import { RegisterComponent } from './pages/register/register.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { PlaceholderComponent } from './pages/placeholder/placeholder.component';
+
 import { TripulacionComponent } from './pages/tripulacion/tripulacion.component';
 import { TripulacionCreateComponent } from './pages/tripulacion-create/tripulacion-create.component';
+import { TripulacionEditComponent } from './pages/tripulacion-edit/tripulacion-edit.component';
+
 import { AerolineasComponent } from './pages/aerolineas/aerolineas.component';
 import { AerolineaCreateComponent } from './pages/aerolinea-create/aerolinea-create.component';
 import { AerolineaEditComponent } from './pages/aerolinea-edit/aerolinea-edit.component';
+
 import { AeropuertosComponent } from './pages/aeropuertos/aeropuertos.component';
 import { AeropuertoCreateComponent } from './pages/aeropuerto-create/aeropuerto-create.component';
 import { AeropuertoEditComponent } from './pages/aeropuerto-edit/aeropuerto-edit.component';
+
 import { DestinosAutorizadosComponent } from './pages/destinos-autorizados/destinos-autorizados.component';
 import { DestinoAutorizadoCreateComponent } from './pages/destino-autorizado-create/destino-autorizado-create.component';
 import { DestinoAutorizadoEditComponent } from './pages/destino-autorizado-edit/destino-autorizado-edit.component';
+
 import { PasajerosComponent } from './pages/pasajeros/pasajeros.component';
 import { PasajeroEditComponent } from './pages/pasajero-edit/pasajero-edit.component';
 import { EditPasajerosComponent } from './pages/edit-pasajeros/edit-pasajeros.component';
+
 import { ModeloAvionComponent } from './pages/modelo-avion/modelo-avion.component';
 import { ModeloAvionCreateComponent } from './pages/modelo-avion-create/modelo-avion-create.component';
 import { ModeloAvionEditComponent } from './pages/modelo-avion-edit/modelo-avion-edit.component';
+
 import { VuelosComponent } from './pages/vuelos/vuelos.component';
 import { VueloCreateComponent } from './pages/vuelo-create/vuelo-create.component';
 import { VueloEditComponent } from './pages/vuelo-edit/vuelo-edit.component';
 
-
+import { VuelosOperadosComponent } from './pages/vuelos-operados/vuelos-operados.component';
+import { VueloOperadoCreateComponent } from './pages/vuelo-operado-create/vuelo-operado-create.component';
+import { VueloOperadoEditComponent } from './pages/vuelo-operado-edit/vuelo-operado-edit.component';
 
 @NgModule({
   declarations: [
@@ -53,26 +63,38 @@ import { VueloEditComponent } from './pages/vuelo-edit/vuelo-edit.component';
     RegisterComponent,
     DashboardComponent,
     PlaceholderComponent,
+
     TripulacionComponent,
     TripulacionCreateComponent,
+    TripulacionEditComponent,
+
     AerolineasComponent,
     AerolineaCreateComponent,
     AerolineaEditComponent,
+
     AeropuertosComponent,
     AeropuertoCreateComponent,
     AeropuertoEditComponent,
+
     DestinosAutorizadosComponent,
     DestinoAutorizadoCreateComponent,
     DestinoAutorizadoEditComponent,
+
     PasajerosComponent,
     PasajeroEditComponent,
     EditPasajerosComponent,
+
     ModeloAvionComponent,
     ModeloAvionCreateComponent,
     ModeloAvionEditComponent,
+
     VuelosComponent,
     VueloCreateComponent,
-    VueloEditComponent
+    VueloEditComponent,
+
+    VuelosOperadosComponent,
+    VueloOperadoCreateComponent,
+    VueloOperadoEditComponent
   ],
   imports: [
     BrowserModule,
@@ -83,8 +105,8 @@ import { VueloEditComponent } from './pages/vuelo-edit/vuelo-edit.component';
   providers: [
     {
       provide: HTTP_INTERCEPTORS,
-    useClass: AuthInterceptor,
-    multi: true
+      useClass: AuthInterceptor,
+      multi: true
     }
   ],
   bootstrap: [AppComponent]

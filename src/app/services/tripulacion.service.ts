@@ -2,6 +2,14 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 
+export interface TripulacionPayload {
+  aerolineaId: number;
+  pilotoId: number;
+  copilotoId: number;
+  ingenieroId: number;
+  tripulantesCabinaIds: number[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -10,14 +18,12 @@ export class TripulacionService {
 
   constructor(private http: HttpClient) {}
 
-  crearTripulacion(data: {
-    aerolineaId: number;
-    pilotoId: number;
-    copilotoId: number;
-    ingenieroId: number;
-    tripulantesCabinaIds: number[];
-  }) {
+  crearTripulacion(data: TripulacionPayload) {
     return this.http.post(this.api, data);
+  }
+
+  actualizarTripulacion(id: number, data: TripulacionPayload) {
+    return this.http.put(`${this.api}/${id}`, data);
   }
 
   getTripulaciones() {
@@ -37,7 +43,7 @@ export class TripulacionService {
 
     Object.entries(filters).forEach(([key, value]) => {
       if (value !== null && value !== undefined && value !== '') {
-        params = params.set(key, value);
+        params = params.set(key, String(value));
       }
     });
 
@@ -45,7 +51,7 @@ export class TripulacionService {
   }
 
   getTripulacion(id: number) {
-    return this.http.get(`${this.api}/${id}`);
+    return this.http.get<any>(`${this.api}/${id}`);
   }
 
   actualizarEstado(id: number, estadoId: number) {

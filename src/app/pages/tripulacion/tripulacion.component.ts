@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CatalogoService } from '../../services/catalogo.service';
 import { TripulacionService } from '../../services/tripulacion.service';
 import { getApiErrorMessage } from '../../services/shared/api-error.util';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-tripulacion',
@@ -40,7 +41,8 @@ export class TripulacionComponent implements OnInit {
 
   constructor(
     private service: TripulacionService,
-    private catalogo: CatalogoService
+    private catalogo: CatalogoService,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -290,5 +292,35 @@ export class TripulacionComponent implements OnInit {
 
       return acc;
     }, {});
+  }
+
+  editar(tripulacion: any) {
+    if (!tripulacion?.id) return;
+
+    if (!this.puedeEditar(tripulacion)) {
+      alert('Solo se pueden editar tripulaciones DISPONIBLES');
+      return;
+    }
+
+    this.router.navigate([
+      '/menu/aerolinea/tripulacion/editar',
+      tripulacion.id
+    ]);
+  }
+
+  puedeEditar(tripulacion: any) {
+    const estado = this.getEstadoLabel(tripulacion?.estadoTripulacionId);
+    return this.normalizarTexto(estado) === 'DISPONIBLE';
+  }
+
+  private normalizarTexto(value: any) {
+    return String(value ?? '')
+      .trim()
+      .toUpperCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/-/g, '_')
+      .replace(/\s+/g, '_')
+      .replace(/_+/g, '_');
   }
 }

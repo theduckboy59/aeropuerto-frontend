@@ -12,6 +12,7 @@ import { DashboardComponent } from './pages/dashboard/dashboard.component';
 import { PlaceholderComponent } from './pages/placeholder/placeholder.component';
 import { TripulacionComponent } from './pages/tripulacion/tripulacion.component';
 import { TripulacionCreateComponent } from './pages/tripulacion-create/tripulacion-create.component';
+import { TripulacionEditComponent } from './pages/tripulacion-edit/tripulacion-edit.component';
 import { AerolineasComponent } from './pages/aerolineas/aerolineas.component';
 import { AerolineaCreateComponent } from './pages/aerolinea-create/aerolinea-create.component';
 import { AerolineaEditComponent } from './pages/aerolinea-edit/aerolinea-edit.component';
@@ -41,6 +42,10 @@ import { VuelosComponent } from './pages/vuelos/vuelos.component';
 import { VueloCreateComponent } from './pages/vuelo-create/vuelo-create.component';
 import { VueloEditComponent } from './pages/vuelo-edit/vuelo-edit.component';
 
+import { VuelosOperadosComponent } from './pages/vuelos-operados/vuelos-operados.component';
+import { VueloOperadoCreateComponent } from './pages/vuelo-operado-create/vuelo-operado-create.component';
+import { VueloOperadoEditComponent } from './pages/vuelo-operado-edit/vuelo-operado-edit.component';
+
 const routes: Routes = [
   { path: '', component: PortalComponent },
   { path: 'login', component: LoginComponent },
@@ -68,6 +73,12 @@ const routes: Routes = [
       {
         path: 'aerolinea/tripulacion',
         component: TripulacionComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/tripulacion/editar/:id',
+        component: TripulacionEditComponent,
         canActivate: [RoleGuard],
         data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
       },
@@ -257,6 +268,24 @@ const routes: Routes = [
       {
         path: 'aerolinea/modelo-avion/editar/:id',
         component: ModeloAvionEditComponent
+      },
+      {
+        path: 'aerolinea/vuelos-operados',
+        component: VuelosOperadosComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/vuelos-operados/nuevo',
+        component: VueloOperadoCreateComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'aerolinea/vuelos-operados/editar/:id',
+        component: VueloOperadoEditComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
       }
     ]
   },

@@ -1,0 +1,184 @@
+<div class="page-root">
+  <main class="content">
+
+    <header class="topbar" aria-label="Encabezado">
+      <div class="topbar-left">
+        <div class="badge">A L P</div>
+
+        <div>
+          <h1 class="title">Vuelos operados</h1>
+          <p class="subtitle">
+            Gestión operativa de vuelos, estados, escalas, avión y tripulación.
+          </p>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <button class="btn-primary" type="button" (click)="crear()">
+          Crear vuelo operado
+        </button>
+
+        <button class="btn-secondary" type="button" routerLink="/menu">
+          Regresar
+        </button>
+      </div>
+    </header>
+
+    <section class="card" aria-label="Filtros">
+      <h2 class="section-title">Filtros</h2>
+
+      <div class="form-grid">
+        <div class="field">
+          <label class="label">Estado</label>
+
+          <select
+            class="control"
+            [(ngModel)]="filtros.estadoVueloId"
+            name="estadoVueloId">
+
+            <option value="">Todos</option>
+
+            <option
+              *ngFor="let estado of estadosVuelo"
+              [value]="estado.id">
+
+              {{ estado.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label">Fecha salida real</label>
+          <input
+            class="control"
+            type="date"
+            [(ngModel)]="filtros.fechaSalidaReal"
+            name="fechaSalidaReal"
+          />
+        </div>
+
+        <div class="field">
+          <label class="label">Fecha llegada real</label>
+          <input
+            class="control"
+            type="date"
+            [(ngModel)]="filtros.fechaLlegadaReal"
+            name="fechaLlegadaReal"
+          />
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-primary" type="button" (click)="buscar()">
+          Buscar
+        </button>
+
+        <button class="btn-secondary" type="button" (click)="limpiar()">
+          Limpiar
+        </button>
+      </div>
+    </section>
+
+    <section class="card" aria-label="Listado">
+      <h2 class="section-title">Lista</h2>
+
+      <p class="muted" *ngIf="cargando">Cargando...</p>
+
+      <div class="table-wrap" *ngIf="!cargando && vuelosOperados.length; else emptyState">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Ruta</th>
+              <th>Programado</th>
+              <th>Tipo</th>
+              <th>Tramo</th>
+              <th>Avión</th>
+              <th>Tripulación</th>
+              <th>Estado</th>
+              <th>Salida real</th>
+              <th>Llegada real</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let vuelo of vuelosOperados">
+              <td>{{ vuelo.codigoVuelo || '-' }}</td>
+              <td>{{ getRuta(vuelo) }}</td>
+              <td>{{ getProgramado(vuelo) }}</td>
+              <td>{{ vuelo.tipoSegmentoVueloNombre || '-' }}</td>
+              <td>{{ getTramo(vuelo) }}</td>
+              <td>{{ vuelo.codigoAvion || vuelo.avionId || '-' }}</td>
+              <td>{{ vuelo.codigoTripulacion || vuelo.tripulacionId || '-' }}</td>
+
+              <td>
+                <span [class]="getEstadoClass(vuelo)">
+                  {{ vuelo.estadoVueloNombre || '-' }}
+                </span>
+              </td>
+
+              <td>
+                {{ vuelo.fechaSalidaReal || '-' }}
+                {{ vuelo.horaSalidaReal || '' }}
+              </td>
+
+              <td>
+                {{ vuelo.fechaLlegadaReal || '-' }}
+                {{ vuelo.horaLlegadaReal || '' }}
+              </td>
+
+              <td class="table-actions">
+                <button
+                  class="btn-secondary"
+                  type="button"
+                  (click)="editar(vuelo)">
+
+                  Editar
+                </button>
+
+                <button
+                  class="btn-secondary"
+                  type="button"
+                  (click)="cancelar(vuelo)"
+                  [disabled]="!vuelo.puedeCancelar">
+
+                  Cancelar
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #emptyState>
+        <p class="muted" *ngIf="!cargando">No hay vuelos operados para mostrar.</p>
+      </ng-template>
+
+      <div class="form-actions" *ngIf="totalPages > 1">
+        <button
+          class="btn-secondary"
+          type="button"
+          (click)="paginaAnterior()"
+          [disabled]="page <= 0">
+
+          Anterior
+        </button>
+
+        <span class="muted">
+          Página {{ page + 1 }} de {{ totalPages }}
+        </span>
+
+        <button
+          class="btn-secondary"
+          type="button"
+          (click)="paginaSiguiente()"
+          [disabled]="page + 1 >= totalPages">
+
+          Siguiente
+        </button>
+      </div>
+    </section>
+
+  </main>
+</div>

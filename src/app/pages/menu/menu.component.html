@@ -40,7 +40,6 @@
             <a class="nav-item sub" routerLink="/menu/aerolinea/aviones" routerLinkActive="active">Gestión Avión</a>
             <a class="nav-item sub" routerLink="/menu/aerolinea/asiento-ubi" routerLinkActive="active">Ubicación Asientos</a>
             <a class="nav-item sub" routerLink="/menu/aerolinea/config-clase-filas-avion" routerLinkActive="active">Configurar clases por filas</a>
-            <a class="nav-item sub" routerLink="/menu/aerolinea/vuelos" routerLinkActive="active">Gestión Vuelo</a>
           </details>
 
           <details class="subgroup" open>
@@ -52,8 +51,34 @@
 
         <details class="group">
           <summary class="group-title">Vuelos</summary>
-          <a class="nav-item" routerLink="/menu/vuelos/reservar" routerLinkActive="active">Gestion Reservar vuelo</a>
-          <a class="nav-item" routerLink="/menu/vuelos/abordaje" routerLinkActive="active">Gestion Abordaje</a>
+
+          <a
+            class="nav-item"
+            routerLink="/menu/aerolinea/vuelos"
+            routerLinkActive="active">
+            Gestión Vuelos Programados
+          </a>
+
+          <a
+            class="nav-item"
+            routerLink="/menu/aerolinea/vuelos-operados"
+            routerLinkActive="active">
+            Gestión Vuelos Operados
+          </a>
+
+          <a
+            class="nav-item"
+            routerLink="/menu/vuelos/reservar"
+            routerLinkActive="active">
+            Gestion Reservar vuelo
+          </a>
+
+          <a
+            class="nav-item"
+            routerLink="/menu/vuelos/abordaje"
+            routerLinkActive="active">
+            Gestion Abordaje
+          </a>
         </details>
 
         <details class="group">

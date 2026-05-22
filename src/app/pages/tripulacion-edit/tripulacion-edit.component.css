@@ -21,6 +21,12 @@
   gap: 12px;
 }
 
+.topbar-right {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .badge {
   width: max-content;
   padding: 4px 10px;
@@ -61,12 +67,59 @@
   color: #0f172a;
 }
 
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.field {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.field-wide {
+  grid-column: 1 / -1;
+}
+
+.label {
+  font-size: 10px;
+  font-weight: 700;
+  color: #334155;
+}
+
+.control {
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.control:focus {
+  border-color: rgba(59, 130, 246, 0.55);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
 .muted {
   margin: 0;
   font-size: 12px;
   color: #64748b;
 }
 
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-primary,
 .btn-secondary {
   appearance: none;
   border-radius: 10px;
@@ -74,38 +127,44 @@
   font-weight: 900;
   font-size: 12px;
   cursor: pointer;
-  color: #0f172a;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
   transition: transform 120ms ease, filter 120ms ease;
 }
 
+.btn-primary {
+  border: 0;
+  color: rgba(255, 255, 255, 0.96);
+  background: linear-gradient(180deg, #2563eb, #1d4ed8);
+}
+
+.btn-secondary {
+  color: #0f172a;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+}
+
+.btn-primary:hover,
 .btn-secondary:hover {
   filter: brightness(1.02);
   transform: translateY(-1px);
 }
 
+.btn-primary:active,
 .btn-secondary:active {
   transform: translateY(0);
 }
 
-.btn-secondary:focus-visible {
-  outline: 2px solid rgba(59, 130, 246, 0.55);
-  outline-offset: 2px;
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-@media (max-width: 760px) {
-  .page-root {
-    padding: 16px 14px 22px;
+@media (max-width: 900px) {
+  .form-grid {
+    grid-template-columns: 1fr;
   }
 
   .topbar {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .topbar-right {
-    display: flex;
-    justify-content: flex-end;
   }
 }

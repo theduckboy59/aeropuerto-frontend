@@ -1,0 +1,142 @@
+<div class="page-root">
+  <main class="content">
+
+    <header class="topbar" aria-label="Encabezado">
+      <div class="topbar-left">
+        <div class="badge">A L P</div>
+
+        <div>
+          <h1 class="title">Crear vuelo operado</h1>
+          <p class="subtitle">
+            Asigna avión, tripulación y tipo operativo al vuelo programado.
+          </p>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <button class="btn-secondary" type="button" (click)="regresar()">
+          Regresar
+        </button>
+      </div>
+    </header>
+
+    <section class="card" aria-label="Formulario">
+      <h2 class="section-title">Datos del vuelo operado</h2>
+
+      <p class="muted" *ngIf="cargando">Cargando...</p>
+
+      <div class="form-grid">
+        <div class="field field-wide">
+          <label class="label">Vuelo programado *</label>
+
+          <select
+            class="control"
+            [(ngModel)]="form.vueloProgramadoId"
+            name="vueloProgramadoId"
+            (change)="onVueloProgramadoChange()">
+
+            <option value="">Seleccione vuelo programado</option>
+
+            <option
+              *ngFor="let vuelo of vuelosProgramadosDisponibles"
+              [value]="vuelo.vueloProgramadoId">
+
+              {{ getVueloLabel(vuelo) }}
+            </option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label">Tipo de vuelo *</label>
+
+          <select
+            class="control"
+            [(ngModel)]="form.tipoSegmentoVueloId"
+            name="tipoSegmentoVueloId"
+            (change)="onTipoSegmentoChange()">
+
+            <option value="">Seleccione tipo</option>
+
+            <option
+              *ngFor="let tipo of tiposSegmentoVuelo"
+              [value]="tipo.id">
+
+              {{ getTipoLabel(tipo) }}
+            </option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label">Cantidad de tramos *</label>
+
+          <select
+            class="control"
+            [(ngModel)]="form.cantidadTramos"
+            name="cantidadTramos"
+            [disabled]="esDirecto()">
+
+            <option value="1">1 tramo</option>
+            <option value="2" *ngIf="!esDirecto()">2 tramos</option>
+            <option value="3" *ngIf="!esDirecto()">3 tramos</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label">Avión disponible *</label>
+
+          <select
+            class="control"
+            [(ngModel)]="form.avionId"
+            name="avionId"
+            [disabled]="!form.vueloProgramadoId">
+
+            <option value="">Seleccione avión</option>
+
+            <option
+              *ngFor="let avion of avionesDisponibles"
+              [value]="avion.id">
+
+              {{ getAvionLabel(avion) }}
+            </option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label">Tripulación disponible *</label>
+
+          <select
+            class="control"
+            [(ngModel)]="form.tripulacionId"
+            name="tripulacionId"
+            [disabled]="!form.vueloProgramadoId">
+
+            <option value="">Seleccione tripulación</option>
+
+            <option
+              *ngFor="let tripulacion of tripulacionesDisponibles"
+              [value]="tripulacion.id">
+
+              {{ getTripulacionLabel(tripulacion) }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button
+          class="btn-primary"
+          type="button"
+          (click)="guardar()"
+          [disabled]="guardando || cargando">
+
+          {{ guardando ? 'Guardando...' : 'Crear vuelo operado' }}
+        </button>
+
+        <button class="btn-secondary" type="button" (click)="regresar()">
+          Cancelar
+        </button>
+      </div>
+    </section>
+
+  </main>
+</div>

@@ -126,6 +126,14 @@
                     (click)="verDetalle(t)">
                     Ver
                   </button>
+
+                  <button
+                    class="btn-secondary"
+                    type="button"
+                    (click)="editar(t)"
+                    [disabled]="!puedeEditar(t)">
+                    Editar
+                  </button>
                 </td>
               </tr>
             </tbody>
