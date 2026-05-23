@@ -8,6 +8,8 @@ import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { PortalComponent } from './pages/portal/portal.component';
 import { LoginComponent } from './pages/login/login.component';
 import { MenuComponent } from './pages/menu/menu.component';
+import { MenuAbordajeComponent } from './pages/menu-abordaje/menu-abordaje.component';
+import { MenuClienteComponent } from './pages/menu-cliente/menu-cliente.component';
 
 import { FormsModule } from '@angular/forms';
 
@@ -57,6 +59,8 @@ import { VueloOperadoEditComponent } from './pages/vuelo-operado-edit/vuelo-oper
     PortalComponent,
     LoginComponent,
     MenuComponent,
+    MenuAbordajeComponent,
+    MenuClienteComponent,
     EmpleadosComponent,
     EmpleadoFormComponent,
     EmpleadoEditComponent,

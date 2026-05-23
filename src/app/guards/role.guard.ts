@@ -36,7 +36,8 @@ export class RoleGuard implements CanActivate {
       const userRole = this.jwtService.getRole(token);
 
       if (!userRole || !requiredRoles.includes(userRole)) {
-        this.router.navigate(['/menu'], {
+        const landingRoute = this.authService.getLandingRouteForRole(userRole);
+        this.router.navigate([landingRoute || '/login'], {
           queryParams: {
             reason: 'role',
             attempted: state.url,

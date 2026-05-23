@@ -1,0 +1,150 @@
+.shell {
+  min-height: 100vh;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: #0f172a;
+  color: #fff;
+}
+
+.icon-btn {
+  border: 0;
+  background: rgba(255, 255, 255, 0.14);
+  color: inherit;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.topbar-app {
+  font-weight: 700;
+}
+
+.topbar-sub {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.body {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: calc(100vh - 68px);
+}
+
+.sidebar {
+  padding: 18px;
+  background: #14324a;
+  color: #e5e7eb;
+}
+
+.sidebar.closed {
+  display: none;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.logo-badge {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #38bdf8, #34d399);
+  display: grid;
+  place-items: center;
+  color: #0f172a;
+  font-weight: 800;
+}
+
+.logo-title {
+  font-weight: 700;
+}
+
+.logo-sub {
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.nav {
+  display: grid;
+  gap: 10px;
+}
+
+.nav-item {
+  color: inherit;
+  text-decoration: none;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.nav-item.active {
+  background: #38bdf8;
+  color: #0f172a;
+}
+
+.sidebar-footer {
+  margin-top: 18px;
+}
+
+.divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+  margin-bottom: 14px;
+}
+
+.logout {
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: #1f2937;
+  color: #fff;
+  cursor: pointer;
+}
+
+.content {
+  padding: 20px;
+}
+
+.diagnostic {
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+
+.diagnostic-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.diagnostic-message {
+  color: #1d4ed8;
+}
+
+.diagnostic-session {
+  color: #1e3a8a;
+  margin-top: 4px;
+}
+
+@media (max-width: 900px) {
+  .body {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    display: none;
+  }
+}

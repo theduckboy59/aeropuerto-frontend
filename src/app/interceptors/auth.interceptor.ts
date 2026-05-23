@@ -60,11 +60,14 @@ export class AuthInterceptor implements HttpInterceptor {
           });
         } else if (error.status === 403) {
           // Acceso denegado por roles
-          this.router.navigate(['/menu'], {
+          const role = this.authService.getRole();
+          const landingRoute = this.authService.getLandingRouteForRole(role);
+
+          this.router.navigate([landingRoute || '/login'], {
             queryParams: {
               reason: 'forbidden',
               attempted: req.url,
-              role: this.authService.getRole() || ''
+              role: role || ''
             }
           });
         }

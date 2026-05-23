@@ -49,9 +49,15 @@ export class LoginComponent {
             // Obtener datos del usuario desde el token
             const role = this.jwtService.getRole(res.token);
             console.log('Login exitoso. Rol:', role);
-            
-            // Navegar al menú
-            this.router.navigate(['/menu']);
+
+            const landingRoute = this.auth.getLandingRouteForRole(role);
+            if (landingRoute) {
+              this.router.navigate([landingRoute]);
+            } else {
+              this.errorMessage = 'Tu rol no tiene un menu asignado';
+              alert(this.errorMessage);
+              this.auth.logout();
+            }
           } else {
             this.errorMessage = 'Error: No se recibió token';
             alert(this.errorMessage);

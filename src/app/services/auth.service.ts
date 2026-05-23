@@ -120,4 +120,21 @@ export class AuthService {
     const userRole = this.getRole();
     return userRole ? roles.includes(userRole) : false;
   }
+
+  /**
+   * Obtiene la ruta inicial segun el rol del usuario.
+   */
+  getLandingRouteForRole(role: string | null | undefined): string | null {
+    switch (role) {
+      case 'ROLE_ADMIN_SISTEMA':
+      case 'ROLE_ADMIN_AEROLINEA':
+        return '/menu';
+      case 'ROLE_ADMIN_ABORDAJE':
+        return '/abordaje';
+      case 'ROLE_CLIENTE':
+        return '/cliente';
+      default:
+        return null;
+    }
+  }
 }

@@ -4,6 +4,8 @@ import { RouterModule, Routes } from '@angular/router';
 import { PortalComponent } from './pages/portal/portal.component';
 import { LoginComponent } from './pages/login/login.component';
 import { MenuComponent } from './pages/menu/menu.component';
+import { MenuAbordajeComponent } from './pages/menu-abordaje/menu-abordaje.component';
+import { MenuClienteComponent } from './pages/menu-cliente/menu-cliente.component';
 import { EmpleadosComponent } from './pages/empleados/empleados.component';
 import { EmpleadoFormComponent } from './pages/empleado-form/empleado-form.component';
 import { EmpleadoEditComponent } from './pages/empleado-edit/empleado-edit.component';
@@ -52,11 +54,67 @@ const routes: Routes = [
   { path: 'register', component: RegisterComponent },
   { path: 'portal', component: PortalComponent },
   {
+    path: 'abordaje',
+    component: MenuAbordajeComponent,
+    canActivate: [RoleGuard],
+    data: { roles: ['ROLE_ADMIN_ABORDAJE'] },
+    children: [
+      {
+        path: '',
+        component: PlaceholderComponent,
+        data: { title: 'Panel de abordaje' }
+      },
+      {
+        path: 'vuelos/abordaje',
+        component: PlaceholderComponent,
+        canActivate: [RoleGuard],
+        data: { title: 'Abordaje', roles: ['ROLE_ADMIN_ABORDAJE'] }
+      },
+      {
+        path: 'dashboard/pasajeros',
+        component: PasajerosComponent,
+        canActivate: [RoleGuard],
+        data: { title: 'Pasajeros', roles: ['ROLE_ADMIN_ABORDAJE'] }
+      },
+      {
+        path: 'dashboard/pasajeros/editar/:id',
+        component: EditPasajerosComponent,
+        canActivate: [RoleGuard],
+        data: { title: 'Editar pasajero', roles: ['ROLE_ADMIN_ABORDAJE'] }
+      }
+    ]
+  },
+  {
+    path: 'cliente',
+    component: MenuClienteComponent,
+    canActivate: [RoleGuard],
+    data: { roles: ['ROLE_CLIENTE'] },
+    children: [
+      {
+        path: '',
+        component: PlaceholderComponent,
+        data: { title: 'Panel de cliente' }
+      },
+      {
+        path: 'vuelos/reservar',
+        component: PlaceholderComponent,
+        canActivate: [RoleGuard],
+        data: { title: 'Reservar vuelo', roles: ['ROLE_CLIENTE'] }
+      }
+    ]
+  },
+  {
     path: 'menu',
     component: MenuComponent,
     canActivate: [RoleGuard],
+    data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] },
     children: [
-      { path: '', component: DashboardComponent },
+      {
+        path: '',
+        component: DashboardComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+      },
 
       {
         path: 'aerolinea/empleados',
@@ -204,47 +262,16 @@ const routes: Routes = [
       },
 
       {
-        path: 'vuelos/reservar',
-        component: PlaceholderComponent,
-        canActivate: [RoleGuard],
-        data: { title: 'Reservar vuelo', roles: ['ROLE_CLIENTE'] }
-      },
-      {
-        path: 'vuelos/abordaje',
-        component: PlaceholderComponent,
-        canActivate: [RoleGuard],
-        data: { title: 'Abordaje', roles: ['ROLE_ADMIN_ABORDAJE', 'ROLE_ADMIN_SISTEMA'] }
-      },
-
-      {
-        path: 'consultas/vuelos',
-        component: PlaceholderComponent,
-        canActivate: [RoleGuard],
-        data: { title: 'Consulta de vuelos', roles: ['ROLE_CONSULTAS_AEROLINEA', 'ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
-      },
-      {
-        path: 'consultas/equipaje',
-        component: PlaceholderComponent,
-        canActivate: [RoleGuard],
-        data: { title: 'Consulta de equipaje', roles: ['ROLE_CONSULTAS_AEROLINEA', 'ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
-      },
-      {
-        path: 'consultas/pasajeros',
-        component: PlaceholderComponent,
-        canActivate: [RoleGuard],
-        data: { title: 'Consulta de pasajeros', roles: ['ROLE_CONSULTAS_AEROLINEA', 'ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
-      },
-      {
         path: 'dashboard/pasajeros',
         component: PasajerosComponent,
         canActivate: [RoleGuard],
-        data: { title: 'Pasajeros', roles: ['ROLE_ADMIN_ABORDAJE', 'ROLE_CONSULTAS_AEROLINEA', 'ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+        data: { title: 'Pasajeros', roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
       },
       {
         path: 'dashboard/pasajeros/editar/:id',
         component: EditPasajerosComponent,
         canActivate: [RoleGuard],
-        data: { title: 'Editar pasajero', roles: ['ROLE_ADMIN_ABORDAJE', 'ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+        data: { title: 'Editar pasajero', roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
       },
       {
         path: 'pasajeros',
@@ -255,7 +282,7 @@ const routes: Routes = [
         path: 'pasajeros/editar/:id',
         component: PasajeroEditComponent,
         canActivate: [RoleGuard],
-        data: { title: 'Editar pasajero (legacy)', roles: ['ROLE_ADMIN_ABORDAJE', 'ROLE_ADMIN_SISTEMA'] }
+        data: { title: 'Editar pasajero (legacy)', roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
       },
       {
         path: 'aerolinea/modelo-avion',
