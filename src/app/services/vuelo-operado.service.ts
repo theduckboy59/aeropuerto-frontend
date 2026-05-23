@@ -12,6 +12,47 @@ export interface Page<T> {
   number: number;
 }
 
+export interface SegmentoOperado {
+  id?: number | null;
+  vueloOperadoId?: number | null;
+  segmentoVueloId?: number | null;
+  ordenSegmento: number;
+
+  aeropuertoSalidaId: number | null;
+  aeropuertoSalidaNombre?: string | null;
+  aeropuertoSalidaCodigoIata?: string | null;
+
+  aeropuertoLlegadaId: number | null;
+  aeropuertoLlegadaNombre?: string | null;
+  aeropuertoLlegadaCodigoIata?: string | null;
+
+  tipoSegmentoVueloId?: number | null;
+  tipoSegmentoVueloNombre?: string | null;
+
+  fechaSalida: string | null;
+  horaSalida: string | null;
+  fechaLlegada: string | null;
+  horaLlegada: string | null;
+
+  avionId: number | null;
+  codigoAvion?: string | null;
+
+  tripulacionId: number | null;
+  codigoTripulacion?: string | null;
+
+  estadoVueloId?: number | null;
+  estadoVueloNombre?: string | null;
+
+  fechaSalidaReal?: string | null;
+  horaSalidaReal?: string | null;
+  fechaLlegadaReal?: string | null;
+  horaLlegadaReal?: string | null;
+
+  puedeCambiarEstado?: boolean | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+}
+
 export interface VueloOperado {
   id: number;
 
@@ -37,12 +78,6 @@ export interface VueloOperado {
   fechaLlegadaProgramada?: string | null;
   horaLlegadaProgramada?: string | null;
 
-  avionId: number;
-  codigoAvion?: string | null;
-
-  tripulacionId: number;
-  codigoTripulacion?: string | null;
-
   tipoSegmentoVueloId?: number | null;
   tipoSegmentoVueloNombre?: string | null;
   requiereNuevoAsiento?: boolean | null;
@@ -52,29 +87,48 @@ export interface VueloOperado {
   estadoVueloId: number;
   estadoVueloNombre?: string | null;
 
-  cantidadTramos?: number | null;
-  tramoActual?: number | null;
+  cantidadSegmentos?: number | null;
+  segmentoActualOrden?: number | null;
   tuvoEscala?: boolean | null;
-
-  fechaSalidaReal?: string | null;
-  horaSalidaReal?: string | null;
-  fechaLlegadaReal?: string | null;
-  horaLlegadaReal?: string | null;
 
   puedeEditarDatos?: boolean | null;
   puedeCancelar?: boolean | null;
   puedeFinalizar?: boolean | null;
 
+  segmentos?: SegmentoOperado[] | null;
+
   createdAt?: string | null;
   updatedAt?: string | null;
+
+  avionId?: number | null;
+  codigoAvion?: string | null;
+  tripulacionId?: number | null;
+  codigoTripulacion?: string | null;
+  cantidadTramos?: number | null;
+  tramoActual?: number | null;
+  fechaSalidaReal?: string | null;
+  horaSalidaReal?: string | null;
+  fechaLlegadaReal?: string | null;
+  horaLlegadaReal?: string | null;
+}
+
+export interface VueloOperadoSegmentoRequest {
+  ordenSegmento: number | null;
+  aeropuertoSalidaId: number | null;
+  aeropuertoLlegadaId: number | null;
+  fechaSalida: string | null;
+  horaSalida: string | null;
+  fechaLlegada: string | null;
+  horaLlegada: string | null;
+  avionId: number | null;
+  tripulacionId: number | null;
 }
 
 export interface VueloOperadoRequest {
   vueloProgramadoId: number | null;
-  avionId: number | null;
-  tripulacionId: number | null;
-  tipoSegmentoVueloId?: number | null;
-  cantidadTramos?: number | null;
+  tipoSegmentoVueloId: number | null;
+  cantidadSegmentos: number | null;
+  segmentos: VueloOperadoSegmentoRequest[];
 }
 
 export interface VueloOperadoFiltros {
@@ -149,6 +203,10 @@ export class VueloOperadoService {
     return this.http.get<any[]>(`${environment.apiUrl}/catalogos/tipo-segmento-vuelo`);
   }
 
+  listarAeropuertos(): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.apiUrl}/catalogos/aeropuerto`);
+  }
+
   listarVuelosProgramadosActivos(): Observable<Vuelo[]> {
     const params = new HttpParams()
       .set('page', '0')
@@ -191,10 +249,19 @@ export class VueloOperadoService {
   private normalizarPayload(request: VueloOperadoRequest): VueloOperadoRequest {
     return {
       vueloProgramadoId: this.toNumberOrNull(request.vueloProgramadoId),
-      avionId: this.toNumberOrNull(request.avionId),
-      tripulacionId: this.toNumberOrNull(request.tripulacionId),
       tipoSegmentoVueloId: this.toNumberOrNull(request.tipoSegmentoVueloId),
-      cantidadTramos: this.toNumberOrNull(request.cantidadTramos)
+      cantidadSegmentos: this.toNumberOrNull(request.cantidadSegmentos),
+      segmentos: (request.segmentos ?? []).map((s) => ({
+        ordenSegmento: this.toNumberOrNull(s.ordenSegmento),
+        aeropuertoSalidaId: this.toNumberOrNull(s.aeropuertoSalidaId),
+        aeropuertoLlegadaId: this.toNumberOrNull(s.aeropuertoLlegadaId),
+        fechaSalida: this.cleanText(s.fechaSalida),
+        horaSalida: this.normalizarHora(s.horaSalida),
+        fechaLlegada: this.cleanText(s.fechaLlegada),
+        horaLlegada: this.normalizarHora(s.horaLlegada),
+        avionId: this.toNumberOrNull(s.avionId),
+        tripulacionId: this.toNumberOrNull(s.tripulacionId)
+      }))
     };
   }
 
@@ -206,6 +273,25 @@ export class VueloOperadoService {
     const n = Number(value);
 
     return Number.isNaN(n) ? null : n;
+  }
+
+  private cleanText(value: any): string | null {
+    const text = String(value ?? '').trim();
+    return text || null;
+  }
+
+  private normalizarHora(value: any): string | null {
+    const hora = String(value ?? '').trim();
+
+    if (!hora) {
+      return null;
+    }
+
+    if (hora.length === 5) {
+      return `${hora}:00`;
+    }
+
+    return hora;
   }
 
   private getContent<T>(res: any): T[] {

@@ -92,9 +92,9 @@
               <th>Ruta</th>
               <th>Programado</th>
               <th>Tipo</th>
-              <th>Tramo</th>
-              <th>Avión</th>
-              <th>Tripulación</th>
+              <th>Segmento</th>
+              <th>Avión actual</th>
+              <th>Tripulación actual</th>
               <th>Estado</th>
               <th>Salida real</th>
               <th>Llegada real</th>
@@ -109,8 +109,8 @@
               <td>{{ getProgramado(vuelo) }}</td>
               <td>{{ vuelo.tipoSegmentoVueloNombre || '-' }}</td>
               <td>{{ getTramo(vuelo) }}</td>
-              <td>{{ vuelo.codigoAvion || vuelo.avionId || '-' }}</td>
-              <td>{{ vuelo.codigoTripulacion || vuelo.tripulacionId || '-' }}</td>
+              <td>{{ getCodigoAvionActual(vuelo) }}</td>
+              <td>{{ getCodigoTripulacionActual(vuelo) }}</td>
 
               <td>
                 <span [class]="getEstadoClass(vuelo)">
@@ -118,15 +118,8 @@
                 </span>
               </td>
 
-              <td>
-                {{ vuelo.fechaSalidaReal || '-' }}
-                {{ vuelo.horaSalidaReal || '' }}
-              </td>
-
-              <td>
-                {{ vuelo.fechaLlegadaReal || '-' }}
-                {{ vuelo.horaLlegadaReal || '' }}
-              </td>
+              <td>{{ getSalidaReal(vuelo) }}</td>
+              <td>{{ getLlegadaReal(vuelo) }}</td>
 
               <td class="table-actions">
                 <button

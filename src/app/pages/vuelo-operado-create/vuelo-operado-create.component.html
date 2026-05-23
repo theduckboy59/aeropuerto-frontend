@@ -8,7 +8,7 @@
         <div>
           <h1 class="title">Crear vuelo operado</h1>
           <p class="subtitle">
-            Asigna avión, tripulación y tipo operativo al vuelo programado.
+            Crea la operación real del vuelo usando segmentos, avión y tripulación.
           </p>
         </div>
       </div>
@@ -21,7 +21,7 @@
     </header>
 
     <section class="card" aria-label="Formulario">
-      <h2 class="section-title">Datos del vuelo operado</h2>
+      <h2 class="section-title">Datos generales</h2>
 
       <p class="muted" *ngIf="cargando">Cargando...</p>
 
@@ -67,58 +67,136 @@
         </div>
 
         <div class="field">
-          <label class="label">Cantidad de tramos *</label>
+          <label class="label">Cantidad de segmentos *</label>
 
           <select
             class="control"
-            [(ngModel)]="form.cantidadTramos"
-            name="cantidadTramos"
-            [disabled]="esDirecto()">
+            [(ngModel)]="form.cantidadSegmentos"
+            name="cantidadSegmentos"
+            [disabled]="esDirecto()"
+            (change)="onCantidadSegmentosChange()">
 
-            <option value="1">1 tramo</option>
-            <option value="2" *ngIf="!esDirecto()">2 tramos</option>
-            <option value="3" *ngIf="!esDirecto()">3 tramos</option>
+            <option value="1">1 segmento</option>
+            <option value="2" *ngIf="!esDirecto()">2 segmentos</option>
+            <option value="3" *ngIf="!esDirecto()">3 segmentos</option>
           </select>
         </div>
+      </div>
+    </section>
 
-        <div class="field">
-          <label class="label">Avión disponible *</label>
+    <section class="card" aria-label="Segmentos">
+      <h2 class="section-title">Segmentos del vuelo</h2>
 
-          <select
-            class="control"
-            [(ngModel)]="form.avionId"
-            name="avionId"
-            [disabled]="!form.vueloProgramadoId">
+      <p class="muted" *ngIf="!form.vueloProgramadoId">
+        Seleccione un vuelo programado para generar los segmentos.
+      </p>
 
-            <option value="">Seleccione avión</option>
+      <div *ngFor="let segmento of segmentos; let i = index" class="card" style="margin-top: 12px;">
+        <h3 class="section-title">Segmento {{ segmento.ordenSegmento }}</h3>
 
-            <option
-              *ngFor="let avion of avionesDisponibles"
-              [value]="avion.id">
+        <div class="form-grid">
+          <div class="field">
+            <label class="label">Aeropuerto salida *</label>
+            <select
+              class="control"
+              [(ngModel)]="segmento.aeropuertoSalidaId"
+              [name]="'aeropuertoSalidaId' + i"
+              [disabled]="isSalidaFija(i)">
 
-              {{ getAvionLabel(avion) }}
-            </option>
-          </select>
-        </div>
+              <option value="">Seleccione</option>
+              <option *ngFor="let aeropuerto of aeropuertos" [value]="aeropuerto.id">
+                {{ getAeropuertoLabel(aeropuerto) }}
+              </option>
+            </select>
+          </div>
 
-        <div class="field">
-          <label class="label">Tripulación disponible *</label>
+          <div class="field">
+            <label class="label">Aeropuerto llegada *</label>
+            <select
+              class="control"
+              [(ngModel)]="segmento.aeropuertoLlegadaId"
+              [name]="'aeropuertoLlegadaId' + i"
+              [disabled]="isLlegadaFija(i)"
+              (change)="onLlegadaSegmentoChange(i)">
 
-          <select
-            class="control"
-            [(ngModel)]="form.tripulacionId"
-            name="tripulacionId"
-            [disabled]="!form.vueloProgramadoId">
+              <option value="">Seleccione</option>
+              <option *ngFor="let aeropuerto of aeropuertos" [value]="aeropuerto.id">
+                {{ getAeropuertoLabel(aeropuerto) }}
+              </option>
+            </select>
+          </div>
 
-            <option value="">Seleccione tripulación</option>
+          <div class="field">
+            <label class="label">Fecha salida *</label>
+            <input
+              class="control"
+              type="date"
+              [(ngModel)]="segmento.fechaSalida"
+              [name]="'fechaSalida' + i"
+            />
+          </div>
 
-            <option
-              *ngFor="let tripulacion of tripulacionesDisponibles"
-              [value]="tripulacion.id">
+          <div class="field">
+            <label class="label">Hora salida *</label>
+            <input
+              class="control"
+              type="time"
+              [(ngModel)]="segmento.horaSalida"
+              [name]="'horaSalida' + i"
+            />
+          </div>
 
-              {{ getTripulacionLabel(tripulacion) }}
-            </option>
-          </select>
+          <div class="field">
+            <label class="label">Fecha llegada *</label>
+            <input
+              class="control"
+              type="date"
+              [(ngModel)]="segmento.fechaLlegada"
+              [name]="'fechaLlegada' + i"
+            />
+          </div>
+
+          <div class="field">
+            <label class="label">Hora llegada *</label>
+            <input
+              class="control"
+              type="time"
+              [(ngModel)]="segmento.horaLlegada"
+              [name]="'horaLlegada' + i"
+            />
+          </div>
+
+          <div class="field">
+            <label class="label">Avión disponible *</label>
+            <select
+              class="control"
+              [(ngModel)]="segmento.avionId"
+              [name]="'avionId' + i"
+              [disabled]="!form.vueloProgramadoId || recursoBloqueado(i)"
+              (change)="onRecursoBaseChange()">
+
+              <option value="">Seleccione avión</option>
+              <option *ngFor="let avion of avionesDisponibles" [value]="avion.id">
+                {{ getAvionLabel(avion) }}
+              </option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Tripulación disponible *</label>
+            <select
+              class="control"
+              [(ngModel)]="segmento.tripulacionId"
+              [name]="'tripulacionId' + i"
+              [disabled]="!form.vueloProgramadoId || recursoBloqueado(i)"
+              (change)="onRecursoBaseChange()">
+
+              <option value="">Seleccione tripulación</option>
+              <option *ngFor="let tripulacion of tripulacionesDisponibles" [value]="tripulacion.id">
+                {{ getTripulacionLabel(tripulacion) }}
+              </option>
+            </select>
+          </div>
         </div>
       </div>
 

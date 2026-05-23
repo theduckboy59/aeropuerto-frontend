@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 
 import {
+  SegmentoOperado,
   VueloOperado,
   VueloOperadoService
 } from '../../services/vuelo-operado.service';
@@ -141,10 +142,28 @@ export class VuelosOperadosComponent implements OnInit {
   }
 
   getRuta(vuelo: VueloOperado): string {
-    const salida = vuelo.aeropuertoSalidaCodigoIata || vuelo.aeropuertoSalidaNombre || '-';
-    const llegada = vuelo.aeropuertoLlegadaCodigoIata || vuelo.aeropuertoLlegadaNombre || '-';
+    const segmentos = this.getSegmentosOrdenados(vuelo);
 
-    return `${salida} → ${llegada}`;
+    if (!segmentos.length) {
+      const salida = vuelo.aeropuertoSalidaCodigoIata || vuelo.aeropuertoSalidaNombre || '-';
+      const llegada = vuelo.aeropuertoLlegadaCodigoIata || vuelo.aeropuertoLlegadaNombre || '-';
+      return `${salida} → ${llegada}`;
+    }
+
+    const partes: string[] = [];
+
+    segmentos.forEach((s, index) => {
+      const salida = s.aeropuertoSalidaCodigoIata || s.aeropuertoSalidaNombre || String(s.aeropuertoSalidaId || '-');
+      const llegada = s.aeropuertoLlegadaCodigoIata || s.aeropuertoLlegadaNombre || String(s.aeropuertoLlegadaId || '-');
+
+      if (index === 0) {
+        partes.push(salida);
+      }
+
+      partes.push(llegada);
+    });
+
+    return partes.join(' → ');
   }
 
   getProgramado(vuelo: VueloOperado): string {
@@ -155,7 +174,43 @@ export class VuelosOperadosComponent implements OnInit {
   }
 
   getTramo(vuelo: VueloOperado): string {
-    return `${vuelo.tramoActual || 1}/${vuelo.cantidadTramos || 1}`;
+    return `${vuelo.segmentoActualOrden || 1}/${vuelo.cantidadSegmentos || 1}`;
+  }
+
+  getSegmentoActual(vuelo: VueloOperado): SegmentoOperado | null {
+    const segmentos = this.getSegmentosOrdenados(vuelo);
+
+    if (!segmentos.length) return null;
+
+    const orden = Number(vuelo.segmentoActualOrden || 1);
+
+    return segmentos.find((s) => Number(s.ordenSegmento) === orden) ?? segmentos[0];
+  }
+
+  getCodigoAvionActual(vuelo: VueloOperado): string {
+    const segmento = this.getSegmentoActual(vuelo);
+    return segmento?.codigoAvion || (segmento?.avionId ? String(segmento.avionId) : '-');
+  }
+
+  getCodigoTripulacionActual(vuelo: VueloOperado): string {
+    const segmento = this.getSegmentoActual(vuelo);
+    return segmento?.codigoTripulacion || (segmento?.tripulacionId ? String(segmento.tripulacionId) : '-');
+  }
+
+  getSalidaReal(vuelo: VueloOperado): string {
+    const segmento = this.getSegmentoActual(vuelo);
+    const fecha = segmento?.fechaSalidaReal || '-';
+    const hora = segmento?.horaSalidaReal || '';
+
+    return `${fecha} ${hora}`.trim();
+  }
+
+  getLlegadaReal(vuelo: VueloOperado): string {
+    const segmento = this.getSegmentoActual(vuelo);
+    const fecha = segmento?.fechaLlegadaReal || '-';
+    const hora = segmento?.horaLlegadaReal || '';
+
+    return `${fecha} ${hora}`.trim();
   }
 
   getEstadoClass(vuelo: VueloOperado): string {
@@ -173,6 +228,11 @@ export class VuelosOperadosComponent implements OnInit {
     const text = String(value ?? '').trim();
 
     return text ? text : null;
+  }
+
+  private getSegmentosOrdenados(vuelo: VueloOperado): SegmentoOperado[] {
+    return [...(vuelo.segmentos ?? [])]
+      .sort((a, b) => Number(a.ordenSegmento || 0) - Number(b.ordenSegmento || 0));
   }
 
   private normalize(value: any): string {

@@ -8,7 +8,7 @@
         <div>
           <h1 class="title">Editar vuelo operado</h1>
           <p class="subtitle">
-            Edita datos si está PROGRAMADO o CANCELADO. Cambia estado según flujo permitido.
+            Edita segmentos mientras el vuelo esté en estado editable y cambia estados operativos.
           </p>
         </div>
       </div>
@@ -20,66 +20,50 @@
       </div>
     </header>
 
-    <section class="card" *ngIf="cargando">
-      <p class="muted">Cargando...</p>
-    </section>
+    <section class="card" aria-label="Resumen" *ngIf="vueloOperado">
+      <h2 class="section-title">Resumen</h2>
 
-    <section class="card" *ngIf="!cargando && vueloOperado">
-      <h2 class="section-title">Detalle actual</h2>
-
-      <div class="form-grid">
-        <div class="field">
-          <label class="label">Código vuelo</label>
-          <input class="control" [value]="vueloOperado.codigoVuelo || ''" disabled />
-        </div>
-
-        <div class="field">
-          <label class="label">Aerolínea</label>
-          <input class="control" [value]="vueloOperado.aerolineaNombre || ''" disabled />
-        </div>
-
-        <div class="field">
-          <label class="label">Estado actual</label>
-          <input class="control" [value]="vueloOperado.estadoVueloNombre || ''" disabled />
-        </div>
-
-        <div class="field">
-          <label class="label">Tipo actual</label>
-          <input class="control" [value]="vueloOperado.tipoSegmentoVueloNombre || ''" disabled />
-        </div>
-
-        <div class="field">
-          <label class="label">Tramo actual</label>
-          <input
-            class="control"
-            [value]="(vueloOperado.tramoActual || 1) + ' / ' + (vueloOperado.cantidadTramos || 1)"
-            disabled
-          />
-        </div>
-
-        <div class="field">
-          <label class="label">Tuvo escala</label>
-          <input class="control" [value]="vueloOperado.tuvoEscala ? 'Sí' : 'No'" disabled />
-        </div>
+      <div class="table-wrap">
+        <table class="table">
+          <tbody>
+            <tr>
+              <th>Código</th>
+              <td>{{ vueloOperado.codigoVuelo || '-' }}</td>
+              <th>Estado actual</th>
+              <td>{{ vueloOperado.estadoVueloNombre || '-' }}</td>
+            </tr>
+            <tr>
+              <th>Aerolínea</th>
+              <td>{{ vueloOperado.aerolineaNombre || '-' }}</td>
+              <th>Tipo</th>
+              <td>{{ vueloOperado.tipoSegmentoVueloNombre || '-' }}</td>
+            </tr>
+            <tr>
+              <th>Segmento actual</th>
+              <td>{{ vueloOperado.segmentoActualOrden || 1 }} / {{ vueloOperado.cantidadSegmentos || 1 }}</td>
+              <th>Puede finalizar</th>
+              <td>{{ vueloOperado.puedeFinalizar ? 'Sí' : 'No' }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
-    <section class="card" *ngIf="!cargando && vueloOperado">
-      <h2 class="section-title">Editar datos</h2>
+    <section class="card" aria-label="Datos">
+      <h2 class="section-title">Datos generales</h2>
 
-      <p class="muted" *ngIf="!puedeEditarDatos()">
-        Solo se puede editar avión, tripulación, vuelo programado y tipo cuando está PROGRAMADO o CANCELADO.
-      </p>
+      <p class="muted" *ngIf="cargando">Cargando...</p>
 
-      <div class="form-grid">
+      <div class="form-grid" *ngIf="!cargando">
         <div class="field field-wide">
-          <label class="label">Vuelo programado</label>
+          <label class="label">Vuelo programado *</label>
 
           <select
             class="control"
             [(ngModel)]="form.vueloProgramadoId"
             name="vueloProgramadoId"
-            [disabled]="!puedeEditarDatos()">
+            [disabled]="!puedeEditarDatos()"
+            (change)="onVueloProgramadoChange()">
 
             <option value="">Seleccione vuelo programado</option>
 
@@ -93,14 +77,14 @@
         </div>
 
         <div class="field">
-          <label class="label">Tipo de vuelo</label>
+          <label class="label">Tipo de vuelo *</label>
 
           <select
             class="control"
             [(ngModel)]="form.tipoSegmentoVueloId"
             name="tipoSegmentoVueloId"
-            (change)="onTipoSegmentoChange()"
-            [disabled]="!puedeEditarDatos()">
+            [disabled]="!puedeEditarDatos()"
+            (change)="onTipoSegmentoChange()">
 
             <option value="">Seleccione tipo</option>
 
@@ -114,58 +98,136 @@
         </div>
 
         <div class="field">
-          <label class="label">Cantidad de tramos</label>
+          <label class="label">Cantidad de segmentos *</label>
 
           <select
             class="control"
-            [(ngModel)]="form.cantidadTramos"
-            name="cantidadTramos"
-            [disabled]="!puedeEditarDatos() || esDirecto()">
+            [(ngModel)]="form.cantidadSegmentos"
+            name="cantidadSegmentos"
+            [disabled]="!puedeEditarDatos() || esDirecto()"
+            (change)="onCantidadSegmentosChange()">
 
-            <option value="1">1 tramo</option>
-            <option value="2" *ngIf="!esDirecto()">2 tramos</option>
-            <option value="3" *ngIf="!esDirecto()">3 tramos</option>
+            <option value="1">1 segmento</option>
+            <option value="2" *ngIf="!esDirecto()">2 segmentos</option>
+            <option value="3" *ngIf="!esDirecto()">3 segmentos</option>
           </select>
         </div>
+      </div>
+    </section>
 
-        <div class="field">
-          <label class="label">Avión</label>
+    <section class="card" aria-label="Segmentos">
+      <h2 class="section-title">Segmentos</h2>
 
-          <select
-            class="control"
-            [(ngModel)]="form.avionId"
-            name="avionId"
-            [disabled]="!puedeEditarDatos()">
+      <div *ngFor="let segmento of segmentos; let i = index" class="card" style="margin-top: 12px;">
+        <h3 class="section-title">Segmento {{ segmento.ordenSegmento }}</h3>
 
-            <option value="">Seleccione avión</option>
+        <div class="form-grid">
+          <div class="field">
+            <label class="label">Aeropuerto salida *</label>
+            <select
+              class="control"
+              [(ngModel)]="segmento.aeropuertoSalidaId"
+              [name]="'aeropuertoSalidaId' + i"
+              [disabled]="true">
 
-            <option
-              *ngFor="let avion of avionesDisponibles"
-              [value]="avion.id">
+              <option value="">Seleccione</option>
+              <option *ngFor="let aeropuerto of aeropuertos" [value]="aeropuerto.id">
+                {{ getAeropuertoLabel(aeropuerto) }}
+              </option>
+            </select>
+          </div>
 
-              {{ getAvionLabel(avion) }}
-            </option>
-          </select>
-        </div>
+          <div class="field">
+            <label class="label">Aeropuerto llegada *</label>
+            <select
+              class="control"
+              [(ngModel)]="segmento.aeropuertoLlegadaId"
+              [name]="'aeropuertoLlegadaId' + i"
+              [disabled]="!puedeEditarDatos() || isLlegadaFija(i)"
+              (change)="onLlegadaSegmentoChange(i)">
 
-        <div class="field">
-          <label class="label">Tripulación</label>
+              <option value="">Seleccione</option>
+              <option *ngFor="let aeropuerto of aeropuertos" [value]="aeropuerto.id">
+                {{ getAeropuertoLabel(aeropuerto) }}
+              </option>
+            </select>
+          </div>
 
-          <select
-            class="control"
-            [(ngModel)]="form.tripulacionId"
-            name="tripulacionId"
-            [disabled]="!puedeEditarDatos()">
+          <div class="field">
+            <label class="label">Fecha salida *</label>
+            <input
+              class="control"
+              type="date"
+              [(ngModel)]="segmento.fechaSalida"
+              [name]="'fechaSalida' + i"
+              [disabled]="!puedeEditarDatos()"
+            />
+          </div>
 
-            <option value="">Seleccione tripulación</option>
+          <div class="field">
+            <label class="label">Hora salida *</label>
+            <input
+              class="control"
+              type="time"
+              [(ngModel)]="segmento.horaSalida"
+              [name]="'horaSalida' + i"
+              [disabled]="!puedeEditarDatos()"
+            />
+          </div>
 
-            <option
-              *ngFor="let tripulacion of tripulacionesDisponibles"
-              [value]="tripulacion.id">
+          <div class="field">
+            <label class="label">Fecha llegada *</label>
+            <input
+              class="control"
+              type="date"
+              [(ngModel)]="segmento.fechaLlegada"
+              [name]="'fechaLlegada' + i"
+              [disabled]="!puedeEditarDatos()"
+            />
+          </div>
 
-              {{ getTripulacionLabel(tripulacion) }}
-            </option>
-          </select>
+          <div class="field">
+            <label class="label">Hora llegada *</label>
+            <input
+              class="control"
+              type="time"
+              [(ngModel)]="segmento.horaLlegada"
+              [name]="'horaLlegada' + i"
+              [disabled]="!puedeEditarDatos()"
+            />
+          </div>
+
+          <div class="field">
+            <label class="label">Avión *</label>
+            <select
+              class="control"
+              [(ngModel)]="segmento.avionId"
+              [name]="'avionId' + i"
+              [disabled]="!puedeEditarDatos() || recursoBloqueado(i)"
+              (change)="onRecursoBaseChange()">
+
+              <option value="">Seleccione avión</option>
+              <option *ngFor="let avion of avionesDisponibles" [value]="avion.id">
+                {{ getAvionLabel(avion) }}
+              </option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label">Tripulación *</label>
+            <select
+              class="control"
+              [(ngModel)]="segmento.tripulacionId"
+              [name]="'tripulacionId' + i"
+              [disabled]="!puedeEditarDatos() || recursoBloqueado(i)"
+              (change)="onRecursoBaseChange()">
+
+              <option value="">Seleccione tripulación</option>
+              <option *ngFor="let tripulacion of tripulacionesDisponibles" [value]="tripulacion.id">
+                {{ getTripulacionLabel(tripulacion) }}
+              </option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -181,11 +243,11 @@
       </div>
     </section>
 
-    <section class="card" *ngIf="!cargando && vueloOperado">
-      <h2 class="section-title">Cambiar estado</h2>
+    <section class="card" aria-label="Estado">
+      <h2 class="section-title">Cambio de estado</h2>
 
       <div class="form-grid">
-        <div class="field">
+        <div class="field field-wide">
           <label class="label">Nuevo estado permitido</label>
 
           <select
@@ -195,32 +257,10 @@
             [disabled]="estaCerrado()">
 
             <option value="">Seleccione estado</option>
-
-            <option
-              *ngFor="let estado of getEstadosPermitidos()"
-              [value]="estado.id">
-
+            <option *ngFor="let estado of getEstadosPermitidos()" [value]="estado.id">
               {{ estado.nombre }}
             </option>
           </select>
-        </div>
-
-        <div class="field">
-          <label class="label">Salida real</label>
-          <input
-            class="control"
-            [value]="(vueloOperado.fechaSalidaReal || '') + ' ' + (vueloOperado.horaSalidaReal || '')"
-            disabled
-          />
-        </div>
-
-        <div class="field">
-          <label class="label">Llegada real</label>
-          <input
-            class="control"
-            [value]="(vueloOperado.fechaLlegadaReal || '') + ' ' + (vueloOperado.horaLlegadaReal || '')"
-            disabled
-          />
         </div>
       </div>
 
