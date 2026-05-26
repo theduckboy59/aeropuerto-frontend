@@ -5,11 +5,12 @@ import { environment } from '../../environments/environment';
 export interface Empleado {
   id: number;
 
-  userId: number;
-  username: string;
-  email: string;
+  userId?: number;
+  username?: string;
+  email?: string;
 
   tipoEmpleadoId: number;
+  tipoEmpleadoNombre?: string;
 
   aerolineaId: number;
   aerolineaNombre?: string;
@@ -29,6 +30,7 @@ export interface Empleado {
   fechaVencimientoLicencia?: string | null;
 
   estadoId?: number;
+  disponible?: boolean;
 }
 
 @Injectable({
@@ -37,7 +39,7 @@ export interface Empleado {
 export class EmpleadoService {
 
   private api = `${environment.apiUrl}/empleados`;
-  private registroApi = `${environment.apiUrl}/register`;
+  private registerApi = `${environment.apiUrl}/register`;
 
   constructor(private http: HttpClient) {}
 
@@ -53,12 +55,26 @@ export class EmpleadoService {
     return this.http.get<Empleado[]>(this.api, { params });
   }
 
+  getDisponiblesTripulacion(aerolineaId: number) {
+    const params = new HttpParams()
+      .set('aerolineaId', aerolineaId);
+
+    return this.http.get<Empleado[]>(
+      `${this.api}/disponibles-tripulacion`,
+      { params }
+    );
+  }
+
   crearEmpleado(data: any) {
-    return this.http.post<Empleado>(this.registroApi, data);
+    return this.http.post<Empleado>(this.registerApi, data);
+  }
+
+  obtenerPorId(id: number) {
+    return this.http.get<Empleado>(`${this.api}/${id}`);
   }
 
   getEmpleado(id: number) {
-    return this.http.get<Empleado>(`${this.api}/${id}`);
+    return this.obtenerPorId(id);
   }
 
   actualizarEmpleado(id: number, data: any) {

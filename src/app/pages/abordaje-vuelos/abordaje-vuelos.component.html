@@ -1,0 +1,114 @@
+<div class="page-root">
+  <main class="content">
+    <header class="topbar" aria-label="Encabezado">
+      <div class="topbar-left">
+        <div class="badge">A B</div>
+        <div>
+          <h1 class="title">Abordaje</h1>
+          <p class="subtitle">
+            Listado de vuelos operados para abordar. Busca por pasaporte y registra el abordaje del pasajero.
+          </p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-secondary" type="button" (click)="listar()">Refrescar</button>
+      </div>
+    </header>
+
+    <div class="alert-danger" *ngIf="error">{{ error }}</div>
+    <div class="alert-success" *ngIf="ok">{{ ok }}</div>
+    <p class="muted" *ngIf="cargando">Procesando...</p>
+
+    <section class="card">
+      <h2 class="section-title">Vuelos para abordaje</h2>
+      <div class="form-grid">
+        <div class="field field--wide">
+          <label class="label">Estado vuelo</label>
+          <select class="control" [(ngModel)]="estadoVueloId" name="estadoVueloId" (ngModelChange)="listar()">
+            <option value="">Todos</option>
+            <option *ngFor="let e of estados" [value]="e.id">{{ e.nombre }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-wrap" *ngIf="vuelos.length">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Aerolínea</th>
+              <th>Origen</th>
+              <th>Destino</th>
+              <th>Salida</th>
+              <th>Estado</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let v of vuelos">
+              <td>{{ v.codigoVuelo || v.id }}</td>
+              <td>{{ v.aerolineaNombre || v.aerolineaId || '-' }}</td>
+              <td>{{ v.aeropuertoSalidaCodigoIata || '-' }}</td>
+              <td>{{ v.aeropuertoLlegadaCodigoIata || '-' }}</td>
+              <td>{{ v.fechaSalidaProgramada }} {{ v.horaSalidaProgramada }}</td>
+              <td>{{ v.estadoVueloNombre || v.estadoVueloId }}</td>
+              <td><button class="btn-secondary" type="button" (click)="seleccionar(v)">Seleccionar</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card" *ngIf="vueloSeleccionado">
+      <h2 class="section-title">Registro</h2>
+
+      <div class="pill">
+        Vuelo {{ vueloSeleccionado.codigoVuelo || vueloSeleccionado.id }} ·
+        {{ vueloSeleccionado.aeropuertoSalidaCodigoIata || '-' }} → {{ vueloSeleccionado.aeropuertoLlegadaCodigoIata || '-' }} ·
+        {{ vueloSeleccionado.fechaSalidaProgramada }} {{ vueloSeleccionado.horaSalidaProgramada }}
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label class="label">Pasaporte</label>
+          <input class="control" [(ngModel)]="pasaporte" name="pasaporte" (keyup.enter)="buscarPasajero()" />
+        </div>
+        <div class="field">
+          <label class="label">Maletas presentadas</label>
+          <input class="control" type="number" min="0" max="10" [(ngModel)]="maletasPresentadas" name="maletasPresentadas" />
+        </div>
+        <div class="field">
+          <label class="label">&nbsp;</label>
+          <button class="btn-secondary" type="button" (click)="buscarPasajero()">Buscar</button>
+        </div>
+        <div class="field">
+          <label class="label">&nbsp;</label>
+          <button class="btn-primary" type="button" (click)="registrarAbordaje()">Registrar abordaje</button>
+        </div>
+      </div>
+
+      <div class="kv" *ngIf="consulta">
+        <div class="kv-row"><div class="kv-key">Pasajero</div><div class="kv-val">{{ consulta.nombrePasajero || '-' }}</div></div>
+        <div class="kv-row"><div class="kv-key">Asiento</div><div class="kv-val">{{ consulta.asiento || '-' }}</div></div>
+        <div class="kv-row"><div class="kv-key">Boleto</div><div class="kv-val">{{ consulta.codigoBoleto || '-' }}</div></div>
+        <div class="kv-row"><div class="kv-key">Estado boleto</div><div class="kv-val">{{ consulta.estadoBoleto || '-' }}</div></div>
+        <div class="kv-row"><div class="kv-key">Maletas registradas/presentadas</div><div class="kv-val">{{ consulta.cantidadMaletasRegistradas }} / {{ consulta.cantidadMaletasPresentadas }}</div></div>
+        <div class="kv-row"><div class="kv-key">Recargo equipaje</div><div class="kv-val">{{ consulta.recargoEquipaje || 0 }}</div></div>
+        <div class="kv-row"><div class="kv-key">Total</div><div class="kv-val">{{ consulta.total || 0 }}</div></div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-danger" type="button" (click)="finalizar()">Finalizar abordaje</button>
+      </div>
+    </section>
+
+    <section class="note">
+      <div class="note-title">Referencia operativa</div>
+      <div class="note-body">
+        En procesos reales, el gate agent valida identidad, pago/check-in, equipaje y estado del vuelo antes de marcar el boleto como abordado.
+        Este panel concentra esa operación.
+      </div>
+    </section>
+  </main>
+</div>
+

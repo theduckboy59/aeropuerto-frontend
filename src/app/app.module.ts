@@ -52,6 +52,10 @@ import { VueloEditComponent } from './pages/vuelo-edit/vuelo-edit.component';
 import { VuelosOperadosComponent } from './pages/vuelos-operados/vuelos-operados.component';
 import { VueloOperadoCreateComponent } from './pages/vuelo-operado-create/vuelo-operado-create.component';
 import { VueloOperadoEditComponent } from './pages/vuelo-operado-edit/vuelo-operado-edit.component';
+import { ConsultaVueloComponent } from './pages/consulta-vuelo/consulta-vuelo.component';
+import { ConsultasComponent } from './pages/consultas/consultas.component';
+import { ReservarVueloComponent } from './pages/reservar-vuelo/reservar-vuelo.component';
+import { AbordajeVuelosComponent } from './pages/abordaje-vuelos/abordaje-vuelos.component';
 
 @NgModule({
   declarations: [
@@ -98,7 +102,11 @@ import { VueloOperadoEditComponent } from './pages/vuelo-operado-edit/vuelo-oper
 
     VuelosOperadosComponent,
     VueloOperadoCreateComponent,
-    VueloOperadoEditComponent
+    VueloOperadoEditComponent,
+    ConsultaVueloComponent,
+    ConsultasComponent,
+    ReservarVueloComponent,
+    AbordajeVuelosComponent
   ],
   imports: [
     BrowserModule,

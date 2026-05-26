@@ -89,6 +89,7 @@
             type="date"
             [(ngModel)]="form.fechaSalida"
             name="fechaSalida"
+            [min]="fechaMinima"
           />
         </div>
 
@@ -147,6 +148,7 @@
             type="date"
             [(ngModel)]="form.fechaLlegada"
             name="fechaLlegada"
+            [min]="fechaMinima"
           />
         </div>
 

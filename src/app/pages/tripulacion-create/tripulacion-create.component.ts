@@ -10,10 +10,12 @@ import { TripulacionService } from '../../services/tripulacion.service';
   styleUrl: './tripulacion-create.component.css'
 })
 export class TripulacionCreateComponent implements OnInit {
+
   aerolineas: any[] = [];
   empleados: any[] = [];
   empleadosDisponibles: any[] = [];
   tipoEmpleado: any[] = [];
+
   tipoEmpleadoIds: {
     piloto: number | null;
     copiloto: number | null;
@@ -51,19 +53,36 @@ export class TripulacionCreateComponent implements OnInit {
 
   cargarCatalogos() {
     this.catalogo.aerolineas().subscribe({
-      next: (data) => (this.aerolineas = data || []),
-      error: () => {
-        this.catalogo.aerolinea().subscribe(d => (this.aerolineas = d || []));
+      next: (data: any[]) => {
+        this.aerolineas = data || [];
+      },
+      error: (_e: any) => {
+        this.catalogo.aerolinea().subscribe({
+          next: (data: any[]) => {
+            this.aerolineas = data || [];
+          },
+          error: (_e2: any) => {
+            alert('Error al cargar aerolíneas');
+          }
+        });
       }
     });
 
     this.catalogo.tiposEmpleado().subscribe({
-      next: (d) => this.setTiposEmpleado(d || []),
-      error: () => {
-        this.catalogo.tipoEmpleado().subscribe(d => this.setTiposEmpleado(d || []));
+      next: (data: any[]) => {
+        this.setTiposEmpleado(data || []);
+      },
+      error: (_e: any) => {
+        this.catalogo.tipoEmpleado().subscribe({
+          next: (data: any[]) => {
+            this.setTiposEmpleado(data || []);
+          },
+          error: (_e2: any) => {
+            alert('Error al cargar tipos de empleado');
+          }
+        });
       }
     });
-
   }
 
   onAerolineaChange() {
@@ -75,34 +94,31 @@ export class TripulacionCreateComponent implements OnInit {
       return;
     }
 
-    this.empleadosService.getEmpleados({
-      aerolineaId: Number(this.form.aerolineaId),
-      estadoId: 1,
-      disponible: true
-    }).subscribe({
-      next: (data) => {
-        this.empleados = data || [];
-        this.empleadosDisponibles = this.empleados.filter(e => this.filtraEmpleado(e));
-      },
-      error: () => {
-        this.empleadosService.getEmpleados().subscribe({
-          next: (data) => {
-            this.empleados = data || [];
-            this.empleadosDisponibles = this.empleados.filter(e => this.filtraEmpleado(e));
-          },
-          error: (e) => {
-            const message = e.error?.message || 'Error al cargar empleados';
-            alert(message);
-          }
-        });
-      }
-    });
+    this.cargando = true;
+
+    this.empleadosService
+      .getDisponiblesTripulacion(Number(this.form.aerolineaId))
+      .subscribe({
+        next: (data: any[]) => {
+          this.cargando = false;
+          this.empleados = data || [];
+          this.empleadosDisponibles = this.empleados;
+        },
+        error: (e: any) => {
+          this.cargando = false;
+          const message = e?.error?.message || 'Error al cargar empleados disponibles';
+          alert(message);
+          this.empleados = [];
+          this.empleadosDisponibles = [];
+        }
+      });
   }
 
   guardar() {
-    const faltante = this.validar();
-    if (faltante) {
-      alert(faltante);
+    const mensajeValidacion = this.validar();
+
+    if (mensajeValidacion) {
+      alert(mensajeValidacion);
       return;
     }
 
@@ -119,26 +135,54 @@ export class TripulacionCreateComponent implements OnInit {
     };
 
     this.cargando = true;
-    this.tripulacionService.crearTripulacion(payload).subscribe({
-      next: (res: any) => {
+
+    this.tripulacionService.crear(payload).subscribe({
+      next: () => {
         this.cargando = false;
-        alert('Tripulacion creada correctamente');
+        alert('Se creó con éxito la tripulación');
         this.router.navigate(['/menu/aerolinea/tripulacion']);
       },
-      error: (e) => {
+      error: (e: any) => {
         this.cargando = false;
-        const message = e.error?.message || 'Error al crear tripulacion';
+        const message = e?.error?.message || 'Error al crear tripulación';
         alert(message);
       }
     });
   }
 
-  regresar() {
-    this.router.navigate(['/menu/aerolinea/tripulacion']);
+  validar(): string {
+    if (
+      !this.form.aerolineaId ||
+      !this.form.pilotoId ||
+      !this.form.copilotoId ||
+      !this.form.ingenieroId ||
+      !this.form.cabina1Id ||
+      !this.form.cabina2Id ||
+      !this.form.cabina3Id
+    ) {
+      return 'Debe ingresar los campos obligatorios';
+    }
+
+    const ids = [
+      Number(this.form.pilotoId),
+      Number(this.form.copilotoId),
+      Number(this.form.ingenieroId),
+      Number(this.form.cabina1Id),
+      Number(this.form.cabina2Id),
+      Number(this.form.cabina3Id)
+    ];
+
+    const idsUnicos = new Set(ids);
+
+    if (idsUnicos.size !== ids.length) {
+      return 'No puede seleccionar el mismo empleado más de una vez';
+    }
+
+    return '';
   }
 
   getPilotos() {
-    return this.getOpcionesPorTipo(this.tipoEmpleadoIds.piloto ?? 1, [
+    return this.getOpcionesPorTipo('PILOTO', [
       this.form.copilotoId,
       this.form.ingenieroId,
       this.form.cabina1Id,
@@ -148,7 +192,7 @@ export class TripulacionCreateComponent implements OnInit {
   }
 
   getCopilotos() {
-    return this.getOpcionesPorTipo(this.tipoEmpleadoIds.copiloto ?? 2, [
+    return this.getOpcionesPorTipo('COPILOTO', [
       this.form.pilotoId,
       this.form.ingenieroId,
       this.form.cabina1Id,
@@ -158,7 +202,7 @@ export class TripulacionCreateComponent implements OnInit {
   }
 
   getIngenieros() {
-    return this.getOpcionesPorTipo(this.tipoEmpleadoIds.ingeniero ?? 4, [
+    return this.getOpcionesPorTipo('INGENIERO_VUELO', [
       this.form.pilotoId,
       this.form.copilotoId,
       this.form.cabina1Id,
@@ -167,61 +211,88 @@ export class TripulacionCreateComponent implements OnInit {
     ]);
   }
 
-  getCabina(slot: 'cabina1Id' | 'cabina2Id' | 'cabina3Id') {
-    const excluir = [
+  getCabina(campoActual: string) {
+    return this.getOpcionesPorTipo('CABINA', [
       this.form.pilotoId,
       this.form.copilotoId,
       this.form.ingenieroId,
-      this.form.cabina1Id,
-      this.form.cabina2Id,
-      this.form.cabina3Id
-    ].filter(id => id && id !== this.form[slot]);
-
-    return this.getOpcionesPorTipo(this.tipoEmpleadoIds.cabina ?? 3, excluir);
+      campoActual !== 'cabina1Id' ? this.form.cabina1Id : '',
+      campoActual !== 'cabina2Id' ? this.form.cabina2Id : '',
+      campoActual !== 'cabina3Id' ? this.form.cabina3Id : ''
+    ]);
   }
 
-  getEmpleadoLabel(empleado: any) {
-    const codigo = empleado?.codigoEmpleado || empleado?.codigo || empleado?.id || '';
-    const nombre = empleado?.nombreCompleto || empleado?.nombre || empleado?.username || empleado?.email || 'Empleado';
-    return `${codigo} - ${nombre}`.trim();
+  private getOpcionesPorTipo(tipoNombre: string, idsExcluidos: any[]) {
+    const excluidos = new Set(
+      (idsExcluidos || [])
+        .filter(id => id !== null && id !== undefined && id !== '')
+        .map(id => Number(id))
+    );
+
+    return (this.empleadosDisponibles || []).filter((empleado: any) => {
+      const empleadoId = Number(empleado.id);
+      const nombreTipoEmpleado = this.normalizar(
+        empleado.tipoEmpleadoNombre || this.obtenerNombreTipoPorId(empleado.tipoEmpleadoId)
+      );
+
+      return nombreTipoEmpleado === this.normalizar(tipoNombre)
+        && !excluidos.has(empleadoId);
+    });
   }
 
-  private getOpcionesPorTipo(tipoId: number | null, excluirIds: Array<string | number>) {
-    const base = !tipoId
-      ? this.empleadosDisponibles
-      : this.empleadosDisponibles.filter(e => String(e?.tipoEmpleadoId) === String(tipoId));
+  private obtenerNombreTipoPorId(tipoEmpleadoId: any): string {
+    const id = Number(tipoEmpleadoId);
 
-    const excluir = new Set(excluirIds.map(id => String(id)));
-    return base.filter(e => !excluir.has(String(e?.id)));
+    const tipo = (this.tipoEmpleado || []).find((item: any) =>
+      Number(item.id) === id
+    );
+
+    return tipo?.nombre || '';
   }
 
-  private validar() {
-    if (!this.form.aerolineaId) return 'Seleccione una aerolinea';
-    if (!this.form.pilotoId) return 'Seleccione un piloto';
-    if (!this.form.copilotoId) return 'Seleccione un copiloto';
-    if (!this.form.ingenieroId) return 'Seleccione un ingeniero';
-    if (!this.form.cabina1Id || !this.form.cabina2Id || !this.form.cabina3Id) {
-      return 'Seleccione exactamente 3 tripulantes de cabina';
+  private setTiposEmpleado(data: any[]) {
+    this.tipoEmpleado = data || [];
+
+    this.tipoEmpleadoIds = {
+      piloto: this.findTipoId('PILOTO'),
+      copiloto: this.findTipoId('COPILOTO'),
+      ingeniero: this.findTipoId('INGENIERO_VUELO'),
+      cabina: this.findTipoId('CABINA')
+    };
+  }
+
+  private findTipoId(nombre: string): number | null {
+    const target = this.normalizar(nombre);
+
+    const tipo = (this.tipoEmpleado || []).find((t: any) =>
+      this.normalizar(t.nombre || t.descripcion || t.label) === target
+    );
+
+    return tipo ? Number(tipo.id) : null;
+  }
+
+  private normalizar(value: any): string {
+    return (value || '')
+      .toString()
+      .trim()
+      .toUpperCase()
+      .replace(/\s+/g, '_')
+      .replace(/-/g, '_');
+  }
+
+  getEmpleadoLabel(empleado: any): string {
+    if (!empleado) {
+      return '';
     }
 
-    const seleccionados = [
-      this.form.pilotoId,
-      this.form.copilotoId,
-      this.form.ingenieroId,
-      this.form.cabina1Id,
-      this.form.cabina2Id,
-      this.form.cabina3Id
-    ].map(id => String(id));
+    const codigo = empleado.codigoEmpleado || empleado.id;
+    const nombre = empleado.nombreCompleto || empleado.nombre || 'Sin nombre';
+    const tipo = empleado.tipoEmpleadoNombre || this.obtenerNombreTipoPorId(empleado.tipoEmpleadoId);
 
-    const unicos = new Set(seleccionados);
-    if (unicos.size !== seleccionados.length) {
-      return 'No se permiten empleados repetidos';
-    }
-
-    return '';
+    return `${codigo} - ${nombre}${tipo ? ' (' + tipo + ')' : ''}`;
   }
 
-  private resetSeleccion() {
+  resetSeleccion() {
     this.form.pilotoId = '';
     this.form.copilotoId = '';
     this.form.ingenieroId = '';
@@ -230,56 +301,7 @@ export class TripulacionCreateComponent implements OnInit {
     this.form.cabina3Id = '';
   }
 
-  private filtraEmpleado(empleado: any) {
-    const empleadoAerolineaId = empleado?.aerolineaId ?? empleado?.aerolinea?.id ?? empleado?.aerolinea?.aerolineaId;
-    const mismaAerolinea = String(empleadoAerolineaId) === String(this.form.aerolineaId);
-    if (!mismaAerolinea) return false;
-
-    const estadoId = empleado?.estadoId ?? empleado?.estado?.id;
-    if (estadoId !== undefined && estadoId !== null && String(estadoId) !== '1') {
-      return false;
-    }
-
-    const disponible = empleado?.disponible;
-    if (disponible !== undefined && disponible !== null) {
-      return Boolean(disponible);
-    }
-
-    const disponibilidad = this.disponibilidadPorEmpleado(empleado?.id);
-    return disponibilidad === null ? true : disponibilidad === true;
-  }
-
-  private toBool(value: any, fallback: boolean) {
-    if (value === undefined || value === null) return fallback;
-    return Boolean(value);
-  }
-
-  private disponibilidadPorEmpleado(value: any) {
-    if (value === undefined || value === null || value === '') return null;
-    const empleado = this.empleados.find(item => String(item?.id) === String(value));
-    if (!empleado) return null;
-    if (empleado?.disponible !== undefined && empleado?.disponible !== null) {
-      return Boolean(empleado.disponible);
-    }
-    return null;
-  }
-
-  private setTiposEmpleado(data: any[]) {
-    this.tipoEmpleado = data || [];
-    this.tipoEmpleadoIds = {
-      piloto: this.findTipoId('piloto'),
-      copiloto: this.findTipoId('copiloto'),
-      ingeniero: this.findTipoId('ingeniero'),
-      cabina: this.findTipoId('cabina')
-    };
-  }
-
-
-  private findTipoId(keyword: string) {
-    const match = (this.tipoEmpleado || []).find((item: any) => {
-      const label = String(item?.nombre || item?.descripcion || item?.label || '').toLowerCase();
-      return label.includes(keyword);
-    });
-    return match ? Number(match.id) : null;
+  regresar() {
+    this.router.navigate(['/menu/aerolinea/tripulacion']);
   }
 }

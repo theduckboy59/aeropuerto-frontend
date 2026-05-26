@@ -17,6 +17,10 @@
           <p class="card-subtitle">Complete la información</p>
         </div>
 
+        <div class="alert-error" *ngIf="errorMessage">
+          {{ errorMessage }}
+        </div>
+
         <form class="form">
 
           <div class="grid">
@@ -26,29 +30,41 @@
               <input class="control"
                      [(ngModel)]="form.username"
                      name="username"
+                     autocomplete="username"
                      placeholder="ej: usuario123">
             </div>
 
             <div class="field">
               <label class="label">Correo</label>
               <input class="control"
+                     type="email"
                      [(ngModel)]="form.email"
                      name="email"
+                     autocomplete="email"
                      placeholder="ej: usuario@mail.com">
             </div>
 
             <div class="field">
               <label class="label">Contraseña</label>
-              <div style="display:flex; gap:5px;">
+
+              <div class="password-row">
                 <input class="control"
                        [type]="showPassword ? 'text' : 'password'"
                        [(ngModel)]="form.password"
                        name="password"
+                       autocomplete="new-password"
                        placeholder="Ej: Abc@$123">
-                <button type="button" (click)="togglePassword()">
+
+                <button class="btn-eye"
+                        type="button"
+                        (click)="togglePassword()">
                   {{ showPassword ? 'Ocultar' : 'Ver' }}
                 </button>
               </div>
+
+              <small class="hint">
+                Mínimo 6 caracteres, una mayúscula, un número y un carácter especial.
+              </small>
             </div>
 
             <div class="field">
@@ -68,6 +84,7 @@
               <input class="control"
                      [(ngModel)]="form.nombreCompleto"
                      name="nombreCompleto"
+                     autocomplete="name"
                      placeholder="ej: Juan Pérez">
             </div>
 
@@ -92,6 +109,9 @@
               <input class="control"
                      [(ngModel)]="form.codigoArea"
                      name="codigoArea"
+                     maxlength="10"
+                     inputmode="numeric"
+                     (input)="limitarCodigoArea()"
                      placeholder="ej: 502">
             </div>
 
@@ -100,6 +120,10 @@
               <input class="control"
                      [(ngModel)]="form.telefono"
                      name="telefono"
+                     maxlength="8"
+                     inputmode="numeric"
+                     pattern="[0-9]*"
+                     (input)="limitarTelefono()"
                      placeholder="ej: 12345678">
             </div>
 
@@ -108,6 +132,10 @@
               <input class="control"
                      [(ngModel)]="form.telefonoEmergencia"
                      name="telefonoEmergencia"
+                     maxlength="8"
+                     inputmode="numeric"
+                     pattern="[0-9]*"
+                     (input)="limitarTelefonoEmergencia()"
                      placeholder="ej: 87654321">
             </div>
 
@@ -116,6 +144,7 @@
               <input class="control"
                      [(ngModel)]="form.direccion"
                      name="direccion"
+                     autocomplete="street-address"
                      placeholder="ej: Zona 1, Ciudad de Guatemala">
             </div>
 
@@ -125,13 +154,15 @@
 
             <button class="btn-primary"
                     type="button"
-                    (click)="register()">
-              Registrar
+                    (click)="register()"
+                    [disabled]="loading">
+              {{ loading ? 'Registrando...' : 'VALIDAR' }}
             </button>
 
             <button class="btn-secondary"
                     type="button"
-                    (click)="cancelar()">
+                    (click)="cancelar()"
+                    [disabled]="loading">
               Cancelar
             </button>
 

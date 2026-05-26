@@ -14,6 +14,7 @@ import { getApiErrorMessage } from '../../services/shared/api-error.util';
 export class VueloCreateComponent implements OnInit {
 
   private readonly ESTADO_ACTIVO_ID = 1;
+  readonly fechaMinima = this.obtenerFechaMinima();
 
   aerolineas: any[] = [];
   aeropuertos: any[] = [];
@@ -182,6 +183,15 @@ export class VueloCreateComponent implements OnInit {
 
   getPuertaLabel(puerta: any): string {
     return puerta?.codigo ?? String(puerta ?? '-');
+  }
+
+  private obtenerFechaMinima(): string {
+    const hoy = new Date();
+    const anio = hoy.getFullYear();
+    const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoy.getDate()).padStart(2, '0');
+
+    return `${anio}-${mes}-${dia}`;
   }
 
   private validar(): string {

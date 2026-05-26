@@ -67,6 +67,15 @@
   transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
 }
 
+.top-action--ghost {
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(7, 26, 43, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.18) inset,
+    0 14px 28px rgba(0, 0, 0, 0.2);
+}
+
 .top-action:hover {
   filter: brightness(1.02);
   transform: translateY(-1px);

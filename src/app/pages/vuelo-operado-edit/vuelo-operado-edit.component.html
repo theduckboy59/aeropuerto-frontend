@@ -161,6 +161,7 @@
               [(ngModel)]="segmento.fechaSalida"
               [name]="'fechaSalida' + i"
               [disabled]="!puedeEditarDatos()"
+                [min]="fechaMinima"
             />
           </div>
 
@@ -183,6 +184,7 @@
               [(ngModel)]="segmento.fechaLlegada"
               [name]="'fechaLlegada' + i"
               [disabled]="!puedeEditarDatos()"
+                [min]="fechaMinima"
             />
           </div>
 

@@ -30,6 +30,8 @@ interface SegmentoForm {
 })
 export class VueloOperadoEditComponent implements OnInit {
 
+  readonly fechaMinima = this.obtenerFechaMinima();
+
   id: number | null = null;
   vueloOperado: VueloOperado | null = null;
 
@@ -207,6 +209,15 @@ export class VueloOperadoEditComponent implements OnInit {
     if (this.esDirecto() || this.esTecnico()) {
       this.sincronizarRecursosBase();
     }
+  }
+
+  private obtenerFechaMinima(): string {
+    const hoy = new Date();
+    const anio = hoy.getFullYear();
+    const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoy.getDate()).padStart(2, '0');
+
+    return `${anio}-${mes}-${dia}`;
   }
 
   guardarDatos(): void {

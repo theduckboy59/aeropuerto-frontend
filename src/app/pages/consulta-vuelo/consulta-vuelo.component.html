@@ -1,0 +1,69 @@
+<div class="page-root">
+  <main class="content">
+    <header class="topbar" aria-label="Encabezado">
+      <div class="topbar-left">
+        <div class="badge">A L P</div>
+        <div>
+          <h1 class="title">Consulta de vuelo</h1>
+          <p class="subtitle">
+            Consulta pública del estado y detalle del vuelo (modelo, aerolínea, origen/destino y horarios).
+          </p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-secondary" type="button" routerLink="/portal">Volver</button>
+      </div>
+    </header>
+
+    <section class="card" aria-label="Formulario">
+      <h2 class="section-title">Búsqueda</h2>
+
+      <div class="form-grid">
+        <div class="field field--wide">
+          <label class="label">Número de vuelo</label>
+          <input
+            class="control"
+            [(ngModel)]="codigoVuelo"
+            name="codigoVuelo"
+            placeholder="Ej: ALP-1024"
+            (keyup.enter)="buscar()"
+          />
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-primary" type="button" (click)="buscar()">Buscar</button>
+        <button class="btn-secondary" type="button" (click)="limpiar()">Limpiar</button>
+      </div>
+
+      <p class="muted" *ngIf="cargando">Consultando...</p>
+      <div class="alert-danger" *ngIf="error">{{ error }}</div>
+    </section>
+
+    <section class="card" aria-label="Resultado" *ngIf="resultado">
+      <div class="section-header">
+        <h2 class="section-title">Resultado</h2>
+        <div class="actions">
+          <button class="btn-secondary" type="button" (click)="descargarPdf()">PDF</button>
+          <button class="btn-secondary" type="button" (click)="exportarCSV()">CSV</button>
+          <button class="btn-primary" type="button" (click)="imprimir()">Imprimir</button>
+        </div>
+      </div>
+
+      <div class="kv">
+        <div class="kv-row" *ngFor="let kvp of (resultado | keyvalue)">
+          <div class="kv-key">{{ kvp.key }}</div>
+          <div class="kv-val">{{ kvp.value ?? '-' }}</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="note">
+      <div class="note-title">Referencia operativa</div>
+      <div class="note-body">
+        En aeropuertos reales, la consulta de vuelo suele mostrar aerolínea, puerta, horario programado/estimado y estado
+        (programado, abordando, en vuelo, aterrizado, retrasado o cancelado). Este módulo simula ese panel público.
+      </div>
+    </section>
+  </main>
+</div>

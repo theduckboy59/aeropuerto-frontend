@@ -35,6 +35,10 @@ import { PasajerosComponent } from './pages/pasajeros/pasajeros.component';
 import { PasajeroEditComponent } from './pages/pasajero-edit/pasajero-edit.component';
 import { EditPasajerosComponent } from './pages/edit-pasajeros/edit-pasajeros.component';
 import { RoleGuard } from './guards/role.guard';
+import { ConsultaVueloComponent } from './pages/consulta-vuelo/consulta-vuelo.component';
+import { ConsultasComponent } from './pages/consultas/consultas.component';
+import { ReservarVueloComponent } from './pages/reservar-vuelo/reservar-vuelo.component';
+import { AbordajeVuelosComponent } from './pages/abordaje-vuelos/abordaje-vuelos.component';
 
 import { ModeloAvionComponent } from './pages/modelo-avion/modelo-avion.component';
 import { ModeloAvionCreateComponent } from './pages/modelo-avion-create/modelo-avion-create.component';
@@ -53,6 +57,7 @@ const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'portal', component: PortalComponent },
+  { path: 'consultas/vuelo', component: ConsultaVueloComponent },
   {
     path: 'abordaje',
     component: MenuAbordajeComponent,
@@ -66,7 +71,7 @@ const routes: Routes = [
       },
       {
         path: 'vuelos/abordaje',
-        component: PlaceholderComponent,
+        component: AbordajeVuelosComponent,
         canActivate: [RoleGuard],
         data: { title: 'Abordaje', roles: ['ROLE_ADMIN_ABORDAJE'] }
       },
@@ -97,7 +102,7 @@ const routes: Routes = [
       },
       {
         path: 'vuelos/reservar',
-        component: PlaceholderComponent,
+        component: ReservarVueloComponent,
         canActivate: [RoleGuard],
         data: { title: 'Reservar vuelo', roles: ['ROLE_CLIENTE'] }
       }
@@ -107,13 +112,19 @@ const routes: Routes = [
     path: 'menu',
     component: MenuComponent,
     canActivate: [RoleGuard],
-    data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] },
+    data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA', 'ROLE_CONSULTAS_AEROLINEA'] },
     children: [
       {
         path: '',
         component: DashboardComponent,
         canActivate: [RoleGuard],
-        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA', 'ROLE_CONSULTAS_AEROLINEA'] }
+      },
+      {
+        path: 'consultas',
+        component: ConsultasComponent,
+        canActivate: [RoleGuard],
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA', 'ROLE_CONSULTAS_AEROLINEA'] }
       },
 
       {

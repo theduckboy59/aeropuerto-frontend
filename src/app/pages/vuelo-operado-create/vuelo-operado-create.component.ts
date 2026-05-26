@@ -30,6 +30,8 @@ interface SegmentoForm {
 })
 export class VueloOperadoCreateComponent implements OnInit {
 
+  readonly fechaMinima = this.obtenerFechaMinima();
+
   vuelosProgramados: Vuelo[] = [];
   vuelosProgramadosDisponibles: Vuelo[] = [];
   vuelosOperados: VueloOperado[] = [];
@@ -157,6 +159,15 @@ export class VueloOperadoCreateComponent implements OnInit {
     if (this.esDirecto() || this.esTecnico()) {
       this.sincronizarRecursosBase();
     }
+  }
+
+  private obtenerFechaMinima(): string {
+    const hoy = new Date();
+    const anio = hoy.getFullYear();
+    const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoy.getDate()).padStart(2, '0');
+
+    return `${anio}-${mes}-${dia}`;
   }
 
   guardar(): void {

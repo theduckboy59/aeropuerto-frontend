@@ -10,7 +10,7 @@ import { getApiErrorMessage } from '../../services/shared/api-error.util';
 })
 export class RegisterComponent {
 
-  showPassword: boolean = false;
+  showPassword = false;
   loading = false;
   errorMessage = '';
 
@@ -55,6 +55,7 @@ export class RegisterComponent {
       tecla === 'ArrowRight' ||
       tecla === 'Home' ||
       tecla === 'End';
+
     if (esControl) return;
 
     const input = event.target as HTMLInputElement | null;
@@ -68,20 +69,77 @@ export class RegisterComponent {
     }
   }
 
+  limitarTelefono() {
+    const value = (this.form.telefono ?? '').toString().replace(/\D/g, '');
+    this.form.telefono = value.substring(0, 8);
+  }
+
+  limitarTelefonoEmergencia() {
+    const value = (this.form.telefonoEmergencia ?? '').toString().replace(/\D/g, '');
+    this.form.telefonoEmergencia = value.substring(0, 8);
+  }
+
+  limitarCodigoArea() {
+    let value = (this.form.codigoArea ?? '').toString();
+
+    value = value.replace(/[^\d+]/g, '');
+
+    if (value.includes('+')) {
+      value = '+' + value.replace(/\+/g, '');
+    }
+
+    this.form.codigoArea = value.substring(0, 10);
+  }
+
   register() {
-    this.loading = true;
     this.errorMessage = '';
 
-    this.authService.registerPassenger(this.form).subscribe({
+    const msg = this.validarFormulario();
+
+    if (msg) {
+      this.errorMessage = msg;
+      alert(msg);
+      return;
+    }
+
+    const confirmado = confirm('¿Está seguro de continuar?');
+
+    if (!confirmado) {
+      this.errorMessage = 'Se ha cancelado el registro satisfactoriamente';
+      alert('Se ha cancelado el registro satisfactoriamente');
+      return;
+    }
+
+    const payload = {
+      username: this.form.username.trim(),
+      email: this.form.email.trim().toLowerCase(),
+      password: this.form.password,
+      pasaporte: this.form.pasaporte.trim().toUpperCase(),
+      nombreCompleto: this.form.nombreCompleto.trim(),
+      fechaNacimiento: this.form.fechaNacimiento,
+      nacionalidad: this.form.nacionalidad.trim(),
+      codigoArea: this.form.codigoArea.trim(),
+      telefono: this.form.telefono.trim(),
+      telefonoEmergencia: this.form.telefonoEmergencia.trim(),
+      direccion: this.form.direccion.trim()
+    };
+
+    this.loading = true;
+
+    this.authService.registerPassenger(payload).subscribe({
       next: (res) => {
         this.loading = false;
-        alert(res.message || 'Se ha creado con exito el usuario.');
+        alert(res?.message || 'Se ha creado con éxito el usuario.');
         this.form = this.getEmptyForm();
         this.router.navigate(['/login']);
       },
       error: (e) => {
         this.loading = false;
-        this.errorMessage = getApiErrorMessage(e, 'Error inesperado durante el registro');
+        this.errorMessage = getApiErrorMessage(
+          e,
+          'Error inesperado durante el registro'
+        );
+        alert(this.errorMessage);
         console.error('Error:', e);
       }
     });
@@ -97,5 +155,45 @@ export class RegisterComponent {
 
   togglePassword() {
     this.showPassword = !this.showPassword;
+  }
+
+  private validarFormulario(): string {
+    if (
+      !this.form.username?.trim() ||
+      !this.form.email?.trim() ||
+      !this.form.password?.trim() ||
+      !this.form.pasaporte?.trim() ||
+      !this.form.nombreCompleto?.trim() ||
+      !this.form.fechaNacimiento ||
+      !this.form.nacionalidad?.trim() ||
+      !this.form.codigoArea?.trim() ||
+      !this.form.telefono?.trim() ||
+      !this.form.telefonoEmergencia?.trim() ||
+      !this.form.direccion?.trim()
+    ) {
+      return 'Debe ingresar los campos obligatorios';
+    }
+
+    if (this.form.pasaporte.trim().length > 15) {
+      return 'El número de pasaporte no debe exceder 15 caracteres';
+    }
+
+    if (!/^\+?\d{1,10}$/.test(this.form.codigoArea.trim())) {
+      return 'El código de área telefónico es inválido';
+    }
+
+    if (!/^\d{8}$/.test(this.form.telefono.trim())) {
+      return 'El número de teléfono debe tener 8 dígitos';
+    }
+
+    if (!/^\d{8}$/.test(this.form.telefonoEmergencia.trim())) {
+      return 'El teléfono de emergencia debe tener 8 dígitos';
+    }
+
+    if (!/^(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{6,}$/.test(this.form.password)) {
+      return 'El formato de la contraseña debe incluir al menos una letra mayúscula, un carácter especial y un número';
+    }
+
+    return '';
   }
 }

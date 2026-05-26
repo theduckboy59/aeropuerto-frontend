@@ -92,4 +92,8 @@ export class CatalogoService {
   tipoAsiento() {
     return this.http.get<any[]>(`${this.api}/tipo-asiento`);
   }
+
+  metodoPago() {
+    return this.http.get<any[]>(`${this.api}/metodo-pago`);
+  }
 }

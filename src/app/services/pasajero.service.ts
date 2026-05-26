@@ -27,6 +27,10 @@ export class PasajeroService {
     return this.http.get<any>(`${this.api}/${id}`);
   }
 
+  obtenerActual() {
+    return this.http.get<any>(`${this.api}/me`);
+  }
+
   actualizar(id: number, data: any) {
     return this.http.put(`${this.api}/${id}`, data);
   }

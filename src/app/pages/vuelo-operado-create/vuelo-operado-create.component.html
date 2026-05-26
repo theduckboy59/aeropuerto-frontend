@@ -133,6 +133,7 @@
               type="date"
               [(ngModel)]="segmento.fechaSalida"
               [name]="'fechaSalida' + i"
+                [min]="fechaMinima"
             />
           </div>
 
@@ -153,6 +154,7 @@
               type="date"
               [(ngModel)]="segmento.fechaLlegada"
               [name]="'fechaLlegada' + i"
+                [min]="fechaMinima"
             />
           </div>
 
