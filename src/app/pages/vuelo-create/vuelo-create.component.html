@@ -162,6 +162,34 @@
             name="horaLlegada"
           />
         </div>
+
+        <div class="field">
+          <label class="label">Precio económica *</label>
+
+          <input
+            class="control"
+            type="number"
+            min="0.01"
+            step="0.01"
+            [(ngModel)]="form.precioEconomica"
+            name="precioEconomica"
+            placeholder="Ej. 1200.00"
+          />
+        </div>
+
+        <div class="field">
+          <label class="label">Precio ejecutiva *</label>
+
+          <input
+            class="control"
+            type="number"
+            min="0.01"
+            step="0.01"
+            [(ngModel)]="form.precioEjecutiva"
+            name="precioEjecutiva"
+            placeholder="Ej. 2500.00"
+          />
+        </div>
       </div>
 
       <div class="form-actions">

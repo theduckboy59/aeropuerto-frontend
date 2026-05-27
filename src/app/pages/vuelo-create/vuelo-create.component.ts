@@ -14,6 +14,7 @@ import { getApiErrorMessage } from '../../services/shared/api-error.util';
 export class VueloCreateComponent implements OnInit {
 
   private readonly ESTADO_ACTIVO_ID = 1;
+
   readonly fechaMinima = this.obtenerFechaMinima();
 
   aerolineas: any[] = [];
@@ -137,7 +138,9 @@ export class VueloCreateComponent implements OnInit {
       fechaSalida: this.form.fechaSalida,
       horaSalida: this.normalizarHora(this.form.horaSalida),
       fechaLlegada: this.form.fechaLlegada,
-      horaLlegada: this.normalizarHora(this.form.horaLlegada)
+      horaLlegada: this.normalizarHora(this.form.horaLlegada),
+      precioEconomica: Number(this.form.precioEconomica),
+      precioEjecutiva: Number(this.form.precioEjecutiva)
     };
 
     this.guardando = true;
@@ -162,11 +165,13 @@ export class VueloCreateComponent implements OnInit {
 
   getPuertasSalida(): any[] {
     const aeropuerto = this.getAeropuertoById(this.form.aeropuertoSalidaId);
+
     return this.getPuertasActivas(aeropuerto);
   }
 
   getPuertasLlegada(): any[] {
     const aeropuerto = this.getAeropuertoById(this.form.aeropuertoLlegadaId);
+
     return this.getPuertasActivas(aeropuerto);
   }
 
@@ -235,6 +240,25 @@ export class VueloCreateComponent implements OnInit {
       return 'Hora de llegada obligatoria';
     }
 
+    if (!this.form.precioEconomica) {
+      return 'Precio de clase económica obligatorio';
+    }
+
+    if (!this.form.precioEjecutiva) {
+      return 'Precio de clase ejecutiva obligatorio';
+    }
+
+    const precioEconomica = Number(this.form.precioEconomica);
+    const precioEjecutiva = Number(this.form.precioEjecutiva);
+
+    if (Number.isNaN(precioEconomica) || precioEconomica <= 0) {
+      return 'El precio de clase económica debe ser mayor a 0';
+    }
+
+    if (Number.isNaN(precioEjecutiva) || precioEjecutiva <= 0) {
+      return 'El precio de clase ejecutiva debe ser mayor a 0';
+    }
+
     const salida = new Date(`${this.form.fechaSalida}T${this.normalizarHora(this.form.horaSalida)}`);
     const llegada = new Date(`${this.form.fechaLlegada}T${this.normalizarHora(this.form.horaLlegada)}`);
 
@@ -266,7 +290,9 @@ export class VueloCreateComponent implements OnInit {
       fechaSalida: '',
       horaSalida: '',
       fechaLlegada: '',
-      horaLlegada: ''
+      horaLlegada: '',
+      precioEconomica: '',
+      precioEjecutiva: ''
     };
   }
 

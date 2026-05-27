@@ -8,7 +8,8 @@
         <div>
           <h1 class="title">Editar vuelo</h1>
           <p class="subtitle">
-            Actualiza la programación del vuelo {{ codigoVuelo || '' }}.
+            Actualización de vuelos programados.
+            <span *ngIf="codigoVuelo">Código: {{ codigoVuelo }}</span>
           </p>
         </div>
       </div>
@@ -24,19 +25,10 @@
       <h2 class="section-title">Datos del vuelo</h2>
 
       <p class="muted" *ngIf="cargando">
-        Cargando...
+        Cargando datos...
       </p>
 
       <div class="form-grid" *ngIf="!cargando">
-
-        <div class="field field-wide">
-          <label class="label">Código vuelo</label>
-          <input
-            class="control"
-            [value]="codigoVuelo"
-            disabled
-          />
-        </div>
 
         <div class="field field-wide">
           <label class="label">Aerolínea *</label>
@@ -169,6 +161,34 @@
             type="time"
             [(ngModel)]="form.horaLlegada"
             name="horaLlegada"
+          />
+        </div>
+
+        <div class="field">
+          <label class="label">Precio económica *</label>
+
+          <input
+            class="control"
+            type="number"
+            min="0.01"
+            step="0.01"
+            [(ngModel)]="form.precioEconomica"
+            name="precioEconomica"
+            placeholder="Ej. 1200.00"
+          />
+        </div>
+
+        <div class="field">
+          <label class="label">Precio ejecutiva *</label>
+
+          <input
+            class="control"
+            type="number"
+            min="0.01"
+            step="0.01"
+            [(ngModel)]="form.precioEjecutiva"
+            name="precioEjecutiva"
+            placeholder="Ej. 2500.00"
           />
         </div>
       </div>

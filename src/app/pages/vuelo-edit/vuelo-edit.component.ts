@@ -15,6 +15,7 @@ import { getApiErrorMessage } from '../../services/shared/api-error.util';
 export class VueloEditComponent implements OnInit {
 
   private readonly ESTADO_ACTIVO_ID = 1;
+
   readonly fechaMinima = this.obtenerFechaMinima();
 
   id: number | null = null;
@@ -65,15 +66,16 @@ export class VueloEditComponent implements OnInit {
       next: ({ aerolineas, aeropuertos, vuelo }) => {
         this.aerolineas = aerolineas ?? [];
         this.aeropuertos = aeropuertos ?? [];
+
         this.setForm(vuelo);
 
         const aerolineaId = this.toNumberOrNull(this.form.aerolineaId);
 
         if (aerolineaId) {
           this.cargarDestinosAutorizados(aerolineaId, false);
-        } else {
-          this.cargando = false;
         }
+
+        this.cargando = false;
       },
       error: (err) => {
         console.error(err);
@@ -82,6 +84,24 @@ export class VueloEditComponent implements OnInit {
         this.regresar();
       }
     });
+  }
+
+  setForm(vuelo: Vuelo): void {
+    this.codigoVuelo = vuelo.codigoVuelo ?? '';
+
+    this.form = {
+      aerolineaId: vuelo.aerolineaId ?? '',
+      aeropuertoSalidaId: vuelo.aeropuertoSalidaId ?? '',
+      aeropuertoLlegadaId: vuelo.aeropuertoLlegadaId ?? '',
+      puertaEmbarqueSalida: vuelo.puertaEmbarqueSalida ?? '',
+      puertaEmbarqueLlegada: vuelo.puertaEmbarqueLlegada ?? '',
+      fechaSalida: vuelo.fechaSalida ?? '',
+      horaSalida: this.toInputTime(vuelo.horaSalida),
+      fechaLlegada: vuelo.fechaLlegada ?? '',
+      horaLlegada: this.toInputTime(vuelo.horaLlegada),
+      precioEconomica: vuelo.precioEconomica ?? '',
+      precioEjecutiva: vuelo.precioEjecutiva ?? ''
+    };
   }
 
   onAerolineaChange(): void {
@@ -130,14 +150,12 @@ export class VueloEditComponent implements OnInit {
         }
 
         this.cargandoDestinos = false;
-        this.cargando = false;
       },
       error: (err) => {
         console.error(err);
         this.destinosAutorizados = [];
         this.aeropuertosAutorizados = [];
         this.cargandoDestinos = false;
-        this.cargando = false;
         alert(getApiErrorMessage(err, 'Error cargando destinos autorizados'));
       }
     });
@@ -153,6 +171,7 @@ export class VueloEditComponent implements OnInit {
 
   guardar(): void {
     if (!this.id) {
+      alert('ID inválido');
       return;
     }
 
@@ -172,7 +191,9 @@ export class VueloEditComponent implements OnInit {
       fechaSalida: this.form.fechaSalida,
       horaSalida: this.normalizarHora(this.form.horaSalida),
       fechaLlegada: this.form.fechaLlegada,
-      horaLlegada: this.normalizarHora(this.form.horaLlegada)
+      horaLlegada: this.normalizarHora(this.form.horaLlegada),
+      precioEconomica: Number(this.form.precioEconomica),
+      precioEjecutiva: Number(this.form.precioEjecutiva)
     };
 
     this.guardando = true;
@@ -197,11 +218,13 @@ export class VueloEditComponent implements OnInit {
 
   getPuertasSalida(): any[] {
     const aeropuerto = this.getAeropuertoById(this.form.aeropuertoSalidaId);
+
     return this.getPuertasActivas(aeropuerto);
   }
 
   getPuertasLlegada(): any[] {
     const aeropuerto = this.getAeropuertoById(this.form.aeropuertoLlegadaId);
+
     return this.getPuertasActivas(aeropuerto);
   }
 
@@ -227,22 +250,6 @@ export class VueloEditComponent implements OnInit {
     const dia = String(hoy.getDate()).padStart(2, '0');
 
     return `${anio}-${mes}-${dia}`;
-  }
-
-  private setForm(vuelo: Vuelo): void {
-    this.codigoVuelo = vuelo.codigoVuelo ?? '';
-
-    this.form = {
-      aerolineaId: vuelo.aerolineaId ?? '',
-      aeropuertoSalidaId: vuelo.aeropuertoSalidaId ?? '',
-      aeropuertoLlegadaId: vuelo.aeropuertoLlegadaId ?? '',
-      puertaEmbarqueSalida: vuelo.puertaEmbarqueSalida ?? '',
-      puertaEmbarqueLlegada: vuelo.puertaEmbarqueLlegada ?? '',
-      fechaSalida: vuelo.fechaSalida ?? '',
-      horaSalida: this.toInputTime(vuelo.horaSalida),
-      fechaLlegada: vuelo.fechaLlegada ?? '',
-      horaLlegada: this.toInputTime(vuelo.horaLlegada)
-    };
   }
 
   private validar(): string {
@@ -286,6 +293,25 @@ export class VueloEditComponent implements OnInit {
       return 'Hora de llegada obligatoria';
     }
 
+    if (!this.form.precioEconomica) {
+      return 'Precio de clase económica obligatorio';
+    }
+
+    if (!this.form.precioEjecutiva) {
+      return 'Precio de clase ejecutiva obligatorio';
+    }
+
+    const precioEconomica = Number(this.form.precioEconomica);
+    const precioEjecutiva = Number(this.form.precioEjecutiva);
+
+    if (Number.isNaN(precioEconomica) || precioEconomica <= 0) {
+      return 'El precio de clase económica debe ser mayor a 0';
+    }
+
+    if (Number.isNaN(precioEjecutiva) || precioEjecutiva <= 0) {
+      return 'El precio de clase ejecutiva debe ser mayor a 0';
+    }
+
     const salida = new Date(`${this.form.fechaSalida}T${this.normalizarHora(this.form.horaSalida)}`);
     const llegada = new Date(`${this.form.fechaLlegada}T${this.normalizarHora(this.form.horaLlegada)}`);
 
@@ -317,7 +343,9 @@ export class VueloEditComponent implements OnInit {
       fechaSalida: '',
       horaSalida: '',
       fechaLlegada: '',
-      horaLlegada: ''
+      horaLlegada: '',
+      precioEconomica: '',
+      precioEjecutiva: ''
     };
   }
 
@@ -347,6 +375,16 @@ export class VueloEditComponent implements OnInit {
     });
   }
 
+  private toInputTime(value: string | null | undefined): string {
+    const hora = (value ?? '').toString().trim();
+
+    if (!hora) {
+      return '';
+    }
+
+    return hora.substring(0, 5);
+  }
+
   private toNumberOrNull(value: any): number | null {
     if (value === null || value === undefined || value === '') {
       return null;
@@ -373,15 +411,5 @@ export class VueloEditComponent implements OnInit {
     }
 
     return hora;
-  }
-
-  private toInputTime(value: string | null | undefined): string {
-    const hora = (value ?? '').toString().trim();
-
-    if (!hora) {
-      return '';
-    }
-
-    return hora.substring(0, 5);
   }
 }

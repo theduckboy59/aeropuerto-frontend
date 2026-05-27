@@ -44,6 +44,9 @@ export interface Vuelo {
   fechaLlegada: string | null;
   horaLlegada: string | null;
 
+  precioEconomica?: number | null;
+  precioEjecutiva?: number | null;
+
   createdAt?: string | null;
   updatedAt?: string | null;
 }
@@ -62,6 +65,9 @@ export interface VueloRequest {
 
   fechaLlegada: string | null;
   horaLlegada: string | null;
+
+  precioEconomica: number | null;
+  precioEjecutiva: number | null;
 }
 
 export interface VueloFiltros {
@@ -136,20 +142,23 @@ export class VueloService {
 
   private normalizarPayload(request: VueloRequest): VueloRequest {
     return {
-      aerolineaId: request.aerolineaId,
-      aeropuertoSalidaId: request.aeropuertoSalidaId,
-      aeropuertoLlegadaId: request.aeropuertoLlegadaId,
+      aerolineaId: this.normalizarNumero(request.aerolineaId),
+      aeropuertoSalidaId: this.normalizarNumero(request.aeropuertoSalidaId),
+      aeropuertoLlegadaId: this.normalizarNumero(request.aeropuertoLlegadaId),
       puertaEmbarqueSalida: this.cleanText(request.puertaEmbarqueSalida),
       puertaEmbarqueLlegada: this.cleanText(request.puertaEmbarqueLlegada),
       fechaSalida: request.fechaSalida,
       horaSalida: this.normalizarHora(request.horaSalida),
       fechaLlegada: request.fechaLlegada,
-      horaLlegada: this.normalizarHora(request.horaLlegada)
+      horaLlegada: this.normalizarHora(request.horaLlegada),
+      precioEconomica: this.normalizarNumero(request.precioEconomica),
+      precioEjecutiva: this.normalizarNumero(request.precioEjecutiva)
     };
   }
 
   private cleanText(value: string | null | undefined): string | null {
     const limpio = (value ?? '').toString().trim().toUpperCase();
+
     return limpio || null;
   }
 
@@ -165,5 +174,15 @@ export class VueloService {
     }
 
     return hora;
+  }
+
+  private normalizarNumero(value: number | string | null | undefined): number | null {
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+
+    const n = Number(value);
+
+    return Number.isNaN(n) ? null : n;
   }
 }
