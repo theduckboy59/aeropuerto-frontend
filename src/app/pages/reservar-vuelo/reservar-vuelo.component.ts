@@ -5,6 +5,8 @@ import { AsientoVuelo, AsientoVueloService } from '../../services/asiento-vuelo.
 import { CatalogoService } from '../../services/catalogo.service';
 import { CheckInService } from '../../services/checkin.service';
 import {
+  ClienteDestinoAutorizado,
+  ClienteFechaDisponible,
   ClienteVueloDisponible,
   ClienteVueloSegmentoDisponible,
   ClienteVueloService
@@ -32,13 +34,19 @@ export class ReservarVueloComponent implements OnInit {
   pasajero: any | null = null;
 
   aeropuertos: any[] = [];
+  destinosAutorizados: ClienteDestinoAutorizado[] = [];
+  fechasDisponibles: ClienteFechaDisponible[] = [];
+  fechasRegresoDisponibles: ClienteFechaDisponible[] = [];
+
   clases: any[] = [];
   metodosPago: any[] = [];
 
   filtros = {
+    tipoViaje: 'IDA',
     aeropuertoSalidaId: '',
     aeropuertoLlegadaId: '',
-    fechaSalida: ''
+    fechaSalida: '',
+    fechaRegreso: ''
   };
 
   vuelosDisponibles: ClienteVueloDisponible[] = [];
@@ -88,7 +96,10 @@ export class ReservarVueloComponent implements OnInit {
     });
 
     this.catalogos.aeropuertos().subscribe({
-      next: (r) => (this.aeropuertos = r ?? [])
+      next: (r) => (this.aeropuertos = r ?? []),
+      error: () => {
+        this.error = 'No se pudieron cargar aeropuertos.';
+      }
     });
 
     this.catalogos.claseVuelo().subscribe({
@@ -104,6 +115,10 @@ export class ReservarVueloComponent implements OnInit {
 
   get segmentos(): ClienteVueloSegmentoDisponible[] {
     return this.vueloSeleccionado?.segmentos ?? [];
+  }
+
+  get esIdaVuelta(): boolean {
+    return this.filtros.tipoViaje === 'IDA_VUELTA';
   }
 
   get esCambioAvion(): boolean {
@@ -190,6 +205,156 @@ export class ReservarVueloComponent implements OnInit {
     return Number(this.vueloSeleccionado.precioEconomica ?? 0);
   }
 
+  onTipoViajeChange(): void {
+    this.filtros.fechaRegreso = '';
+    this.fechasRegresoDisponibles = [];
+
+    if (this.esIdaVuelta) {
+      this.cargarFechasRegresoDisponibles();
+    }
+  }
+
+  onOrigenChange(): void {
+    this.error = null;
+    this.aviso = null;
+
+    this.filtros.aeropuertoLlegadaId = '';
+    this.filtros.fechaSalida = '';
+    this.filtros.fechaRegreso = '';
+
+    this.destinosAutorizados = [];
+    this.fechasDisponibles = [];
+    this.fechasRegresoDisponibles = [];
+
+    this.resetSeleccionCompleta();
+
+    const salidaId = Number(this.filtros.aeropuertoSalidaId);
+
+    if (!salidaId) {
+      return;
+    }
+
+    this.cargarDestinosAutorizados();
+  }
+
+  onDestinoChange(): void {
+    this.error = null;
+    this.aviso = null;
+
+    this.filtros.fechaSalida = '';
+    this.filtros.fechaRegreso = '';
+
+    this.fechasDisponibles = [];
+    this.fechasRegresoDisponibles = [];
+
+    this.resetSeleccionCompleta();
+
+    const salidaId = Number(this.filtros.aeropuertoSalidaId);
+    const llegadaId = Number(this.filtros.aeropuertoLlegadaId);
+
+    if (!salidaId || !llegadaId) {
+      return;
+    }
+
+    if (salidaId === llegadaId) {
+      this.error = 'No se puede seleccionar el mismo aeropuerto de salida y llegada.';
+      return;
+    }
+
+    this.cargarFechasDisponibles();
+  }
+
+  onFechaSalidaChange(): void {
+    this.error = null;
+    this.aviso = null;
+
+    this.filtros.fechaRegreso = '';
+    this.fechasRegresoDisponibles = [];
+
+    this.resetSeleccionCompleta();
+
+    if (this.esIdaVuelta) {
+      this.cargarFechasRegresoDisponibles();
+    }
+  }
+
+  cargarDestinosAutorizados(): void {
+    const salidaId = Number(this.filtros.aeropuertoSalidaId);
+
+    if (!salidaId) {
+      return;
+    }
+
+    this.clienteVuelosService.listarDestinosAutorizados(salidaId).subscribe({
+      next: (res) => {
+        this.destinosAutorizados = res ?? [];
+
+        if (!this.destinosAutorizados.length) {
+          this.aviso = 'No hay destinos autorizados para el origen seleccionado.';
+        }
+      },
+      error: (err) => {
+        this.error = err?.error?.message || 'No se pudieron cargar destinos autorizados.';
+      }
+    });
+  }
+
+  cargarFechasDisponibles(): void {
+    const salidaId = Number(this.filtros.aeropuertoSalidaId);
+    const llegadaId = Number(this.filtros.aeropuertoLlegadaId);
+
+    if (!salidaId || !llegadaId || salidaId === llegadaId) {
+      return;
+    }
+
+    this.clienteVuelosService
+      .listarFechasDisponibles(
+        salidaId,
+        llegadaId
+      )
+      .subscribe({
+        next: (res) => {
+          this.fechasDisponibles = res ?? [];
+
+          if (!this.fechasDisponibles.length) {
+            this.aviso = 'No hay fechas disponibles para esa ruta.';
+          }
+        },
+        error: (err) => {
+          this.error = err?.error?.message || 'No se pudieron cargar fechas disponibles.';
+        }
+      });
+  }
+
+  cargarFechasRegresoDisponibles(): void {
+    const salidaId = Number(this.filtros.aeropuertoSalidaId);
+    const llegadaId = Number(this.filtros.aeropuertoLlegadaId);
+    const fechaSalida = (this.filtros.fechaSalida || '').trim();
+
+    if (!this.esIdaVuelta || !salidaId || !llegadaId || !fechaSalida) {
+      return;
+    }
+
+    this.clienteVuelosService
+      .listarFechasRegresoDisponibles(
+        llegadaId,
+        salidaId,
+        fechaSalida
+      )
+      .subscribe({
+        next: (res) => {
+          this.fechasRegresoDisponibles = res ?? [];
+
+          if (!this.fechasRegresoDisponibles.length) {
+            this.aviso = 'No hay fechas de regreso disponibles para esa ruta.';
+          }
+        },
+        error: (err) => {
+          this.error = err?.error?.message || 'No se pudieron cargar fechas de regreso.';
+        }
+      });
+  }
+
   buscar(): void {
     this.error = null;
     this.aviso = null;
@@ -200,8 +365,8 @@ export class ReservarVueloComponent implements OnInit {
     const llegadaId = Number(this.filtros.aeropuertoLlegadaId);
     const fecha = (this.filtros.fechaSalida || '').trim();
 
-    if (!salidaId || !llegadaId || !fecha) {
-      this.error = 'Debe ingresar los campos obligatorios.';
+    if (!salidaId || !llegadaId) {
+      this.error = 'Debe seleccionar aeropuerto de salida y destino.';
       return;
     }
 
@@ -216,7 +381,7 @@ export class ReservarVueloComponent implements OnInit {
       .listarDisponibles(
         salidaId,
         llegadaId,
-        fecha
+        fecha || null
       )
       .subscribe({
         next: (res) => {
@@ -558,6 +723,14 @@ export class ReservarVueloComponent implements OnInit {
     }
 
     return `${m}m`;
+  }
+
+  getFechaDisponibleTexto(fecha: ClienteFechaDisponible): string {
+    const precio = fecha.precioMinimo != null
+      ? ` | desde ${fecha.precioMinimo}`
+      : '';
+
+    return `${fecha.fechaSalida} | ${fecha.vuelosDisponibles ?? 0} vuelo(s)${precio}`;
   }
 
   tipoVueloTexto(

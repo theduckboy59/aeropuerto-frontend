@@ -74,6 +74,20 @@ export interface ClienteVueloDisponible {
   segmentos?: ClienteVueloSegmentoDisponible[];
 }
 
+export interface ClienteDestinoAutorizado {
+  aeropuertoId: number;
+  nombre?: string | null;
+  codigoIata?: string | null;
+  ciudad?: string | null;
+  pais?: string | null;
+}
+
+export interface ClienteFechaDisponible {
+  fechaSalida: string;
+  vuelosDisponibles?: number | null;
+  precioMinimo?: number | null;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -83,22 +97,64 @@ export class ClienteVueloService {
   constructor(private http: HttpClient) {}
 
   listarDisponibles(
-  aeropuertoSalidaId: number,
-  aeropuertoLlegadaId: number,
-  fechaSalida?: string | null
-): Observable<ClienteVueloDisponible[]> {
-  let params = new HttpParams()
-    .set('aeropuertoSalidaId', String(aeropuertoSalidaId))
-    .set('aeropuertoLlegadaId', String(aeropuertoLlegadaId));
+    aeropuertoSalidaId: number,
+    aeropuertoLlegadaId: number,
+    fechaSalida?: string | null
+  ): Observable<ClienteVueloDisponible[]> {
+    let params = new HttpParams()
+      .set('aeropuertoSalidaId', String(aeropuertoSalidaId))
+      .set('aeropuertoLlegadaId', String(aeropuertoLlegadaId));
 
-  if (fechaSalida) {
-    params = params.set('fechaSalida', fechaSalida);
+    if (fechaSalida) {
+      params = params.set('fechaSalida', fechaSalida);
+    }
+
+    return this.http.get<ClienteVueloDisponible[]>(this.api, { params });
   }
 
-  return this.http.get<ClienteVueloDisponible[]>(this.api, { params });
-}
+  listarDestinosAutorizados(
+    aeropuertoSalidaId: number
+  ): Observable<ClienteDestinoAutorizado[]> {
+    const params = new HttpParams()
+      .set('aeropuertoSalidaId', String(aeropuertoSalidaId));
 
-obtenerDetalle(vueloOperadoId: number): Observable<ClienteVueloDisponible> {
-  return this.http.get<ClienteVueloDisponible>(`${this.api}/${vueloOperadoId}`);
-}
+    return this.http.get<ClienteDestinoAutorizado[]>(
+      `${this.api}/destinos-autorizados`,
+      { params }
+    );
+  }
+
+  listarFechasDisponibles(
+    aeropuertoSalidaId: number,
+    aeropuertoLlegadaId: number
+  ): Observable<ClienteFechaDisponible[]> {
+    const params = new HttpParams()
+      .set('aeropuertoSalidaId', String(aeropuertoSalidaId))
+      .set('aeropuertoLlegadaId', String(aeropuertoLlegadaId));
+
+    return this.http.get<ClienteFechaDisponible[]>(
+      `${this.api}/fechas-disponibles`,
+      { params }
+    );
+  }
+
+  listarFechasRegresoDisponibles(
+    aeropuertoSalidaId: number,
+    aeropuertoLlegadaId: number,
+    fechaSalida: string
+  ): Observable<ClienteFechaDisponible[]> {
+    const params = new HttpParams()
+      .set('aeropuertoSalidaId', String(aeropuertoSalidaId))
+      .set('aeropuertoLlegadaId', String(aeropuertoLlegadaId))
+      .set('fechaSalida', fechaSalida);
+
+    return this.http.get<ClienteFechaDisponible[]>(
+      `${this.api}/fechas-regreso-disponibles`,
+      { params }
+    );
+  }
+
+  obtenerDetalle(vueloOperadoId: number): Observable<ClienteVueloDisponible> {
+    return this.http.get<ClienteVueloDisponible>(`${this.api}/${vueloOperadoId}`);
+  }
 }

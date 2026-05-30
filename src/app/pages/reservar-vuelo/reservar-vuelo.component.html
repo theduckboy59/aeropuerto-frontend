@@ -6,7 +6,7 @@
         <div>
           <h1 class="title">Reservar vuelo</h1>
           <p class="subtitle">
-            Busca vuelos por origen, destino y fecha. El tipo de vuelo determina automáticamente cómo se seleccionan los asientos.
+            Busca por origen y destino autorizado. La fecha de salida es opcional; si no se indica, se muestran vuelos futuros disponibles.
           </p>
         </div>
       </div>
@@ -23,10 +23,23 @@
 
       <div class="form-grid">
         <div class="field">
+          <label class="label">Tipo de viaje</label>
+          <select
+            class="control"
+            [(ngModel)]="filtros.tipoViaje"
+            (ngModelChange)="onTipoViajeChange()"
+            name="tipoViaje">
+            <option value="IDA">Solo ida</option>
+            <option value="IDA_VUELTA">Ida y vuelta</option>
+          </select>
+        </div>
+
+        <div class="field">
           <label class="label">Aeropuerto salida</label>
           <select
             class="control"
             [(ngModel)]="filtros.aeropuertoSalidaId"
+            (ngModelChange)="onOrigenChange()"
             name="aeropuertoSalidaId">
             <option value="">Selecciona</option>
             <option *ngFor="let a of aeropuertos" [value]="a.id">
@@ -36,25 +49,69 @@
         </div>
 
         <div class="field">
-          <label class="label">Aeropuerto llegada</label>
+          <label class="label">Destino autorizado</label>
           <select
             class="control"
             [(ngModel)]="filtros.aeropuertoLlegadaId"
-            name="aeropuertoLlegadaId">
+            (ngModelChange)="onDestinoChange()"
+            name="aeropuertoLlegadaId"
+            [disabled]="!filtros.aeropuertoSalidaId">
             <option value="">Selecciona</option>
-            <option *ngFor="let a of aeropuertos" [value]="a.id">
-              {{ a.codigoIata || '' }} - {{ a.nombre }}
+            <option *ngFor="let d of destinosAutorizados" [value]="d.aeropuertoId">
+              {{ d.codigoIata || '' }} - {{ d.nombre }} | {{ d.ciudad }}, {{ d.pais }}
             </option>
           </select>
         </div>
 
         <div class="field">
-          <label class="label">Fecha salida</label>
+          <label class="label">Fecha salida opcional</label>
           <input
             class="control"
             type="date"
             [(ngModel)]="filtros.fechaSalida"
-            name="fechaSalida" />
+            (ngModelChange)="onFechaSalidaChange()"
+            name="fechaSalida"
+            list="fechasSalidaDisponibles" />
+
+          <datalist id="fechasSalidaDisponibles">
+            <option *ngFor="let f of fechasDisponibles" [value]="f.fechaSalida">
+              {{ getFechaDisponibleTexto(f) }}
+            </option>
+          </datalist>
+        </div>
+
+        <div class="field" *ngIf="esIdaVuelta">
+          <label class="label">Fecha regreso opcional</label>
+          <input
+            class="control"
+            type="date"
+            [(ngModel)]="filtros.fechaRegreso"
+            name="fechaRegreso"
+            list="fechasRegresoDisponibles" />
+
+          <datalist id="fechasRegresoDisponibles">
+            <option *ngFor="let f of fechasRegresoDisponibles" [value]="f.fechaSalida">
+              {{ getFechaDisponibleTexto(f) }}
+            </option>
+          </datalist>
+        </div>
+      </div>
+
+      <div class="note" *ngIf="fechasDisponibles.length">
+        <div class="note-title">Fechas disponibles de salida</div>
+        <div class="note-body">
+          <span *ngFor="let f of fechasDisponibles">
+            {{ getFechaDisponibleTexto(f) }}&nbsp;&nbsp;
+          </span>
+        </div>
+      </div>
+
+      <div class="note" *ngIf="esIdaVuelta && fechasRegresoDisponibles.length">
+        <div class="note-title">Fechas posibles de regreso</div>
+        <div class="note-body">
+          <span *ngFor="let f of fechasRegresoDisponibles">
+            {{ getFechaDisponibleTexto(f) }}&nbsp;&nbsp;
+          </span>
         </div>
       </div>
 
