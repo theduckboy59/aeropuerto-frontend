@@ -3,20 +3,51 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
+export interface ReservaSegmentoAsientoRequest {
+  segmentoOperadoId: number;
+  asientoVueloId: number;
+}
+
 export interface ReservaPasajeroItemRequest {
-  pasajeroId: number;
+  pasajeroId?: number | null;
+
+  pasaporte?: string | null;
+  nombreCompleto?: string | null;
+  fechaNacimiento?: string | null;
+  nacionalidad?: string | null;
+  codigoArea?: string | null;
+  telefono?: string | null;
+  telefonoEmergencia?: string | null;
+  direccion?: string | null;
+
   asientoVueloId?: number | null;
   claseVueloId?: number | null;
   cantidadMaletas?: number | null;
   requiereAsiento?: boolean | null;
   precioBase?: number | null;
+
+  tipoPasajero?: string | null;
+  adultoResponsablePasajeroId?: number | null;
+
+  segmentosAsientos?: ReservaSegmentoAsientoRequest[];
 }
 
 export interface ReservaRequest {
   userId?: number | null;
+  pasajeroId?: number | null;
+
   vueloOperadoId: number;
-  segmentoOperadoId: number;
-  pasajeros: ReservaPasajeroItemRequest[];
+
+  segmentoOperadoId?: number | null;
+  asientoVueloId?: number | null;
+  claseVueloId?: number | null;
+  cantidadMaletas?: number | null;
+  precioBase?: number | null;
+  requiereAsiento?: boolean | null;
+
+  segmentosAsientos?: ReservaSegmentoAsientoRequest[];
+
+  pasajeros?: ReservaPasajeroItemRequest[];
 }
 
 @Injectable({
@@ -43,4 +74,3 @@ export class ReservaService {
     return this.http.patch<any>(`${this.api}/${id}/cancelar`, null);
   }
 }
-

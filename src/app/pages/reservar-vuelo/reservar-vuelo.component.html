@@ -6,7 +6,7 @@
         <div>
           <h1 class="title">Reservar vuelo</h1>
           <p class="subtitle">
-            Flujo guiado: busca vuelos, selecciona segmento, carga asientos, reserva, paga y hace check-in.
+            Busca vuelos por origen, destino y fecha. El tipo de vuelo determina automáticamente cómo se seleccionan los asientos.
           </p>
         </div>
       </div>
@@ -24,32 +24,48 @@
       <div class="form-grid">
         <div class="field">
           <label class="label">Aeropuerto salida</label>
-          <select class="control" [(ngModel)]="filtros.aeropuertoSalidaId" name="aeropuertoSalidaId">
+          <select
+            class="control"
+            [(ngModel)]="filtros.aeropuertoSalidaId"
+            name="aeropuertoSalidaId">
             <option value="">Selecciona</option>
-            <option *ngFor="let a of aeropuertos" [value]="a.id">{{ a.nombre }}</option>
+            <option *ngFor="let a of aeropuertos" [value]="a.id">
+              {{ a.codigoIata || '' }} - {{ a.nombre }}
+            </option>
           </select>
         </div>
 
         <div class="field">
           <label class="label">Aeropuerto llegada</label>
-          <select class="control" [(ngModel)]="filtros.aeropuertoLlegadaId" name="aeropuertoLlegadaId">
+          <select
+            class="control"
+            [(ngModel)]="filtros.aeropuertoLlegadaId"
+            name="aeropuertoLlegadaId">
             <option value="">Selecciona</option>
-            <option *ngFor="let a of aeropuertos" [value]="a.id">{{ a.nombre }}</option>
+            <option *ngFor="let a of aeropuertos" [value]="a.id">
+              {{ a.codigoIata || '' }} - {{ a.nombre }}
+            </option>
           </select>
         </div>
 
         <div class="field">
           <label class="label">Fecha salida</label>
-          <input class="control" type="date" [(ngModel)]="filtros.fechaSalida" name="fechaSalida" />
+          <input
+            class="control"
+            type="date"
+            [(ngModel)]="filtros.fechaSalida"
+            name="fechaSalida" />
         </div>
       </div>
 
       <div class="form-actions">
-        <button class="btn-primary" type="button" (click)="buscar()">Buscar vuelos</button>
+        <button class="btn-primary" type="button" (click)="buscar()">
+          Buscar vuelos
+        </button>
       </div>
     </section>
 
-    <section class="card" aria-label="Paso 2" *ngIf="vuelosOperados.length">
+    <section class="card" aria-label="Paso 2" *ngIf="vuelosDisponibles.length">
       <div class="section-head">
         <h2 class="section-title">Paso 2 - Seleccionar vuelo</h2>
       </div>
@@ -58,27 +74,45 @@
         <table class="table">
           <thead>
             <tr>
-              <th>Codigo</th>
-              <th>Aerolinea</th>
+              <th>Código</th>
+              <th>Aerolínea</th>
+              <th>Ruta</th>
               <th>Salida</th>
               <th>Llegada</th>
-              <th>Fecha</th>
-              <th>Hora</th>
-              <th>Estado</th>
-              <th>Accion</th>
+              <th>Duración</th>
+              <th>Económica</th>
+              <th>Ejecutiva</th>
+              <th>Tipo</th>
+              <th>Asientos</th>
+              <th>Acción</th>
             </tr>
           </thead>
+
           <tbody>
-            <tr *ngFor="let v of vuelosOperados">
-              <td>{{ v.codigoVuelo || v.id }}</td>
-              <td>{{ v.aerolineaNombre || v.aerolineaId || '-' }}</td>
-              <td>{{ v.aeropuertoSalidaCodigoIata || '-' }}</td>
-              <td>{{ v.aeropuertoLlegadaCodigoIata || '-' }}</td>
-              <td>{{ v.fechaSalidaProgramada || '-' }}</td>
-              <td>{{ v.horaSalidaProgramada || '-' }}</td>
-              <td>{{ v.estadoVueloNombre || v.estadoVueloId || '-' }}</td>
+            <tr *ngFor="let v of vuelosDisponibles">
+              <td>{{ v.codigoVuelo || v.vueloOperadoId }}</td>
+              <td>{{ v.aerolineaNombre || '-' }}</td>
               <td>
-                <button class="btn-secondary" type="button" (click)="seleccionarVuelo(v)">Seleccionar</button>
+                {{ v.aeropuertoSalidaCodigoIata || '-' }}
+                →
+                {{ v.aeropuertoLlegadaCodigoIata || '-' }}
+              </td>
+              <td>{{ v.fechaSalida || '-' }} {{ v.horaSalida || '' }}</td>
+              <td>{{ v.fechaLlegada || '-' }} {{ v.horaLlegada || '' }}</td>
+              <td>{{ getDuracionTexto(v.duracionMinutos) }}</td>
+              <td>{{ v.precioEconomica || 0 }}</td>
+              <td>{{ v.precioEjecutiva || 0 }}</td>
+              <td>
+                <span class="tag">{{ tipoVueloTexto(v) }}</span>
+              </td>
+              <td>{{ v.asientosDisponiblesTotal ?? '-' }}</td>
+              <td>
+                <button
+                  class="btn-secondary"
+                  type="button"
+                  (click)="seleccionarVuelo(v)">
+                  Seleccionar / Ver
+                </button>
               </td>
             </tr>
           </tbody>
@@ -88,55 +122,78 @@
 
     <section class="card" aria-label="Paso 3" *ngIf="vueloSeleccionado">
       <div class="section-head">
-        <h2 class="section-title">Paso 3 - Segmento, clase y asiento</h2>
+        <div>
+          <h2 class="section-title">Paso 3 - Clase, asiento y maletas</h2>
+          <p class="muted">
+            El cliente no selecciona si el vuelo es directo, técnico o cambio de avión; eso depende del vuelo elegido.
+          </p>
+        </div>
       </div>
 
       <div class="pill">
-        Vuelo {{ vueloSeleccionado.codigoVuelo || vueloSeleccionado.id }} |
+        Vuelo {{ vueloSeleccionado.codigoVuelo || vueloSeleccionado.vueloOperadoId }} |
         {{ vueloSeleccionado.aerolineaNombre || '-' }} |
-        {{ vueloSeleccionado.aeropuertoSalidaCodigoIata || '-' }} ->
-        {{ vueloSeleccionado.aeropuertoLlegadaCodigoIata || '-' }}
+        {{ vueloSeleccionado.aeropuertoSalidaCodigoIata || '-' }}
+        →
+        {{ vueloSeleccionado.aeropuertoLlegadaCodigoIata || '-' }} |
+        {{ tipoVueloTexto(vueloSeleccionado) }}
+      </div>
+
+      <div class="segment-summary" *ngIf="segmentos.length">
+        <div class="segment-card" *ngFor="let s of segmentos">
+          <div class="segment-title">
+            Segmento {{ s.ordenSegmento }}
+          </div>
+
+          <div class="segment-route">
+            {{ s.aeropuertoSalidaCodigoIata || '-' }}
+            →
+            {{ s.aeropuertoLlegadaCodigoIata || '-' }}
+          </div>
+
+          <div class="segment-meta">
+            {{ s.fechaSalida }} {{ s.horaSalida }} -
+            {{ s.fechaLlegada }} {{ s.horaLlegada }}
+          </div>
+
+          <div class="segment-meta">
+            Avión: {{ s.codigoAvion || s.avionId || '-' }}
+          </div>
+        </div>
       </div>
 
       <div class="form-grid">
-        <div class="field">
-          <label class="label">Segmento</label>
-          <select
-            class="control"
-            [(ngModel)]="segmentoSeleccionadoId"
-            (ngModelChange)="onSegmentoOClaseChange()"
-            name="segmentoSeleccionadoId">
-            <option value="">Selecciona</option>
-            <option *ngFor="let s of segmentos" [value]="s.id">
-              {{ s.ordenSegmento }} | {{ s.aeropuertoSalidaCodigoIata }} -> {{ s.aeropuertoLlegadaCodigoIata }} |
-              {{ s.fechaSalida }} {{ s.horaSalida }}
-            </option>
-          </select>
-        </div>
-
         <div class="field">
           <label class="label">Clase</label>
           <select
             class="control"
             [(ngModel)]="claseVueloId"
-            (ngModelChange)="onSegmentoOClaseChange()"
+            (ngModelChange)="onClaseChange()"
             name="claseVueloId">
             <option value="">Selecciona</option>
-            <option *ngFor="let c of clases" [value]="c.id">{{ c.nombre }}</option>
+            <option *ngFor="let c of clases" [value]="c.id">
+              {{ c.nombre }}
+            </option>
           </select>
+        </div>
+
+        <div class="field">
+          <label class="label">Precio clase seleccionada</label>
+          <input
+            class="control"
+            [value]="precioClaseSeleccionada ?? '-'"
+            readonly />
         </div>
 
         <div class="field">
           <label class="label">Maletas</label>
-          <input class="control" type="number" min="0" max="6" [(ngModel)]="cantidadMaletas" name="cantidadMaletas" />
-        </div>
-
-        <div class="field">
-          <label class="label">Asiento</label>
-          <select class="control" [(ngModel)]="asientoVueloId" name="asientoVueloId" [disabled]="!asientos.length">
-            <option value="">Selecciona</option>
-            <option *ngFor="let a of asientos" [value]="a.id">{{ a.codigoAsientoSistema || a.id }}</option>
-          </select>
+          <input
+            class="control"
+            type="number"
+            min="0"
+            max="6"
+            [(ngModel)]="cantidadMaletas"
+            name="cantidadMaletas" />
         </div>
       </div>
 
@@ -148,7 +205,68 @@
           (click)="cargarAsientos()">
           {{ cargandoAsientos ? 'Cargando asientos...' : 'Cargar asientos' }}
         </button>
+      </div>
 
+      <div class="seat-section" *ngIf="usaAsientoUnico && asientosUnicos.length">
+        <h3 class="subsection-title">
+          Selección de asiento
+        </h3>
+
+        <p class="muted" *ngIf="segmentos.length > 1">
+          Vuelo técnico: selecciona un asiento una sola vez. El sistema aplicará el mismo código de asiento en cada segmento técnico.
+        </p>
+
+        <div class="field field--wide">
+          <label class="label">Asiento</label>
+          <select
+            class="control"
+            [(ngModel)]="asientoUnicoId"
+            name="asientoUnicoId">
+            <option value="">Selecciona</option>
+            <option *ngFor="let a of asientosUnicos" [value]="a.id">
+              {{ getCodigoAsiento(a) }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="seat-section" *ngIf="esCambioAvion && segmentos.length">
+        <h3 class="subsection-title">
+          Selección de asiento por segmento
+        </h3>
+
+        <p class="muted">
+          Cambio de avión: se debe elegir un asiento distinto por cada segmento.
+        </p>
+
+        <div class="segment-seat-grid">
+          <div class="segment-seat-card" *ngFor="let s of segmentos">
+            <div class="segment-title">
+              {{ getTituloSegmento(s) }}
+            </div>
+
+            <div class="field">
+              <label class="label">Asiento segmento {{ s.ordenSegmento }}</label>
+              <select
+                class="control"
+                [ngModel]="getAsientoSegmento(s)"
+                (ngModelChange)="setAsientoSegmento(s, $event)"
+                [name]="'asientoSegmento_' + s.segmentoOperadoId">
+                <option value="">Selecciona</option>
+                <option *ngFor="let a of getAsientosSegmento(s)" [value]="a.id">
+                  {{ getCodigoAsiento(a) }}
+                </option>
+              </select>
+            </div>
+
+            <p class="muted" *ngIf="!getAsientosSegmento(s).length && claseVueloId">
+              Sin asientos cargados o disponibles para este segmento.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
         <button
           class="btn-primary"
           type="button"
@@ -162,18 +280,53 @@
     <section class="card" aria-label="Paso 4" *ngIf="reserva">
       <div class="section-head">
         <h2 class="section-title">Paso 4 - Reserva creada</h2>
+
         <div class="head-actions">
-          <button class="btn-secondary" type="button" (click)="descargarReservaPdf()">PDF reserva</button>
-          <button class="btn-secondary" type="button" (click)="descargarBoletoPdf()">PDF boleto</button>
+          <button class="btn-secondary" type="button" (click)="descargarReservaPdf()">
+            PDF reserva
+          </button>
+
+          <button class="btn-secondary" type="button" (click)="descargarBoletoPdf()">
+            PDF boleto
+          </button>
         </div>
       </div>
 
       <div class="kv">
-        <div class="kv-row"><div class="kv-key">Codigo reserva</div><div class="kv-val">{{ reserva.codigoReserva }}</div></div>
-        <div class="kv-row"><div class="kv-key">Codigo boleto</div><div class="kv-val">{{ reserva.codigoBoleto }}</div></div>
-        <div class="kv-row"><div class="kv-key">Pase abordar</div><div class="kv-val">{{ reserva.codigoPaseAbordar }}</div></div>
-        <div class="kv-row"><div class="kv-key">Total</div><div class="kv-val">{{ reserva.total }}</div></div>
-        <div class="kv-row"><div class="kv-key">Estado</div><div class="kv-val">{{ reserva.estadoReserva }} / {{ reserva.estadoBoleto }}</div></div>
+        <div class="kv-row">
+          <div class="kv-key">Código reserva</div>
+          <div class="kv-val">{{ reserva.codigoReserva }}</div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Código boleto</div>
+          <div class="kv-val">{{ reserva.codigoBoleto }}</div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Pase abordar</div>
+          <div class="kv-val">{{ reserva.codigoPaseAbordar }}</div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Subtotal</div>
+          <div class="kv-val">{{ reserva.subtotal }}</div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Recargo asiento</div>
+          <div class="kv-val">{{ reserva.recargoTotal || 0 }}</div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Total</div>
+          <div class="kv-val">{{ reserva.total }}</div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Estado</div>
+          <div class="kv-val">{{ reserva.estadoReserva }} / {{ reserva.estadoBoleto }}</div>
+        </div>
       </div>
     </section>
 
@@ -182,52 +335,89 @@
 
       <div class="form-grid">
         <div class="field">
-          <label class="label">Metodo de pago</label>
-          <select class="control" [(ngModel)]="pagoForm.metodoPagoId" name="metodoPagoId">
+          <label class="label">Método de pago</label>
+          <select
+            class="control"
+            [(ngModel)]="pagoForm.metodoPagoId"
+            name="metodoPagoId">
             <option value="">Selecciona</option>
-            <option *ngFor="let m of metodosPago" [value]="m.id">{{ m.nombre }}</option>
+            <option *ngFor="let m of metodosPago" [value]="m.id">
+              {{ m.nombre }}
+            </option>
           </select>
         </div>
 
         <div class="field">
           <label class="label">NIT</label>
-          <input class="control" [(ngModel)]="pagoForm.nit" name="nit" />
+          <input
+            class="control"
+            [(ngModel)]="pagoForm.nit"
+            name="nit" />
         </div>
 
         <div class="field field--wide">
           <label class="label">Nombre cliente</label>
-          <input class="control" [(ngModel)]="pagoForm.nombreCliente" name="nombreCliente" />
+          <input
+            class="control"
+            [(ngModel)]="pagoForm.nombreCliente"
+            name="nombreCliente" />
         </div>
       </div>
 
       <div class="form-actions">
-        <button class="btn-primary" type="button" [disabled]="!puedePagar" (click)="pagar()">Registrar pago</button>
+        <button
+          class="btn-primary"
+          type="button"
+          [disabled]="!puedePagar"
+          (click)="pagar()">
+          Registrar pago
+        </button>
       </div>
 
       <div class="alert-success" *ngIf="pago">
         <div class="success-row">
           <div>Pago registrado correctamente.</div>
-          <button class="btn-secondary" type="button" (click)="descargarFacturaPdf()">PDF factura</button>
+
+          <button class="btn-secondary" type="button" (click)="descargarFacturaPdf()">
+            PDF factura
+          </button>
         </div>
       </div>
     </section>
 
     <section class="card" aria-label="Paso 6" *ngIf="reserva">
       <h2 class="section-title">Paso 6 - Check-in</h2>
-      <p class="muted">El check-in web valida pago y activa el pase de abordar.</p>
+
+      <p class="muted">
+        El check-in queda antes del CU-05. El CU-05 Abordaje solo valida el pase/check-in y marca abordado.
+      </p>
 
       <div class="form-actions">
-        <button class="btn-primary" type="button" [disabled]="!puedeHacerCheckin" (click)="hacerCheckin()">
+        <button
+          class="btn-primary"
+          type="button"
+          [disabled]="!puedeHacerCheckin"
+          (click)="hacerCheckin()">
           Hacer check-in
         </button>
       </div>
 
       <div class="kv" *ngIf="checkin">
-        <div class="kv-row"><div class="kv-key">Reserva pagada</div><div class="kv-val">{{ checkin.reservaPagada ? 'Si' : 'No' }}</div></div>
-        <div class="kv-row"><div class="kv-key">Asiento</div><div class="kv-val">{{ checkin.asiento || '-' }}</div></div>
-        <div class="kv-row"><div class="kv-key">Pase</div><div class="kv-val">{{ checkin.codigoPaseAbordar || '-' }}</div></div>
+        <div class="kv-row">
+          <div class="kv-key">Reserva pagada</div>
+          <div class="kv-val">{{ checkin.reservaPagada ? 'Sí' : 'No' }}</div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Asiento</div>
+          <div class="kv-val">{{ checkin.asiento || '-' }}</div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Pase</div>
+          <div class="kv-val">{{ checkin.codigoPaseAbordar || '-' }}</div>
+        </div>
       </div>
     </section>
   </main>
 </div>
-
