@@ -7,6 +7,7 @@ import { environment } from '../../environments/environment';
   providedIn: 'root'
 })
 export class DocumentosService {
+
   private api = `${environment.apiUrl}/documentos`;
 
   constructor(private http: HttpClient) {}
@@ -29,4 +30,3 @@ export class DocumentosService {
     });
   }
 }
-

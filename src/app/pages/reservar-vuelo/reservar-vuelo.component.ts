@@ -25,6 +25,7 @@ import {
   styleUrl: './reservar-vuelo.component.css'
 })
 export class ReservarVueloComponent implements OnInit {
+
   cargando = false;
   cargandoAsientos = false;
 
@@ -96,21 +97,29 @@ export class ReservarVueloComponent implements OnInit {
     });
 
     this.catalogos.aeropuertos().subscribe({
-      next: (r) => (this.aeropuertos = r ?? []),
+      next: (r) => {
+        this.aeropuertos = r ?? [];
+      },
       error: () => {
         this.error = 'No se pudieron cargar aeropuertos.';
       }
     });
 
     this.catalogos.claseVuelo().subscribe({
-      next: (r) => (this.clases = r ?? [])
+      next: (r) => {
+        this.clases = r ?? [];
+      }
     });
 
     this.catalogos.metodoPago().subscribe({
-      next: (r) => (this.metodosPago = r ?? [])
+      next: (r) => {
+        this.metodosPago = r ?? [];
+      }
     });
 
-    setTimeout(() => (this.cargando = false), 250);
+    setTimeout(() => {
+      this.cargando = false;
+    }, 250);
   }
 
   get segmentos(): ClienteVueloSegmentoDisponible[] {
@@ -748,8 +757,13 @@ export class ReservarVueloComponent implements OnInit {
       return;
     }
 
+    const codigo = this.nombreArchivoSeguro(
+      this.reserva?.codigoReserva,
+      'reserva'
+    );
+
     this.documentos.reservaPdf(id).subscribe({
-      next: (blob) => this.saveBlob(blob, `reserva_${this.reserva?.codigoReserva || id}.pdf`)
+      next: (blob) => this.saveBlob(blob, `reserva_${codigo}.pdf`)
     });
   }
 
@@ -760,8 +774,13 @@ export class ReservarVueloComponent implements OnInit {
       return;
     }
 
+    const codigo = this.nombreArchivoSeguro(
+      this.reserva?.codigoBoleto,
+      'boleto'
+    );
+
     this.documentos.boletoPdf(id).subscribe({
-      next: (blob) => this.saveBlob(blob, `boleto_${this.reserva?.codigoBoleto || id}.pdf`)
+      next: (blob) => this.saveBlob(blob, `boleto_${codigo}.pdf`)
     });
   }
 
@@ -772,8 +791,18 @@ export class ReservarVueloComponent implements OnInit {
       return;
     }
 
+    const serie = this.nombreArchivoSeguro(
+      this.pago?.factura?.serie,
+      'FEL'
+    );
+
+    const numero = this.nombreArchivoSeguro(
+      this.pago?.factura?.numero,
+      'sin_numero'
+    );
+
     this.documentos.facturaPorPagoPdf(id).subscribe({
-      next: (blob) => this.saveBlob(blob, `factura_pago_${id}.pdf`)
+      next: (blob) => this.saveBlob(blob, `factura_${serie}_${numero}.pdf`)
     });
   }
 
@@ -824,6 +853,7 @@ export class ReservarVueloComponent implements OnInit {
       }
 
       const asientosSegmento = this.asientosPorSegmento[segmentoId] ?? [];
+
       const asientoEquivalente = asientosSegmento.find(
         (a) => this.getCodigoAsiento(a) === codigoBase
       );
@@ -872,6 +902,19 @@ export class ReservarVueloComponent implements OnInit {
     a.click();
 
     URL.revokeObjectURL(url);
+  }
+
+  private nombreArchivoSeguro(
+    value: any,
+    fallback: string
+  ): string {
+    const text = String(value ?? '').trim();
+
+    if (!text) {
+      return fallback;
+    }
+
+    return text.replace(/[^a-zA-Z0-9._-]/g, '_');
   }
 
   private resetSeleccionCompleta(): void {
