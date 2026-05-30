@@ -83,19 +83,18 @@ export class ClienteVueloService {
   constructor(private http: HttpClient) {}
 
   listarDisponibles(
-    aeropuertoSalidaId: number,
-    aeropuertoLlegadaId: number,
-    fechaSalida: string
-  ): Observable<ClienteVueloDisponible[]> {
-    const params = new HttpParams()
-      .set('aeropuertoSalidaId', String(aeropuertoSalidaId))
-      .set('aeropuertoLlegadaId', String(aeropuertoLlegadaId))
-      .set('fechaSalida', fechaSalida);
+  aeropuertoSalidaId: number,
+  aeropuertoLlegadaId: number,
+  fechaSalida?: string | null
+): Observable<ClienteVueloDisponible[]> {
+  let params = new HttpParams()
+    .set('aeropuertoSalidaId', String(aeropuertoSalidaId))
+    .set('aeropuertoLlegadaId', String(aeropuertoLlegadaId));
 
-    return this.http.get<ClienteVueloDisponible[]>(this.api, { params });
+  if (fechaSalida) {
+    params = params.set('fechaSalida', fechaSalida);
   }
 
-  obtenerDetalle(vueloOperadoId: number): Observable<ClienteVueloDisponible> {
-    return this.http.get<ClienteVueloDisponible>(`${this.api}/${vueloOperadoId}`);
-  }
+  return this.http.get<ClienteVueloDisponible[]>(this.api, { params });
+}
 }
