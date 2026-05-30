@@ -71,6 +71,7 @@
             [(ngModel)]="filtros.fechaSalida"
             (ngModelChange)="onFechaSalidaChange()"
             name="fechaSalida"
+            [min]="fechaMinima"
             list="fechasSalidaDisponibles" />
 
           <datalist id="fechasSalidaDisponibles">
@@ -87,6 +88,7 @@
             type="date"
             [(ngModel)]="filtros.fechaRegreso"
             name="fechaRegreso"
+            [min]="filtros.fechaSalida || fechaMinima"
             list="fechasRegresoDisponibles" />
 
           <datalist id="fechasRegresoDisponibles">

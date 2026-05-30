@@ -9,6 +9,8 @@ import { EmpleadoService } from '../../services/empleado.service';
   styleUrl: './empleado-edit.component.css'
 })
 export class EmpleadoEditComponent implements OnInit {
+  readonly fechaMinima = this.obtenerFechaMinima();
+
   form: any = this.getEmptyForm();
   empleadoId: number | null = null;
   codigoEmpleado: string | null = null;
@@ -156,5 +158,14 @@ export class EmpleadoEditComponent implements OnInit {
 
   regresar() {
     this.router.navigate(['/menu/aerolinea/empleados']);
+  }
+
+  private obtenerFechaMinima(): string {
+    const hoy = new Date();
+    const anio = hoy.getFullYear();
+    const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoy.getDate()).padStart(2, '0');
+
+    return `${anio}-${mes}-${dia}`;
   }
 }

@@ -10,6 +10,8 @@ import { getApiErrorMessage } from '../../services/shared/api-error.util';
   styleUrl: './empleado-form.component.css'
 })
 export class EmpleadoFormComponent implements OnInit {
+  readonly fechaMinima = this.obtenerFechaMinima();
+
   form: any = this.getEmptyForm();
 
   tipoEmpleado: any[] = [];
@@ -128,5 +130,14 @@ export class EmpleadoFormComponent implements OnInit {
 
   regresar() {
     this.router.navigate(['/menu/aerolinea/empleados']);
+  }
+
+  private obtenerFechaMinima(): string {
+    const hoy = new Date();
+    const anio = hoy.getFullYear();
+    const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoy.getDate()).padStart(2, '0');
+
+    return `${anio}-${mes}-${dia}`;
   }
 }

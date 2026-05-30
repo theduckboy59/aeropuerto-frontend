@@ -69,12 +69,12 @@
 
           <div class="field">
             <label class="label">Fecha Ingreso</label>
-            <input class="control" type="date" [(ngModel)]="filtros.fechaIngreso" />
+            <input class="control" type="date" [(ngModel)]="filtros.fechaIngreso" [min]="fechaMinima" />
           </div>
 
           <div class="field">
             <label class="label">Fecha Salida</label>
-            <input class="control" type="date" [(ngModel)]="filtros.fechaSalida" />
+            <input class="control" type="date" [(ngModel)]="filtros.fechaSalida" [min]="fechaMinima" />
           </div>
         </div>
 

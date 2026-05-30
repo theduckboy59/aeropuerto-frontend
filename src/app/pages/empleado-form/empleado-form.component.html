@@ -56,12 +56,12 @@
 
           <div class="field">
             <label class="label">Fecha Ingreso</label>
-            <input class="control" type="date" [(ngModel)]="form.fechaIngreso" />
+            <input class="control" type="date" [(ngModel)]="form.fechaIngreso" [min]="fechaMinima" />
           </div>
 
           <div class="field">
             <label class="label">Fecha Salida <span style="color: #999; font-size: 0.9em;">(Opcional)</span></label>
-            <input class="control" type="date" [(ngModel)]="form.fechaSalida" />
+            <input class="control" type="date" [(ngModel)]="form.fechaSalida" [min]="fechaMinima" />
           </div>
 
           <div class="field">
@@ -106,7 +106,7 @@
 
           <div class="field">
             <label class="label">Fecha Vencimiento Licencia <span style="color: #999; font-size: 0.9em;">(Opcional)</span></label>
-            <input class="control" type="date" [(ngModel)]="form.fechaVencimientoLicencia" />
+            <input class="control" type="date" [(ngModel)]="form.fechaVencimientoLicencia" [min]="fechaMinima" />
           </div>
         </div>
 

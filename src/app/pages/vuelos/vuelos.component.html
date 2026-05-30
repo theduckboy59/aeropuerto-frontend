@@ -112,6 +112,7 @@
             type="date"
             [(ngModel)]="filtros.fechaSalida"
             name="fechaSalida"
+            [min]="fechaMinima"
             (ngModelChange)="onFiltroChange()"
           />
         </div>
@@ -134,6 +135,7 @@
             type="date"
             [(ngModel)]="filtros.fechaLlegada"
             name="fechaLlegada"
+            [min]="fechaMinima"
             (ngModelChange)="onFiltroChange()"
           />
         </div>

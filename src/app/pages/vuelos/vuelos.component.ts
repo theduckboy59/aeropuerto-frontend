@@ -11,6 +11,7 @@ import { getApiErrorMessage } from '../../services/shared/api-error.util';
   styleUrl: './vuelos.component.css'
 })
 export class VuelosComponent implements OnInit {
+  readonly fechaMinima = this.obtenerFechaMinima();
 
   vuelos: Vuelo[] = [];
   aerolineas: any[] = [];
@@ -252,5 +253,14 @@ export class VuelosComponent implements OnInit {
     }
 
     return hora;
+  }
+
+  private obtenerFechaMinima(): string {
+    const hoy = new Date();
+    const anio = hoy.getFullYear();
+    const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoy.getDate()).padStart(2, '0');
+
+    return `${anio}-${mes}-${dia}`;
   }
 }

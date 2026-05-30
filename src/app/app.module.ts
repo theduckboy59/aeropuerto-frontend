@@ -56,6 +56,7 @@ import { ConsultaVueloComponent } from './pages/consulta-vuelo/consulta-vuelo.co
 import { ConsultasComponent } from './pages/consultas/consultas.component';
 import { ReservarVueloComponent } from './pages/reservar-vuelo/reservar-vuelo.component';
 import { AbordajeVuelosComponent } from './pages/abordaje-vuelos/abordaje-vuelos.component';
+import { BlockPastDateDirective } from './directives/block-past-date.directive';
 
 @NgModule({
   declarations: [
@@ -106,7 +107,8 @@ import { AbordajeVuelosComponent } from './pages/abordaje-vuelos/abordaje-vuelos
     ConsultaVueloComponent,
     ConsultasComponent,
     ReservarVueloComponent,
-    AbordajeVuelosComponent
+    AbordajeVuelosComponent,
+    BlockPastDateDirective
   ],
   imports: [
     BrowserModule,

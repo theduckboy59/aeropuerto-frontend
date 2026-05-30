@@ -14,6 +14,7 @@ import { getApiErrorMessage } from '../../services/shared/api-error.util';
   styleUrl: './vuelos-operados.component.css'
 })
 export class VuelosOperadosComponent implements OnInit {
+  readonly fechaMinima = this.obtenerFechaMinima();
 
   vuelosOperados: VueloOperado[] = [];
   estadosVuelo: any[] = [];
@@ -289,5 +290,14 @@ export class VuelosOperadosComponent implements OnInit {
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
       .replace(/\s+/g, '_');
+  }
+
+  private obtenerFechaMinima(): string {
+    const hoy = new Date();
+    const anio = hoy.getFullYear();
+    const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoy.getDate()).padStart(2, '0');
+
+    return `${anio}-${mes}-${dia}`;
   }
 }

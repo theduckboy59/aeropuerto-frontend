@@ -54,6 +54,7 @@
             type="date"
             [(ngModel)]="filtros.fechaSalidaReal"
             name="fechaSalidaReal"
+            [min]="fechaMinima"
           />
         </div>
 
@@ -64,6 +65,7 @@
             type="date"
             [(ngModel)]="filtros.fechaLlegadaReal"
             name="fechaLlegadaReal"
+            [min]="fechaMinima"
           />
         </div>
 

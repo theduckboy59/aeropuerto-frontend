@@ -33,7 +33,7 @@
         <div class="form-grid">
           <div class="field">
             <label class="label">Fecha desde</label>
-            <input class="control" type="date" [(ngModel)]="filtrosVuelos.fechaDesde" name="fechaDesde" />
+            <input class="control" type="date" [(ngModel)]="filtrosVuelos.fechaDesde" name="fechaDesde" [min]="fechaMinima" />
           </div>
           <div class="field">
             <label class="label">Hora desde</label>
@@ -41,7 +41,7 @@
           </div>
           <div class="field">
             <label class="label">Fecha hasta</label>
-            <input class="control" type="date" [(ngModel)]="filtrosVuelos.fechaHasta" name="fechaHasta" />
+            <input class="control" type="date" [(ngModel)]="filtrosVuelos.fechaHasta" name="fechaHasta" [min]="filtrosVuelos.fechaDesde || fechaMinima" />
           </div>
           <div class="field">
             <label class="label">Hora hasta</label>
