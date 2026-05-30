@@ -18,6 +18,7 @@ import { VueloOperado, VueloOperadoService } from '../../services/vuelo-operado.
 export class AbordajeVuelosComponent implements OnInit {
   cargando = false;
   cargandoPago = false;
+  iniciandoAbordaje = false;
 
   error: string | null = null;
   ok: string | null = null;
@@ -82,7 +83,12 @@ export class AbordajeVuelosComponent implements OnInit {
     this.vuelosOperados.listarEstadosVuelo().subscribe({
       next: (r: any[]) => {
         this.estados = r ?? [];
-        this.estadoVueloId = this.obtenerEstadoInicial(this.estados);
+
+        /*
+         * Para abordaje conviene iniciar viendo PROGRAMADO.
+         * Al seleccionar, el front cambia el vuelo automáticamente a ABORDANDO.
+         */
+        this.estadoVueloId = this.obtenerEstadoIdTexto('PROGRAMADO') || '';
       },
       error: () => {
         this.estados = [];
@@ -139,8 +145,6 @@ export class AbordajeVuelosComponent implements OnInit {
   }
 
   seleccionar(vuelo: VueloOperado): void {
-    this.vueloSeleccionado = vuelo;
-
     this.error = null;
     this.ok = null;
     this.aviso = null;
@@ -155,6 +159,33 @@ export class AbordajeVuelosComponent implements OnInit {
       nit: 'CF',
       nombreCliente: ''
     };
+
+    const vueloOperadoId = Number(vuelo?.id);
+
+    if (!vueloOperadoId) {
+      this.error = 'Vuelo operado inválido.';
+      return;
+    }
+
+    const estadoActual = this.normalizar(this.getEstado(vuelo));
+
+    if (estadoActual === 'ABORDANDO') {
+      this.vueloSeleccionado = vuelo;
+      this.ok = 'Vuelo listo para abordaje.';
+      return;
+    }
+
+    if (
+      estadoActual === 'EN_VUELO' ||
+      estadoActual === 'ATERRIZADO' ||
+      estadoActual === 'FINALIZADO' ||
+      estadoActual === 'CANCELADO'
+    ) {
+      this.error = 'Este vuelo ya no puede iniciar abordaje.';
+      return;
+    }
+
+    this.iniciarAbordaje(vuelo);
   }
 
   nuevoVuelo(): void {
@@ -369,6 +400,10 @@ export class AbordajeVuelosComponent implements OnInit {
       return 'state-pill state-open';
     }
 
+    if (estado.includes('PROGRAMADO')) {
+      return 'state-pill state-info';
+    }
+
     if (estado.includes('EN_VUELO')) {
       return 'state-pill state-info';
     }
@@ -388,6 +423,84 @@ export class AbordajeVuelosComponent implements OnInit {
     const n = Number(value ?? 0);
 
     return `Q ${n.toFixed(2)}`;
+  }
+
+  private iniciarAbordaje(vuelo: VueloOperado): void {
+    const vueloOperadoId = Number(vuelo?.id);
+
+    if (!vueloOperadoId) {
+      this.error = 'Vuelo operado inválido.';
+      return;
+    }
+
+    const abordandoId = this.obtenerEstadoIdTexto('ABORDANDO');
+
+    if (!abordandoId) {
+      this.cargarEstadosEIniciarAbordaje(vuelo);
+      return;
+    }
+
+    this.iniciandoAbordaje = true;
+    this.cargando = true;
+
+    this.vuelosOperados.cambiarEstado(vueloOperadoId, Number(abordandoId)).subscribe({
+      next: (actualizado: VueloOperado) => {
+        this.vueloSeleccionado = actualizado || {
+          ...(vuelo as any),
+          estadoVueloId: Number(abordandoId),
+          estadoVueloNombre: 'ABORDANDO'
+        };
+
+        this.actualizarVueloEnListado(this.vueloSeleccionado);
+
+        this.ok = 'Vuelo cambiado a ABORDANDO. Ya puedes buscar pasajeros.';
+        this.iniciandoAbordaje = false;
+        this.cargando = false;
+      },
+      error: (err: any) => {
+        this.error = err?.error?.message || 'No se pudo iniciar el abordaje del vuelo.';
+        this.iniciandoAbordaje = false;
+        this.cargando = false;
+      }
+    });
+  }
+
+  private cargarEstadosEIniciarAbordaje(vuelo: VueloOperado): void {
+    this.cargando = true;
+
+    this.vuelosOperados.listarEstadosVuelo().subscribe({
+      next: (estados: any[]) => {
+        this.estados = estados ?? [];
+        this.cargando = false;
+
+        const abordandoId = this.obtenerEstadoIdTexto('ABORDANDO');
+
+        if (!abordandoId) {
+          this.error = 'No existe el estado ABORDANDO en catálogo.';
+          return;
+        }
+
+        this.iniciarAbordaje(vuelo);
+      },
+      error: () => {
+        this.cargando = false;
+        this.error = 'No se pudo cargar el catálogo de estados de vuelo.';
+      }
+    });
+  }
+
+  private actualizarVueloEnListado(vueloActualizado: VueloOperado | null): void {
+    if (!vueloActualizado?.id) {
+      return;
+    }
+
+    this.vuelos = this.vuelos.map((v) => {
+      if (Number(v.id) === Number(vueloActualizado.id)) {
+        return vueloActualizado;
+      }
+
+      return v;
+    });
   }
 
   private registrarAbordajeInterno(desdePagoRecargo: boolean): void {
@@ -451,18 +564,12 @@ export class AbordajeVuelosComponent implements OnInit {
       });
   }
 
-  private obtenerEstadoInicial(estados: any[]): string {
-    const preferidos = ['ABORDANDO', 'PENDIENTE_ABORDAR', 'PROGRAMADO'];
+  private obtenerEstadoIdTexto(nombre: string): string {
+    const buscado = this.normalizar(nombre);
 
-    for (const nombre of preferidos) {
-      const estado = estados.find((e: any) => this.normalizar(e?.nombre) === nombre);
+    const estado = this.estados.find((e: any) => this.normalizar(e?.nombre) === buscado);
 
-      if (estado?.id) {
-        return String(estado.id);
-      }
-    }
-
-    return '';
+    return estado?.id ? String(estado.id) : '';
   }
 
   private normalizar(value: any): string {

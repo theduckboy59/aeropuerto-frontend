@@ -25,7 +25,7 @@ export class VuelosOperadosComponent implements OnInit {
   };
 
   page = 0;
-  size = 10;
+  size =150
   totalElements = 0;
   totalPages = 0;
 
