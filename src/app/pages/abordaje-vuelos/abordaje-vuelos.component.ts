@@ -1,14 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 
 import {
+  AbordajeEquipajeRequest,
   AbordajeResponse,
   AbordajeService,
+  AbordajeVueloPendienteResponse,
   FinalizarAbordajeResponse
 } from '../../services/abordaje.service';
 
 import { CatalogoService } from '../../services/catalogo.service';
 import { PagoService } from '../../services/pago.service';
-import { VueloOperado, VueloOperadoService } from '../../services/vuelo-operado.service';
 
 @Component({
   selector: 'app-abordaje-vuelos',
@@ -16,24 +17,26 @@ import { VueloOperado, VueloOperadoService } from '../../services/vuelo-operado.
   styleUrl: './abordaje-vuelos.component.css'
 })
 export class AbordajeVuelosComponent implements OnInit {
+
   cargando = false;
   cargandoPago = false;
-  iniciandoAbordaje = false;
 
   error: string | null = null;
   ok: string | null = null;
   aviso: string | null = null;
 
-  estados: any[] = [];
+  aerolineas: any[] = [];
   metodosPago: any[] = [];
 
-  estadoVueloId = '';
+  aerolineaId = '';
 
-  vuelos: VueloOperado[] = [];
-  vueloSeleccionado: VueloOperado | null = null;
+  vuelos: AbordajeVueloPendienteResponse[] = [];
+  vueloSeleccionado: AbordajeVueloPendienteResponse | null = null;
 
   pasaporte = '';
   maletasPresentadas = 0;
+
+  equipajes: AbordajeEquipajeRequest[] = [];
 
   consulta: AbordajeResponse | null = null;
   resultadoFinalizacion: FinalizarAbordajeResponse | null = null;
@@ -45,7 +48,6 @@ export class AbordajeVuelosComponent implements OnInit {
   };
 
   constructor(
-    private vuelosOperados: VueloOperadoService,
     private abordaje: AbordajeService,
     private catalogos: CatalogoService,
     private pagos: PagoService
@@ -53,47 +55,55 @@ export class AbordajeVuelosComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarCatalogos();
-    this.listar();
+  }
+
+  get puedeListar(): boolean {
+    return !!Number(this.aerolineaId);
   }
 
   get puedeBuscar(): boolean {
-    return !!Number(this.vueloSeleccionado?.id) && !!this.pasaporte.trim();
-  }
-
-  get puedeRegistrar(): boolean {
-    return this.puedeBuscar && Number(this.maletasPresentadas) >= 0 && !this.requierePagoRecargo;
+    return !!Number(this.vueloSeleccionado?.vueloOperadoId) &&
+      !!Number(this.vueloSeleccionado?.segmentoOperadoId) &&
+      !!this.pasaporte.trim();
   }
 
   get requierePagoRecargo(): boolean {
-    return this.consulta?.requierePagoRecargo === true && !!Number(this.consulta?.pagoRecargoId);
+    return this.consulta?.requierePagoRecargo === true &&
+      !!Number(this.consulta?.pagoRecargoId);
+  }
+
+  get puedeRegistrar(): boolean {
+    return this.puedeBuscar &&
+      Number(this.maletasPresentadas ?? 0) >= 0 &&
+      this.equipajesValidos() &&
+      !this.requierePagoRecargo;
   }
 
   get puedeConfirmarRecargo(): boolean {
-    return this.requierePagoRecargo && !!Number(this.pagoRecargoForm.metodoPagoId);
+    return this.requierePagoRecargo &&
+      !!Number(this.pagoRecargoForm.metodoPagoId);
   }
 
-  get maletasExtra(): number {
-    const presentadas = Number(this.consulta?.cantidadMaletasPresentadas ?? this.maletasPresentadas ?? 0);
-    const registradas = Number(this.consulta?.cantidadMaletasRegistradas ?? 0);
+  get puedeFinalizar(): boolean {
+    return !!Number(this.vueloSeleccionado?.vueloOperadoId) &&
+      !!Number(this.vueloSeleccionado?.segmentoOperadoId);
+  }
 
-    return Math.max(presentadas - registradas, 0);
+  get codigoVueloSeleccionado(): string {
+    return this.vueloSeleccionado?.codigoVuelo ||
+      String(this.vueloSeleccionado?.vueloOperadoId || '-');
+  }
+
+  get segmentoTextoSeleccionado(): string {
+    if (!this.vueloSeleccionado) {
+      return '-';
+    }
+
+    return `Segmento ${this.vueloSeleccionado.ordenSegmento || '-'}/${this.vueloSeleccionado.cantidadSegmentos || '-'}`;
   }
 
   cargarCatalogos(): void {
-    this.vuelosOperados.listarEstadosVuelo().subscribe({
-      next: (r: any[]) => {
-        this.estados = r ?? [];
-
-        /*
-         * Para abordaje conviene iniciar viendo PROGRAMADO.
-         * Al seleccionar, el front cambia el vuelo automáticamente a ABORDANDO.
-         */
-        this.estadoVueloId = this.obtenerEstadoIdTexto('PROGRAMADO') || '';
-      },
-      error: () => {
-        this.estados = [];
-      }
-    });
+    this.cargarAerolineas();
 
     this.catalogos.metodoPago().subscribe({
       next: (r: any[]) => {
@@ -105,54 +115,75 @@ export class AbordajeVuelosComponent implements OnInit {
     });
   }
 
-  listar(): void {
-    this.cargando = true;
-    this.error = null;
-    this.ok = null;
-    this.aviso = null;
-    this.resultadoFinalizacion = null;
+  cargarAerolineas(): void {
+    const catalogosAny = this.catalogos as any;
+    const fn = catalogosAny.aerolineas;
 
-    this.vueloSeleccionado = null;
-    this.consulta = null;
-
-    const filtros: any = {
-      page: 0,
-      size: 50
-    };
-
-    const estadoId = Number(this.estadoVueloId);
-
-    if (estadoId) {
-      filtros.estadoVueloId = estadoId;
+    if (typeof fn !== 'function') {
+      this.aerolineas = [];
+      this.aviso = 'No se pudo cargar catálogo de aerolíneas. Ingresa el ID de aerolínea manualmente.';
+      return;
     }
 
-    this.vuelosOperados.listar(filtros).subscribe({
-      next: (page: any) => {
-        this.vuelos = page?.content ?? [];
-
-        if (!this.vuelos.length) {
-          this.aviso = 'No hay vuelos disponibles para abordaje.';
-        }
-
-        this.cargando = false;
+    fn.call(this.catalogos).subscribe({
+      next: (r: any[]) => {
+        this.aerolineas = r ?? [];
       },
-      error: (err: any) => {
-        this.vuelos = [];
-        this.error = err?.error?.message || 'No se pudieron cargar vuelos para abordaje.';
-        this.cargando = false;
+      error: () => {
+        this.aerolineas = [];
+        this.aviso = 'No se pudo cargar catálogo de aerolíneas. Ingresa el ID de aerolínea manualmente.';
       }
     });
   }
 
-  seleccionar(vuelo: VueloOperado): void {
+  listar(): void {
     this.error = null;
     this.ok = null;
     this.aviso = null;
-    this.consulta = null;
-    this.resultadoFinalizacion = null;
+
+    this.vuelos = [];
+    this.nuevoVuelo();
+
+    const id = Number(this.aerolineaId);
+
+    if (!id) {
+      this.error = 'Selecciona o ingresa la aerolínea.';
+      return;
+    }
+
+    this.cargando = true;
+
+    this.abordaje.listarVuelosPendientes(id).subscribe({
+      next: (res) => {
+        this.vuelos = res ?? [];
+        this.cargando = false;
+
+        if (!this.vuelos.length) {
+          this.aviso = 'No hay vuelos disponibles para abordaje.';
+        }
+      },
+      error: (err: any) => {
+        this.vuelos = [];
+        this.cargando = false;
+        this.error = err?.error?.message || 'No se pudieron cargar vuelos para abordaje.';
+      }
+    });
+  }
+
+  seleccionarVuelo(
+    vuelo: AbordajeVueloPendienteResponse
+  ): void {
+    this.error = null;
+    this.ok = null;
+    this.aviso = null;
+
+    this.vueloSeleccionado = vuelo;
 
     this.pasaporte = '';
     this.maletasPresentadas = 0;
+    this.equipajes = [];
+    this.consulta = null;
+    this.resultadoFinalizacion = null;
 
     this.pagoRecargoForm = {
       metodoPagoId: '',
@@ -160,43 +191,23 @@ export class AbordajeVuelosComponent implements OnInit {
       nombreCliente: ''
     };
 
-    const vueloOperadoId = Number(vuelo?.id);
-
-    if (!vueloOperadoId) {
-      this.error = 'Vuelo operado inválido.';
-      return;
-    }
-
-    const estadoActual = this.normalizar(this.getEstado(vuelo));
-
-    if (estadoActual === 'ABORDANDO') {
-      this.vueloSeleccionado = vuelo;
-      this.ok = 'Vuelo listo para abordaje.';
-      return;
-    }
-
-    if (
-      estadoActual === 'EN_VUELO' ||
-      estadoActual === 'ATERRIZADO' ||
-      estadoActual === 'FINALIZADO' ||
-      estadoActual === 'CANCELADO'
-    ) {
-      this.error = 'Este vuelo ya no puede iniciar abordaje.';
-      return;
-    }
-
-    this.iniciarAbordaje(vuelo);
+    this.aviso = `Vuelo ${vuelo.codigoVuelo || vuelo.vueloOperadoId} seleccionado. ${this.getSegmentoTexto(vuelo)}.`;
   }
 
   nuevoVuelo(): void {
     this.vueloSeleccionado = null;
     this.consulta = null;
-    this.error = null;
-    this.ok = null;
-    this.aviso = null;
     this.resultadoFinalizacion = null;
+
     this.pasaporte = '';
     this.maletasPresentadas = 0;
+    this.equipajes = [];
+
+    this.pagoRecargoForm = {
+      metodoPagoId: '',
+      nit: 'CF',
+      nombreCliente: ''
+    };
   }
 
   buscarPasajero(): void {
@@ -205,11 +216,12 @@ export class AbordajeVuelosComponent implements OnInit {
     this.aviso = null;
     this.consulta = null;
 
-    const vueloOperadoId = Number(this.vueloSeleccionado?.id);
+    const vueloOperadoId = Number(this.vueloSeleccionado?.vueloOperadoId);
+    const segmentoOperadoId = Number(this.vueloSeleccionado?.segmentoOperadoId);
     const pasaporte = this.pasaporte.trim();
 
-    if (!vueloOperadoId) {
-      this.error = 'Selecciona un vuelo operado.';
+    if (!vueloOperadoId || !segmentoOperadoId) {
+      this.error = 'Selecciona un vuelo y segmento de abordaje.';
       return;
     }
 
@@ -220,18 +232,55 @@ export class AbordajeVuelosComponent implements OnInit {
 
     this.cargando = true;
 
-    this.abordaje.buscar({ vueloOperadoId, pasaporte }).subscribe({
+    this.abordaje.buscar({
+      vueloOperadoId,
+      segmentoOperadoId,
+      pasaporte
+    }).subscribe({
       next: (res: AbordajeResponse) => {
         this.consulta = res;
         this.maletasPresentadas = Number(res?.cantidadMaletasRegistradas ?? 0);
+        this.sincronizarEquipajes();
+
         this.pagoRecargoForm.nombreCliente = res?.nombrePasajero || '';
         this.cargando = false;
       },
       error: (err: any) => {
-        this.error = err?.error?.message || 'El pasajero no se encuentra registrado en el vuelo.';
+        this.error = err?.error?.message || 'El pasajero no se encuentra registrado en el vuelo o no tiene check-in.';
         this.cargando = false;
       }
     });
+  }
+
+  onMaletasChange(): void {
+    const cantidad = Number(this.maletasPresentadas ?? 0);
+
+    if (cantidad < 0) {
+      this.maletasPresentadas = 0;
+    }
+
+    this.sincronizarEquipajes();
+  }
+
+  sincronizarEquipajes(): void {
+    const cantidad = Math.max(Number(this.maletasPresentadas ?? 0), 0);
+    const actual = [...this.equipajes];
+
+    while (actual.length < cantidad) {
+      actual.push({
+        numeroMaleta: actual.length + 1,
+        peso: null
+      });
+    }
+
+    while (actual.length > cantidad) {
+      actual.pop();
+    }
+
+    this.equipajes = actual.map((e, index) => ({
+      numeroMaleta: index + 1,
+      peso: e.peso ?? null
+    }));
   }
 
   registrarAbordaje(): void {
@@ -286,26 +335,29 @@ export class AbordajeVuelosComponent implements OnInit {
     this.aviso = null;
     this.resultadoFinalizacion = null;
 
-    const vueloOperadoId = Number(this.vueloSeleccionado?.id);
+    const vueloOperadoId = Number(this.vueloSeleccionado?.vueloOperadoId);
+    const segmentoOperadoId = Number(this.vueloSeleccionado?.segmentoOperadoId);
 
-    if (!vueloOperadoId) {
-      this.error = 'Selecciona un vuelo.';
+    if (!vueloOperadoId || !segmentoOperadoId) {
+      this.error = 'Selecciona un vuelo y segmento.';
       return;
     }
 
-    if (!confirm('¿Finalizar abordaje? Los boletos no abordados serán cancelados.')) {
+    if (!confirm('¿Finalizar abordaje del segmento actual? Los boletos pendientes del segmento se cancelarán.')) {
       return;
     }
 
     this.cargando = true;
 
-    this.abordaje.finalizar(vueloOperadoId).subscribe({
+    this.abordaje.finalizar(
+      vueloOperadoId,
+      segmentoOperadoId
+    ).subscribe({
       next: (res: FinalizarAbordajeResponse) => {
         this.resultadoFinalizacion = res;
-        this.ok = res?.mensaje || 'Se completó el abordaje.';
+        this.ok = res?.mensaje || 'Se completó el abordaje del segmento actual.';
         this.cargando = false;
-        this.vueloSeleccionado = null;
-        this.consulta = null;
+
         this.listar();
       },
       error: (err: any) => {
@@ -315,204 +367,19 @@ export class AbordajeVuelosComponent implements OnInit {
     });
   }
 
-  getRuta(vuelo: VueloOperado | null): string {
-    if (!vuelo) {
-      return '-';
-    }
-
-    const anyVuelo: any = vuelo;
-
-    const salida =
-      anyVuelo.aeropuertoSalidaCodigoIata ||
-      anyVuelo.aeropuertoSalidaNombre ||
-      '-';
-
-    const llegada =
-      anyVuelo.aeropuertoLlegadaCodigoIata ||
-      anyVuelo.aeropuertoLlegadaNombre ||
-      '-';
-
-    return `${salida} → ${llegada}`;
-  }
-
-  getSalida(vuelo: VueloOperado | null): string {
-    if (!vuelo) {
-      return '-';
-    }
-
-    const anyVuelo: any = vuelo;
-    const segmentoActual = this.getSegmentoActual(vuelo);
-
-    const fecha =
-      anyVuelo.fechaSalidaProgramada ||
-      anyVuelo.fechaSalida ||
-      segmentoActual?.fechaSalida ||
-      '-';
-
-    const hora =
-      anyVuelo.horaSalidaProgramada ||
-      anyVuelo.horaSalida ||
-      segmentoActual?.horaSalida ||
-      '';
-
-    return `${fecha} ${hora}`.trim();
-  }
-
-  getEstado(vuelo: VueloOperado | null): string {
-    if (!vuelo) {
-      return '-';
-    }
-
-    const anyVuelo: any = vuelo;
-
-    return anyVuelo.estadoVueloNombre || String(anyVuelo.estadoVueloId || '-');
-  }
-
-  getTipoVuelo(vuelo: VueloOperado | null): string {
-    if (!vuelo) {
-      return '-';
-    }
-
-    const anyVuelo: any = vuelo;
-
-    return anyVuelo.tipoSegmentoVueloNombre || '-';
-  }
-
-  getSegmentoActual(vuelo: VueloOperado | null): any | null {
-    const anyVuelo: any = vuelo;
-    const segmentos = [...(anyVuelo?.segmentos ?? [])].sort(
-      (a: any, b: any) => Number(a?.ordenSegmento ?? 0) - Number(b?.ordenSegmento ?? 0)
-    );
-
-    if (!segmentos.length) {
-      return null;
-    }
-
-    const ordenActual = Number(anyVuelo?.segmentoActualOrden ?? 1);
-
-    return segmentos.find((s: any) => Number(s?.ordenSegmento) === ordenActual) || segmentos[0];
-  }
-
-  getBadgeEstado(vuelo: VueloOperado | null): string {
-    const estado = this.normalizar(this.getEstado(vuelo));
-
-    if (estado.includes('ABORDANDO') || estado.includes('PENDIENTE')) {
-      return 'state-pill state-open';
-    }
-
-    if (estado.includes('PROGRAMADO')) {
-      return 'state-pill state-info';
-    }
-
-    if (estado.includes('EN_VUELO')) {
-      return 'state-pill state-info';
-    }
-
-    if (estado.includes('CANCELADO')) {
-      return 'state-pill state-danger';
-    }
-
-    if (estado.includes('FINALIZADO') || estado.includes('ATERRIZADO') || estado.includes('ABORDADO')) {
-      return 'state-pill state-ok';
-    }
-
-    return 'state-pill';
-  }
-
-  formatMoney(value: any): string {
-    const n = Number(value ?? 0);
-
-    return `Q ${n.toFixed(2)}`;
-  }
-
-  private iniciarAbordaje(vuelo: VueloOperado): void {
-    const vueloOperadoId = Number(vuelo?.id);
-
-    if (!vueloOperadoId) {
-      this.error = 'Vuelo operado inválido.';
-      return;
-    }
-
-    const abordandoId = this.obtenerEstadoIdTexto('ABORDANDO');
-
-    if (!abordandoId) {
-      this.cargarEstadosEIniciarAbordaje(vuelo);
-      return;
-    }
-
-    this.iniciandoAbordaje = true;
-    this.cargando = true;
-
-    this.vuelosOperados.cambiarEstado(vueloOperadoId, Number(abordandoId)).subscribe({
-      next: (actualizado: VueloOperado) => {
-        this.vueloSeleccionado = actualizado || {
-          ...(vuelo as any),
-          estadoVueloId: Number(abordandoId),
-          estadoVueloNombre: 'ABORDANDO'
-        };
-
-        this.actualizarVueloEnListado(this.vueloSeleccionado);
-
-        this.ok = 'Vuelo cambiado a ABORDANDO. Ya puedes buscar pasajeros.';
-        this.iniciandoAbordaje = false;
-        this.cargando = false;
-      },
-      error: (err: any) => {
-        this.error = err?.error?.message || 'No se pudo iniciar el abordaje del vuelo.';
-        this.iniciandoAbordaje = false;
-        this.cargando = false;
-      }
-    });
-  }
-
-  private cargarEstadosEIniciarAbordaje(vuelo: VueloOperado): void {
-    this.cargando = true;
-
-    this.vuelosOperados.listarEstadosVuelo().subscribe({
-      next: (estados: any[]) => {
-        this.estados = estados ?? [];
-        this.cargando = false;
-
-        const abordandoId = this.obtenerEstadoIdTexto('ABORDANDO');
-
-        if (!abordandoId) {
-          this.error = 'No existe el estado ABORDANDO en catálogo.';
-          return;
-        }
-
-        this.iniciarAbordaje(vuelo);
-      },
-      error: () => {
-        this.cargando = false;
-        this.error = 'No se pudo cargar el catálogo de estados de vuelo.';
-      }
-    });
-  }
-
-  private actualizarVueloEnListado(vueloActualizado: VueloOperado | null): void {
-    if (!vueloActualizado?.id) {
-      return;
-    }
-
-    this.vuelos = this.vuelos.map((v) => {
-      if (Number(v.id) === Number(vueloActualizado.id)) {
-        return vueloActualizado;
-      }
-
-      return v;
-    });
-  }
-
-  private registrarAbordajeInterno(desdePagoRecargo: boolean): void {
+  private registrarAbordajeInterno(
+    desdePagoRecargo: boolean
+  ): void {
     this.error = null;
     this.aviso = null;
 
-    const vueloOperadoId = Number(this.vueloSeleccionado?.id);
+    const vueloOperadoId = Number(this.vueloSeleccionado?.vueloOperadoId);
+    const segmentoOperadoId = Number(this.vueloSeleccionado?.segmentoOperadoId);
     const pasaporte = this.pasaporte.trim();
     const cantidadMaletasPresentadas = Number(this.maletasPresentadas ?? 0);
 
-    if (!vueloOperadoId) {
-      this.error = 'Selecciona un vuelo operado.';
+    if (!vueloOperadoId || !segmentoOperadoId) {
+      this.error = 'Selecciona un vuelo y segmento.';
       return;
     }
 
@@ -526,13 +393,25 @@ export class AbordajeVuelosComponent implements OnInit {
       return;
     }
 
+    this.sincronizarEquipajes();
+
+    if (!this.equipajesValidos()) {
+      this.error = 'Debe ingresar el peso de todas las maletas presentadas.';
+      return;
+    }
+
     this.cargando = true;
 
     this.abordaje
       .registrar({
         vueloOperadoId,
+        segmentoOperadoId,
         pasaporte,
         cantidadMaletasPresentadas,
+        equipajes: this.equipajes.map((e, index) => ({
+          numeroMaleta: index + 1,
+          peso: Number(e.peso)
+        })),
         tipoAbordaje: 'MANUAL'
       })
       .subscribe({
@@ -548,6 +427,7 @@ export class AbordajeVuelosComponent implements OnInit {
                 res?.recargoEquipaje
               )}. Confirma el pago para completar el abordaje.`;
 
+            this.pagoRecargoForm.nombreCliente = res?.nombrePasajero || '';
             return;
           }
 
@@ -564,20 +444,60 @@ export class AbordajeVuelosComponent implements OnInit {
       });
   }
 
-  private obtenerEstadoIdTexto(nombre: string): string {
-    const buscado = this.normalizar(nombre);
+  private equipajesValidos(): boolean {
+    const cantidad = Number(this.maletasPresentadas ?? 0);
 
-    const estado = this.estados.find((e: any) => this.normalizar(e?.nombre) === buscado);
+    if (cantidad <= 0) {
+      return true;
+    }
 
-    return estado?.id ? String(estado.id) : '';
+    if (!this.equipajes || this.equipajes.length !== cantidad) {
+      return false;
+    }
+
+    return this.equipajes.every((e) => {
+      const peso = Number(e.peso);
+      return !!peso && peso > 0;
+    });
   }
 
-  private normalizar(value: any): string {
-    return String(value ?? '')
-      .trim()
-      .toUpperCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/\s+/g, '_');
+  getRutaTexto(
+    vuelo: AbordajeVueloPendienteResponse | null
+  ): string {
+    if (!vuelo) {
+      return '-';
+    }
+
+    const salida = vuelo.aeropuertoSalidaCodigoIata || vuelo.aeropuertoSalidaNombre || '-';
+    const llegada = vuelo.aeropuertoLlegadaCodigoIata || vuelo.aeropuertoLlegadaNombre || '-';
+
+    return `${salida} → ${llegada}`;
+  }
+
+  getSegmentoTexto(
+    vuelo: AbordajeVueloPendienteResponse | null
+  ): string {
+    if (!vuelo) {
+      return '-';
+    }
+
+    return `Segmento ${vuelo.ordenSegmento || '-'} de ${vuelo.cantidadSegmentos || '-'}`;
+  }
+
+  getTipoTexto(
+    vuelo: AbordajeVueloPendienteResponse | null
+  ): string {
+    return String(vuelo?.tipoSegmentoVuelo || 'DIRECTO').replace(/_/g, ' ');
+  }
+
+  formatMoney(
+    value: any
+  ): string {
+    const amount = Number(value ?? 0);
+
+    return amount.toLocaleString('es-GT', {
+      style: 'currency',
+      currency: 'GTQ'
+    });
   }
 }

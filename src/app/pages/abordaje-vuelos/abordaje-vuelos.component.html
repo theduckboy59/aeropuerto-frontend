@@ -1,12 +1,14 @@
 <div class="page-root">
   <main class="content">
+
     <header class="topbar" aria-label="Encabezado">
       <div class="topbar-left">
         <div class="badge">AB</div>
+
         <div>
           <h1 class="title">Abordaje</h1>
           <p class="subtitle">
-            Selecciona el vuelo, busca al pasajero por pasaporte, registra maletas, valida recargos y finaliza el abordaje.
+            Selecciona el vuelo, aborda por segmento actual, registra maletas, valida recargos y finaliza el abordaje.
           </p>
         </div>
       </div>
@@ -29,24 +31,45 @@
         <div>
           <h2 class="section-title">1. Vuelos para abordaje</h2>
           <p class="muted">
-            El listado se filtra por estado de vuelo. Si no aparece el vuelo, cambia el filtro a “Todos”.
+            El backend lista el segmento actual de cada vuelo en estado PROGRAMADO o ABORDANDO.
           </p>
         </div>
       </div>
 
       <div class="form-grid">
         <div class="field">
-          <label class="label">Estado vuelo</label>
+          <label class="label">Aerolínea</label>
           <select
             class="control"
-            [(ngModel)]="estadoVueloId"
-            name="estadoVueloId"
-            (ngModelChange)="listar()">
-            <option value="">Todos</option>
-            <option *ngFor="let e of estados" [value]="e.id">
-              {{ e.nombre }}
+            [(ngModel)]="aerolineaId"
+            name="aerolineaId"
+            (ngModelChange)="listar()"
+            *ngIf="aerolineas.length">
+            <option value="">Selecciona</option>
+            <option *ngFor="let a of aerolineas" [value]="a.id">
+              {{ a.nombre || a.nombreAerolinea || a.id }}
             </option>
           </select>
+
+          <input
+            *ngIf="!aerolineas.length"
+            class="control"
+            type="number"
+            min="1"
+            [(ngModel)]="aerolineaId"
+            name="aerolineaIdManual"
+            placeholder="ID de aerolínea" />
+        </div>
+
+        <div class="field">
+          <label class="label">Acción</label>
+          <button
+            class="btn-primary"
+            type="button"
+            [disabled]="!puedeListar || cargando"
+            (click)="listar()">
+            Buscar vuelos
+          </button>
         </div>
       </div>
 
@@ -55,10 +78,10 @@
           <thead>
             <tr>
               <th>Código</th>
-              <th>Aerolínea</th>
               <th>Ruta</th>
               <th>Salida</th>
               <th>Tipo</th>
+              <th>Segmento actual</th>
               <th>Estado</th>
               <th>Acción</th>
             </tr>
@@ -67,22 +90,37 @@
           <tbody>
             <tr
               *ngFor="let v of vuelos"
-              [class.row-selected]="vueloSeleccionado?.id === v.id">
-              <td>{{ v.codigoVuelo || v.id }}</td>
-              <td>{{ v.aerolineaNombre || v.aerolineaId || '-' }}</td>
-              <td>{{ getRuta(v) }}</td>
-              <td>{{ getSalida(v) }}</td>
-              <td>{{ getTipoVuelo(v) }}</td>
+              [class.row-selected]="vueloSeleccionado?.segmentoOperadoId === v.segmentoOperadoId">
+              <td>{{ v.codigoVuelo || v.vueloOperadoId }}</td>
+
               <td>
-                <span [class]="getBadgeEstado(v)">
-                  {{ getEstado(v) }}
+                {{ getRutaTexto(v) }}
+              </td>
+
+              <td>
+                {{ v.fechaSalida || '-' }}
+                {{ v.horaSalida || '' }}
+              </td>
+
+              <td>
+                <span class="tag">
+                  {{ getTipoTexto(v) }}
                 </span>
               </td>
+
+              <td>
+                {{ getSegmentoTexto(v) }}
+              </td>
+
+              <td>
+                {{ v.estadoVuelo || '-' }}
+              </td>
+
               <td>
                 <button
                   class="btn-secondary"
                   type="button"
-                  (click)="seleccionar(v)">
+                  (click)="seleccionarVuelo(v)">
                   Seleccionar
                 </button>
               </td>
@@ -92,16 +130,18 @@
       </div>
 
       <ng-template #sinVuelos>
-        <p class="muted">No hay vuelos para mostrar.</p>
+        <p class="muted">
+          No hay vuelos cargados para abordaje.
+        </p>
       </ng-template>
     </section>
 
     <section class="card" *ngIf="vueloSeleccionado">
       <div class="section-head">
         <div>
-          <h2 class="section-title">2. Buscar pasajero</h2>
+          <h2 class="section-title">2. Vuelo seleccionado</h2>
           <p class="muted">
-            El pasajero debe tener reserva, pago y check-in válido antes del abordaje.
+            Se abordará únicamente el segmento actual.
           </p>
         </div>
 
@@ -110,10 +150,52 @@
         </button>
       </div>
 
-      <div class="pill">
-        Vuelo {{ vueloSeleccionado.codigoVuelo || vueloSeleccionado.id }}
-        · {{ getRuta(vueloSeleccionado) }}
-        · {{ getSalida(vueloSeleccionado) }}
+      <div class="kv">
+        <div class="kv-row">
+          <div class="kv-key">Vuelo</div>
+          <div class="kv-val">{{ vueloSeleccionado.codigoVuelo || vueloSeleccionado.vueloOperadoId }}</div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Ruta segmento</div>
+          <div class="kv-val">{{ getRutaTexto(vueloSeleccionado) }}</div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Tipo de vuelo</div>
+          <div class="kv-val">{{ getTipoTexto(vueloSeleccionado) }}</div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Segmento</div>
+          <div class="kv-val">
+            {{ getSegmentoTexto(vueloSeleccionado) }}
+          </div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Salida</div>
+          <div class="kv-val">
+            {{ vueloSeleccionado.fechaSalida || '-' }}
+            {{ vueloSeleccionado.horaSalida || '' }}
+          </div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Estado</div>
+          <div class="kv-val">{{ vueloSeleccionado.estadoVuelo || '-' }}</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" *ngIf="vueloSeleccionado">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">3. Buscar pasajero</h2>
+          <p class="muted">
+            El pasajero debe tener check-in realizado para este segmento.
+          </p>
+        </div>
       </div>
 
       <div class="form-grid">
@@ -123,51 +205,62 @@
             class="control"
             [(ngModel)]="pasaporte"
             name="pasaporte"
-            placeholder="Ej. A1234567"
-            (keyup.enter)="buscarPasajero()" />
+            placeholder="Ingrese pasaporte" />
         </div>
 
         <div class="field">
-          <label class="label">Maletas presentadas</label>
+          <label class="label">Cantidad de maletas presentadas</label>
           <input
             class="control"
             type="number"
             min="0"
-            max="10"
             [(ngModel)]="maletasPresentadas"
+            (ngModelChange)="onMaletasChange()"
             name="maletasPresentadas" />
         </div>
+      </div>
 
-        <div class="field">
-          <label class="label">&nbsp;</label>
-          <button
-            class="btn-secondary"
-            type="button"
-            [disabled]="!puedeBuscar"
-            (click)="buscarPasajero()">
-            Buscar
-          </button>
-        </div>
+      <div class="form-grid" *ngIf="equipajes.length">
+        <div class="field" *ngFor="let e of equipajes; let i = index">
+          <label class="label">
+            Peso maleta {{ i + 1 }} kg
+          </label>
 
-        <div class="field">
-          <label class="label">&nbsp;</label>
-          <button
-            class="btn-primary"
-            type="button"
-            [disabled]="!puedeRegistrar"
-            (click)="registrarAbordaje()">
-            Registrar abordaje
-          </button>
+          <input
+            class="control"
+            type="number"
+            min="0.01"
+            step="0.01"
+            [(ngModel)]="equipajes[i].peso"
+            [name]="'pesoMaleta_' + i" />
         </div>
+      </div>
+
+      <div class="form-actions">
+        <button
+          class="btn-secondary"
+          type="button"
+          [disabled]="!puedeBuscar || cargando"
+          (click)="buscarPasajero()">
+          Buscar pasajero
+        </button>
+
+        <button
+          class="btn-primary"
+          type="button"
+          [disabled]="!puedeRegistrar || cargando"
+          (click)="registrarAbordaje()">
+          Registrar abordaje
+        </button>
       </div>
     </section>
 
     <section class="card" *ngIf="consulta">
       <div class="section-head">
         <div>
-          <h2 class="section-title">3. Validación del pasajero</h2>
+          <h2 class="section-title">4. Resultado de validación</h2>
           <p class="muted">
-            Revisa boleto, pase, asiento, maletas y recargo antes de completar el abordaje.
+            Datos del boleto y segmento actual.
           </p>
         </div>
       </div>
@@ -180,11 +273,11 @@
 
         <div class="kv-row">
           <div class="kv-key">Pasaporte</div>
-          <div class="kv-val">{{ consulta.pasaporte || pasaporte || '-' }}</div>
+          <div class="kv-val">{{ consulta.pasaporte || '-' }}</div>
         </div>
 
         <div class="kv-row">
-          <div class="kv-key">Boleto</div>
+          <div class="kv-key">Código boleto</div>
           <div class="kv-val">{{ consulta.codigoBoleto || '-' }}</div>
         </div>
 
@@ -194,13 +287,22 @@
         </div>
 
         <div class="kv-row">
-          <div class="kv-key">Segmento actual</div>
+          <div class="kv-key">Segmento</div>
           <div class="kv-val">
             {{ consulta.ordenSegmento || '-' }}
-            <span *ngIf="consulta.segmentoOperadoId">
-              / Segmento operado {{ consulta.segmentoOperadoId }}
-            </span>
+            /
+            {{ consulta.cantidadSegmentos || '-' }}
           </div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Estado boleto</div>
+          <div class="kv-val">{{ consulta.estadoBoleto || '-' }}</div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Estado segmento</div>
+          <div class="kv-val">{{ consulta.estadoBoletoSegmento || '-' }}</div>
         </div>
 
         <div class="kv-row">
@@ -209,28 +311,13 @@
         </div>
 
         <div class="kv-row">
-          <div class="kv-key">Estado boleto</div>
-          <div class="kv-val">
-            {{ consulta.estadoBoleto || '-' }}
-            <span *ngIf="consulta.estadoBoletoSegmento">
-              / {{ consulta.estadoBoletoSegmento }}
-            </span>
-          </div>
-        </div>
-
-        <div class="kv-row">
           <div class="kv-key">Maletas registradas</div>
-          <div class="kv-val">{{ consulta.cantidadMaletasRegistradas ?? 0 }}</div>
+          <div class="kv-val">{{ consulta.cantidadMaletasRegistradas ?? '-' }}</div>
         </div>
 
         <div class="kv-row">
           <div class="kv-key">Maletas presentadas</div>
           <div class="kv-val">{{ consulta.cantidadMaletasPresentadas ?? maletasPresentadas }}</div>
-        </div>
-
-        <div class="kv-row">
-          <div class="kv-key">Maletas extra</div>
-          <div class="kv-val">{{ maletasExtra }}</div>
         </div>
 
         <div class="kv-row">
@@ -241,7 +328,7 @@
         <div class="kv-row">
           <div class="kv-key">Pago recargo</div>
           <div class="kv-val">
-            {{ consulta.estadoPagoRecargo || (consulta.requierePagoRecargo ? 'PENDIENTE' : 'No aplica') }}
+            {{ consulta.requierePagoRecargo ? 'PENDIENTE' : 'No aplica' }}
           </div>
         </div>
 
@@ -260,7 +347,7 @@
     <section class="card recargo-card" *ngIf="requierePagoRecargo">
       <div class="section-head">
         <div>
-          <h2 class="section-title">4. Pago de recargo de equipaje</h2>
+          <h2 class="section-title">5. Pago de recargo de equipaje</h2>
           <p class="muted">
             El abordaje no debe completarse hasta confirmar el pago del recargo.
           </p>
@@ -312,15 +399,19 @@
     <section class="card" *ngIf="vueloSeleccionado">
       <div class="section-head">
         <div>
-          <h2 class="section-title">5. Finalizar abordaje</h2>
+          <h2 class="section-title">6. Finalizar abordaje del segmento</h2>
           <p class="muted">
-            Al finalizar, el backend cancela boletos no abordados y cambia el vuelo al siguiente estado operativo.
+            Cancela boletos pendientes del segmento actual y cambia el segmento/vuelo a EN_VUELO.
           </p>
         </div>
       </div>
 
       <div class="form-actions">
-        <button class="btn-danger" type="button" (click)="finalizar()">
+        <button
+          class="btn-danger"
+          type="button"
+          [disabled]="!puedeFinalizar || cargando"
+          (click)="finalizar()">
           Finalizar abordaje
         </button>
       </div>
@@ -333,6 +424,20 @@
         <div class="kv-row">
           <div class="kv-key">Vuelo operado</div>
           <div class="kv-val">{{ resultadoFinalizacion.vueloOperadoId || '-' }}</div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Segmento operado</div>
+          <div class="kv-val">{{ resultadoFinalizacion.segmentoOperadoId || '-' }}</div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Orden segmento</div>
+          <div class="kv-val">
+            {{ resultadoFinalizacion.ordenSegmento || '-' }}
+            /
+            {{ resultadoFinalizacion.cantidadSegmentos || '-' }}
+          </div>
         </div>
 
         <div class="kv-row">
@@ -360,9 +465,10 @@
     <section class="note">
       <div class="note-title">Regla operativa</div>
       <div class="note-body">
-        El check-in se realiza antes de este caso de uso. En abordaje se valida el boleto/pase, se registran maletas presentadas,
-        se cobra recargo si aplica y se marca el boleto como abordado.
+        El check-in se realiza antes del CU-05. En abordaje se valida el pase/check-in del segmento actual,
+        se registran maletas presentadas, se cobra recargo si aplica y se marca el segmento del boleto como abordado.
       </div>
     </section>
+
   </main>
 </div>
