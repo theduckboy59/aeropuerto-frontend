@@ -25,7 +25,9 @@ export class VuelosOperadosComponent implements OnInit {
   };
 
   page = 0;
-  size =150
+  size = 30;
+  pageSizes = [10, 30, 50, 100, 150];
+
   totalElements = 0;
   totalPages = 0;
 
@@ -43,8 +45,10 @@ export class VuelosOperadosComponent implements OnInit {
 
   cargarEstados(): void {
     this.service.listarEstadosVuelo().subscribe({
-      next: (data) => this.estadosVuelo = data ?? [],
-      error: (err) => {
+      next: (data: any[]) => {
+        this.estadosVuelo = data ?? [];
+      },
+      error: (err: any) => {
         console.error(err);
         this.estadosVuelo = [];
       }
@@ -62,7 +66,7 @@ export class VuelosOperadosComponent implements OnInit {
       page,
       size: this.size
     }).subscribe({
-      next: (res) => {
+      next: (res: any) => {
         this.vuelosOperados = res?.content ?? [];
         this.totalElements = res?.totalElements ?? 0;
         this.totalPages = res?.totalPages ?? 0;
@@ -70,7 +74,7 @@ export class VuelosOperadosComponent implements OnInit {
         this.size = res?.size ?? this.size;
         this.cargando = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error(err);
         this.vuelosOperados = [];
         this.totalElements = 0;
@@ -81,18 +85,34 @@ export class VuelosOperadosComponent implements OnInit {
     });
   }
 
+  cambiarSize(): void {
+    const parsed = Number(this.size);
+
+    if (!parsed || parsed <= 0) {
+      this.size = 30;
+    } else {
+      this.size = parsed;
+    }
+
+    this.cargarOperados(0);
+  }
+
   crear(): void {
     this.router.navigate(['/menu/aerolinea/vuelos-operados/nuevo']);
   }
 
   editar(vuelo: VueloOperado): void {
-    if (!vuelo?.id) return;
+    if (!vuelo?.id) {
+      return;
+    }
 
     this.router.navigate(['/menu/aerolinea/vuelos-operados/editar', vuelo.id]);
   }
 
   cancelar(vuelo: VueloOperado): void {
-    if (!vuelo?.id) return;
+    if (!vuelo?.id) {
+      return;
+    }
 
     if (!vuelo.puedeCancelar) {
       alert('Este vuelo no se puede cancelar en su estado actual');
@@ -108,7 +128,7 @@ export class VuelosOperadosComponent implements OnInit {
         alert('Vuelo operado cancelado correctamente');
         this.cargarOperados(this.page);
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error(err);
         alert(getApiErrorMessage(err, 'Error al cancelar vuelo operado'));
       }
@@ -130,13 +150,17 @@ export class VuelosOperadosComponent implements OnInit {
   }
 
   paginaAnterior(): void {
-    if (this.page <= 0) return;
+    if (this.page <= 0) {
+      return;
+    }
 
     this.cargarOperados(this.page - 1);
   }
 
   paginaSiguiente(): void {
-    if (this.page + 1 >= this.totalPages) return;
+    if (this.page + 1 >= this.totalPages) {
+      return;
+    }
 
     this.cargarOperados(this.page + 1);
   }
@@ -147,14 +171,22 @@ export class VuelosOperadosComponent implements OnInit {
     if (!segmentos.length) {
       const salida = vuelo.aeropuertoSalidaCodigoIata || vuelo.aeropuertoSalidaNombre || '-';
       const llegada = vuelo.aeropuertoLlegadaCodigoIata || vuelo.aeropuertoLlegadaNombre || '-';
+
       return `${salida} → ${llegada}`;
     }
 
     const partes: string[] = [];
 
     segmentos.forEach((s, index) => {
-      const salida = s.aeropuertoSalidaCodigoIata || s.aeropuertoSalidaNombre || String(s.aeropuertoSalidaId || '-');
-      const llegada = s.aeropuertoLlegadaCodigoIata || s.aeropuertoLlegadaNombre || String(s.aeropuertoLlegadaId || '-');
+      const salida =
+        s.aeropuertoSalidaCodigoIata ||
+        s.aeropuertoSalidaNombre ||
+        String(s.aeropuertoSalidaId || '-');
+
+      const llegada =
+        s.aeropuertoLlegadaCodigoIata ||
+        s.aeropuertoLlegadaNombre ||
+        String(s.aeropuertoLlegadaId || '-');
 
       if (index === 0) {
         partes.push(salida);
@@ -180,7 +212,9 @@ export class VuelosOperadosComponent implements OnInit {
   getSegmentoActual(vuelo: VueloOperado): SegmentoOperado | null {
     const segmentos = this.getSegmentosOrdenados(vuelo);
 
-    if (!segmentos.length) return null;
+    if (!segmentos.length) {
+      return null;
+    }
 
     const orden = Number(vuelo.segmentoActualOrden || 1);
 
@@ -189,11 +223,13 @@ export class VuelosOperadosComponent implements OnInit {
 
   getCodigoAvionActual(vuelo: VueloOperado): string {
     const segmento = this.getSegmentoActual(vuelo);
+
     return segmento?.codigoAvion || (segmento?.avionId ? String(segmento.avionId) : '-');
   }
 
   getCodigoTripulacionActual(vuelo: VueloOperado): string {
     const segmento = this.getSegmentoActual(vuelo);
+
     return segmento?.codigoTripulacion || (segmento?.tripulacionId ? String(segmento.tripulacionId) : '-');
   }
 
@@ -216,10 +252,21 @@ export class VuelosOperadosComponent implements OnInit {
   getEstadoClass(vuelo: VueloOperado): string {
     const estado = this.normalize(vuelo.estadoVueloNombre);
 
-    if (estado === 'FINALIZADO') return 'pill ok';
-    if (estado === 'CANCELADO') return 'pill danger';
-    if (estado === 'EN_ESCALA') return 'pill warn';
-    if (estado === 'EN_VUELO') return 'pill info';
+    if (estado === 'FINALIZADO') {
+      return 'pill ok';
+    }
+
+    if (estado === 'CANCELADO') {
+      return 'pill danger';
+    }
+
+    if (estado === 'EN_ESCALA') {
+      return 'pill warn';
+    }
+
+    if (estado === 'EN_VUELO') {
+      return 'pill info';
+    }
 
     return 'pill muted';
   }

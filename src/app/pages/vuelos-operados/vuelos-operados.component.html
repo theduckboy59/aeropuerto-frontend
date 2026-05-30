@@ -66,6 +66,24 @@
             name="fechaLlegadaReal"
           />
         </div>
+
+        <div class="field">
+          <label class="label">Registros por página</label>
+
+          <select
+            class="control"
+            [(ngModel)]="size"
+            name="size"
+            (ngModelChange)="cambiarSize()">
+
+            <option
+              *ngFor="let s of pageSizes"
+              [ngValue]="s">
+
+              {{ s }}
+            </option>
+          </select>
+        </div>
       </div>
 
       <div class="form-actions">
@@ -83,6 +101,10 @@
       <h2 class="section-title">Lista</h2>
 
       <p class="muted" *ngIf="cargando">Cargando...</p>
+
+      <p class="muted" *ngIf="!cargando && totalElements">
+        Mostrando {{ vuelosOperados.length }} de {{ totalElements }} vuelos operados.
+      </p>
 
       <div class="table-wrap" *ngIf="!cargando && vuelosOperados.length; else emptyState">
         <table class="table">
