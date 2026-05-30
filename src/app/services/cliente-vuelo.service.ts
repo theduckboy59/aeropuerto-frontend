@@ -97,4 +97,8 @@ export class ClienteVueloService {
 
   return this.http.get<ClienteVueloDisponible[]>(this.api, { params });
 }
+
+obtenerDetalle(vueloOperadoId: number): Observable<ClienteVueloDisponible> {
+  return this.http.get<ClienteVueloDisponible>(`${this.api}/${vueloOperadoId}`);
+}
 }
