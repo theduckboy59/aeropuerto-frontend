@@ -9,14 +9,15 @@ import { getApiErrorMessage } from '../../services/shared/api-error.util';
   styleUrl: './edit-pasajeros.component.css'
 })
 export class EditPasajerosComponent implements OnInit {
-  id!: number;
-  loading = false;
-  errorMessage = '';
+  id: number | null = null;
 
-  form: any = {
+  cargando = false;
+  guardando = false;
+  error = '';
+
+  form = {
     username: '',
     email: '',
-    password: '',
     pasaporte: '',
     nombreCompleto: '',
     fechaNacimiento: '',
@@ -30,109 +31,113 @@ export class EditPasajerosComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private pasajeroService: PasajeroService
+    private pasajeros: PasajeroService
   ) {}
 
   ngOnInit(): void {
-    const paramId = this.route.snapshot.paramMap.get('id');
-    this.id = Number(paramId);
+    const raw = this.route.snapshot.paramMap.get('id');
+    const id = raw ? Number(raw) : NaN;
 
-    if (!this.id || Number.isNaN(this.id)) {
-      this.router.navigate(['/menu/dashboard/pasajeros']);
+    if (!id || Number.isNaN(id)) {
+      alert('ID invalido');
+      this.regresar();
       return;
     }
 
+    this.id = id;
     this.cargar();
   }
 
   cargar(): void {
-    this.loading = true;
-    this.errorMessage = '';
+    if (!this.id) {
+      return;
+    }
 
-    this.pasajeroService.obtenerPorId(this.id).subscribe({
-      next: (data: any) => {
+    this.cargando = true;
+    this.error = '';
+
+    this.pasajeros.obtener(this.id).subscribe({
+      next: (p) => {
         this.form = {
-          username: data.username ?? '',
-          email: data.email ?? '',
-          password: '',
-          pasaporte: data.pasaporte ?? '',
-          nombreCompleto: data.nombreCompleto ?? '',
-          fechaNacimiento: data.fechaNacimiento ?? '',
-          nacionalidad: data.nacionalidad ?? '',
-          codigoArea: data.codigoArea ?? '',
-          telefono: data.telefono ?? '',
-          telefonoEmergencia: data.telefonoEmergencia ?? '',
-          direccion: data.direccion ?? ''
+          username: p?.username || p?.user?.username || '',
+          email: p?.email || p?.user?.email || '',
+          pasaporte: p?.pasaporte || '',
+          nombreCompleto: p?.nombreCompleto || '',
+          fechaNacimiento: p?.fechaNacimiento || '',
+          nacionalidad: p?.nacionalidad || '',
+          codigoArea: p?.codigoArea || '',
+          telefono: p?.telefono || '',
+          telefonoEmergencia: p?.telefonoEmergencia || '',
+          direccion: p?.direccion || ''
         };
-        this.loading = false;
+
+        this.cargando = false;
       },
-      error: (error: any) => {
-        this.loading = false;
-        this.errorMessage = getApiErrorMessage(error, 'Error al cargar pasajero');
+      error: (err) => {
+        this.error = getApiErrorMessage(err, 'No se pudo cargar el pasajero.');
+        this.cargando = false;
       }
     });
   }
 
   guardar(): void {
-    const requiredFields = [
-      'username',
-      'email',
-      'pasaporte',
-      'nombreCompleto',
-      'fechaNacimiento',
-      'nacionalidad',
-      'codigoArea',
-      'telefono',
-      'telefonoEmergencia',
-      'direccion'
-    ];
-
-    const hasMissing = requiredFields.some((field: string) => {
-      const value = this.form[field];
-      return value === null || value === undefined || String(value).trim() === '';
-    });
-
-    if (hasMissing) {
-      this.errorMessage = 'Debe ingresar los campos obligatorios.';
+    if (!this.id) {
       return;
     }
 
-    if (String(this.form.pasaporte).length > 15) {
-      this.errorMessage = 'Pasaporte debe tener maximo 15 caracteres.';
-      return;
-    }
+    const msg = this.validar();
 
-    if (!/^[0-9]{8}$/.test(String(this.form.telefono)) || !/^[0-9]{8}$/.test(String(this.form.telefonoEmergencia))) {
-      this.errorMessage = 'Telefono y telefono de emergencia deben tener 8 digitos.';
-      return;
-    }
-
-    if (this.form.password && !/^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{6,}$/.test(String(this.form.password))) {
-      this.errorMessage = 'El formato de la contrasena debe incluir al menos una mayuscula, un caracter especial y un numero.';
+    if (msg) {
+      this.error = msg;
       return;
     }
 
     const payload = {
-      ...this.form,
-      password: this.form.password ? this.form.password : ''
+      username: this.form.username?.trim() || null,
+      email: this.form.email?.trim() || null,
+      pasaporte: this.form.pasaporte.trim(),
+      nombreCompleto: this.form.nombreCompleto.trim(),
+      fechaNacimiento: this.form.fechaNacimiento || null,
+      nacionalidad: this.form.nacionalidad?.trim() || null,
+      codigoArea: this.form.codigoArea?.trim() || null,
+      telefono: this.form.telefono?.trim() || null,
+      telefonoEmergencia: this.form.telefonoEmergencia?.trim() || null,
+      direccion: this.form.direccion?.trim() || null
     };
 
-    this.loading = true;
-    this.errorMessage = '';
+    this.guardando = true;
+    this.error = '';
 
-    this.pasajeroService.actualizar(this.id, payload).subscribe({
+    this.pasajeros.editar(this.id, payload).subscribe({
       next: () => {
-        this.loading = false;
-        this.router.navigate(['/menu/dashboard/pasajeros']);
+        this.guardando = false;
+        alert('Pasajero actualizado correctamente.');
+        this.regresar();
       },
-      error: (error: any) => {
-        this.loading = false;
-        this.errorMessage = getApiErrorMessage(error, 'Error al actualizar pasajero');
+      error: (err) => {
+        this.guardando = false;
+        this.error = getApiErrorMessage(err, 'No se pudo actualizar el pasajero.');
       }
     });
   }
 
-  cancelar(): void {
+  regresar(): void {
     this.router.navigate(['/menu/dashboard/pasajeros']);
+  }
+
+  private validar(): string {
+    if (!this.form.pasaporte.trim()) {
+      return 'Pasaporte obligatorio.';
+    }
+
+    if (!this.form.nombreCompleto.trim()) {
+      return 'Nombre completo obligatorio.';
+    }
+
+    if (this.form.email && !this.form.email.includes('@')) {
+      return 'Correo invalido.';
+    }
+
+    return '';
   }
 }

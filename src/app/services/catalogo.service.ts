@@ -96,4 +96,16 @@ export class CatalogoService {
   metodoPago() {
     return this.http.get<any[]>(`${this.api}/metodo-pago`);
   }
+
+  estadoReserva() {
+    return this.http.get<any[]>(`${this.api}/estado-reserva`);
+  }
+
+  estadoPago() {
+    return this.http.get<any[]>(`${this.api}/estado-pago`);
+  }
+
+  estadoBoleto() {
+    return this.http.get<any[]>(`${this.api}/estado-boleto`);
+  }
 }

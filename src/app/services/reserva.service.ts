@@ -95,6 +95,16 @@ export interface ReservaResponse {
   subtotal?: number | null;
   recargoTotal?: number | null;
   total?: number | null;
+  fechaReserva?: string | null;
+  pagoId?: number | null;
+  estadoPagoId?: number | null;
+  estadoPago?: string | null;
+  metodoPagoId?: number | null;
+  metodoPago?: string | null;
+  montoPago?: number | null;
+  pagada?: boolean | null;
+  pendientePago?: boolean | null;
+  facturaId?: number | null;
   boletos?: ReservaBoletoItemResponse[];
   mensaje?: string | null;
 }

@@ -55,6 +55,7 @@ import { VueloOperadoEditComponent } from './pages/vuelo-operado-edit/vuelo-oper
 import { ConsultaVueloComponent } from './pages/consulta-vuelo/consulta-vuelo.component';
 import { ConsultasComponent } from './pages/consultas/consultas.component';
 import { ReservarVueloComponent } from './pages/reservar-vuelo/reservar-vuelo.component';
+import { MisReservasComponent } from './pages/mis-reservas/mis-reservas.component';
 import { AbordajeVuelosComponent } from './pages/abordaje-vuelos/abordaje-vuelos.component';
 import { BlockPastDateDirective } from './directives/block-past-date.directive';
 
@@ -107,6 +108,7 @@ import { BlockPastDateDirective } from './directives/block-past-date.directive';
     ConsultaVueloComponent,
     ConsultasComponent,
     ReservarVueloComponent,
+    MisReservasComponent,
     AbordajeVuelosComponent,
     BlockPastDateDirective
   ],

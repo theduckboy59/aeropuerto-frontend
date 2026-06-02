@@ -1,7 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CatalogoService } from '../../services/catalogo.service';
-import { ReporteService } from '../../services/reporte.service';
-import { environment } from '../../../environments/environment';
+import { FiltrosVuelosReporte, ReporteService } from '../../services/reporte.service';
+
+type TipoReporte =
+  | 'vuelos'
+  | 'pasajeros'
+  | 'equipaje'
+  | 'aviones'
+  | 'aerolineas'
+  | 'destinos';
 
 @Component({
   selector: 'app-consultas',
@@ -9,27 +16,29 @@ import { environment } from '../../../environments/environment';
   styleUrl: './consultas.component.css'
 })
 export class ConsultasComponent implements OnInit {
-  readonly fechaMinima = this.obtenerFechaMinima();
+  reporteActivo: TipoReporte = 'vuelos';
 
   aerolineas: any[] = [];
   aeropuertos: any[] = [];
 
-  filtrosVuelos = {
+  cargando = false;
+  error: string | null = null;
+  ok: string | null = null;
+  aviso: string | null = null;
+
+  filtrosVuelos: FiltrosVuelosReporte = {
     fechaDesde: '',
     horaDesde: '',
     fechaHasta: '',
     horaHasta: ''
   };
 
-  codigoVuelo = '';
+  codigoVueloPasajeros = '';
   codigoVueloEquipaje = '';
 
-  aerolineaId = '';
-  aeropuertoId = '';
+  aerolineaIdAviones = '';
+  aeropuertoIdAerolineas = '';
   aerolineaIdDestinos = '';
-
-  cargando = false;
-  error: string | null = null;
 
   resultadoVuelos: any[] = [];
   resultadoPasajeros: any[] = [];
@@ -44,243 +53,463 @@ export class ConsultasComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.catalogo.aerolineas().subscribe({ next: (r) => (this.aerolineas = r ?? []) });
-    this.catalogo.aeropuertos().subscribe({ next: (r) => (this.aeropuertos = r ?? []) });
+    this.cargarCatalogos();
   }
 
-  consultarVuelos() {
-    this.run(() =>
+  cargarCatalogos(): void {
+    this.catalogo.aerolineas().subscribe({
+      next: (res) => this.aerolineas = res ?? [],
+      error: () => this.aerolineas = []
+    });
+
+    this.catalogo.aeropuertos().subscribe({
+      next: (res) => this.aeropuertos = res ?? [],
+      error: () => this.aeropuertos = []
+    });
+  }
+
+  seleccionarReporte(tipo: TipoReporte): void {
+    this.reporteActivo = tipo;
+    this.error = null;
+    this.ok = null;
+    this.aviso = null;
+  }
+
+  consultarVuelos(): void {
+    const msg = this.validarFiltrosVuelos();
+
+    if (msg) {
+      this.error = msg;
+      return;
+    }
+
+    this.run(() => {
       this.reportes.vuelosPorFechaHora(this.filtrosVuelos).subscribe({
-        next: (res) => (this.resultadoVuelos = res ?? []),
-        error: (err) => this.setError(err, 'No se pudo consultar el listado de vuelos.')
-      })
-    );
+        next: (res) => {
+          this.resultadoVuelos = res ?? [];
+          this.postConsulta(this.resultadoVuelos);
+        },
+        error: (err) => this.fail(err, 'No se pudo consultar el reporte de vuelos.')
+      });
+    });
   }
 
-  consultarPasajeros() {
-    const codigo = (this.codigoVuelo || '').trim();
+  consultarPasajeros(): void {
+    const codigo = this.codigoVueloPasajeros.trim();
+
     if (!codigo) {
-      this.error = 'Ingresa el número de vuelo para pasajeros por vuelo.';
+      this.error = 'Ingresa el numero de vuelo.';
       return;
     }
-    this.run(() =>
+
+    this.run(() => {
       this.reportes.pasajerosPorVuelo(codigo).subscribe({
-        next: (res) => (this.resultadoPasajeros = res ?? []),
-        error: (err) => this.setError(err, 'No se pudo consultar pasajeros por vuelo.')
-      })
-    );
+        next: (res) => {
+          this.resultadoPasajeros = res ?? [];
+          this.postConsulta(this.resultadoPasajeros);
+        },
+        error: (err) => this.fail(err, 'No se pudo consultar pasajeros por vuelo.')
+      });
+    });
   }
 
-  consultarEquipaje() {
-    const codigo = (this.codigoVueloEquipaje || '').trim();
+  consultarEquipaje(): void {
+    const codigo = this.codigoVueloEquipaje.trim();
+
     if (!codigo) {
-      this.error = 'Ingresa el número de vuelo para equipaje por vuelo.';
+      this.error = 'Ingresa el numero de vuelo.';
       return;
     }
-    this.run(() =>
+
+    this.run(() => {
       this.reportes.equipajePorVuelo(codigo).subscribe({
-        next: (res) => (this.resultadoEquipaje = res ?? []),
-        error: (err) => this.setError(err, 'No se pudo consultar equipaje por vuelo.')
-      })
-    );
+        next: (res) => {
+          this.resultadoEquipaje = res ?? [];
+          this.postConsulta(this.resultadoEquipaje);
+        },
+        error: (err) => this.fail(err, 'No se pudo consultar equipaje por vuelo.')
+      });
+    });
   }
 
-  consultarAvionesPorAerolinea() {
-    const id = Number(this.aerolineaId);
+  consultarAviones(): void {
+    const id = Number(this.aerolineaIdAviones);
+
     if (!id) {
-      this.error = 'Selecciona una aerolínea.';
+      this.error = 'Selecciona una aerolinea.';
       return;
     }
-    this.run(() =>
+
+    this.run(() => {
       this.reportes.avionesPorAerolinea(id).subscribe({
-        next: (res) => (this.resultadoAviones = res ?? []),
-        error: (err) => this.setError(err, 'No se pudo consultar aviones por aerolínea.')
-      })
-    );
+        next: (res) => {
+          this.resultadoAviones = res ?? [];
+          this.postConsulta(this.resultadoAviones);
+        },
+        error: (err) => this.fail(err, 'No se pudo consultar aviones por aerolinea.')
+      });
+    });
   }
 
-  consultarAerolineasPorAeropuerto() {
-    const id = Number(this.aeropuertoId);
+  consultarAerolineas(): void {
+    const id = Number(this.aeropuertoIdAerolineas);
+
     if (!id) {
       this.error = 'Selecciona un aeropuerto.';
       return;
     }
-    this.run(() =>
+
+    this.run(() => {
       this.reportes.aerolineasPorAeropuerto(id).subscribe({
-        next: (res) => (this.resultadoAerolineas = res ?? []),
-        error: (err) => this.setError(err, 'No se pudo consultar aerolíneas por aeropuerto.')
-      })
-    );
+        next: (res) => {
+          this.resultadoAerolineas = res ?? [];
+          this.postConsulta(this.resultadoAerolineas);
+        },
+        error: (err) => this.fail(err, 'No se pudo consultar aerolineas por aeropuerto.')
+      });
+    });
   }
 
-  consultarDestinosPorAerolinea() {
+  consultarDestinos(): void {
     const id = Number(this.aerolineaIdDestinos);
+
     if (!id) {
-      this.error = 'Selecciona una aerolínea.';
+      this.error = 'Selecciona una aerolinea.';
       return;
     }
-    this.run(() =>
+
+    this.run(() => {
       this.reportes.destinosPorAerolinea(id).subscribe({
-        next: (res) => (this.resultadoDestinos = res ?? []),
-        error: (err) => this.setError(err, 'No se pudo consultar destinos autorizados.')
-      })
-    );
+        next: (res) => {
+          this.resultadoDestinos = res ?? [];
+          this.postConsulta(this.resultadoDestinos);
+        },
+        error: (err) => this.fail(err, 'No se pudo consultar destinos por aerolinea.')
+      });
+    });
   }
 
-  limpiar() {
+  descargarPdf(tipo: TipoReporte): void {
     this.error = null;
-    this.resultadoVuelos = [];
-    this.resultadoPasajeros = [];
-    this.resultadoEquipaje = [];
-    this.resultadoAviones = [];
-    this.resultadoAerolineas = [];
-    this.resultadoDestinos = [];
-  }
 
-  imprimir() {
-    window.print();
-  }
+    if (tipo === 'vuelos') {
+      const msg = this.validarFiltrosVuelos();
+      if (msg) {
+        this.error = msg;
+        return;
+      }
 
-  descargarVuelosPdf() {
-    const url = `${environment.apiUrl}/reportes/vuelos/pdf${this.qs(this.filtrosVuelos)}`;
-    window.open(url, '_blank');
-  }
-
-  descargarVuelosExcel() {
-    const url = `${environment.apiUrl}/reportes/vuelos/excel${this.qs(this.filtrosVuelos)}`;
-    window.open(url, '_blank');
-  }
-
-  descargarPasajerosPdf(codigo: string) {
-    const c = (codigo || '').trim();
-    if (!c) return;
-    window.open(`${environment.apiUrl}/reportes/pasajeros-vuelo/${encodeURIComponent(c)}/pdf`, '_blank');
-  }
-
-  descargarPasajerosExcel(codigo: string) {
-    const c = (codigo || '').trim();
-    if (!c) return;
-    window.open(`${environment.apiUrl}/reportes/pasajeros-vuelo/${encodeURIComponent(c)}/excel`, '_blank');
-  }
-
-  descargarEquipajePdf(codigo: string) {
-    const c = (codigo || '').trim();
-    if (!c) return;
-    window.open(`${environment.apiUrl}/reportes/equipaje-vuelo/${encodeURIComponent(c)}/pdf`, '_blank');
-  }
-
-  descargarEquipajeExcel(codigo: string) {
-    const c = (codigo || '').trim();
-    if (!c) return;
-    window.open(`${environment.apiUrl}/reportes/equipaje-vuelo/${encodeURIComponent(c)}/excel`, '_blank');
-  }
-
-  descargarAvionesPdf(aerolineaId: string) {
-    const id = Number(aerolineaId);
-    if (!id) return;
-    window.open(`${environment.apiUrl}/reportes/aviones-aerolinea/${id}/pdf`, '_blank');
-  }
-
-  descargarAvionesExcel(aerolineaId: string) {
-    const id = Number(aerolineaId);
-    if (!id) return;
-    window.open(`${environment.apiUrl}/reportes/aviones-aerolinea/${id}/excel`, '_blank');
-  }
-
-  descargarAerolineasPdf(aeropuertoId: string) {
-    const id = Number(aeropuertoId);
-    if (!id) return;
-    window.open(`${environment.apiUrl}/reportes/aerolineas-aeropuerto/${id}/pdf`, '_blank');
-  }
-
-  descargarAerolineasExcel(aeropuertoId: string) {
-    const id = Number(aeropuertoId);
-    if (!id) return;
-    window.open(`${environment.apiUrl}/reportes/aerolineas-aeropuerto/${id}/excel`, '_blank');
-  }
-
-  descargarDestinosPdf(aerolineaId: string) {
-    const id = Number(aerolineaId);
-    if (!id) return;
-    window.open(`${environment.apiUrl}/reportes/destinos-aerolinea/${id}/pdf`, '_blank');
-  }
-
-  descargarDestinosExcel(aerolineaId: string) {
-    const id = Number(aerolineaId);
-    if (!id) return;
-    window.open(`${environment.apiUrl}/reportes/destinos-aerolinea/${id}/excel`, '_blank');
-  }
-
-  exportarTablaCSV(nombre: string, filas: any[]) {
-    if (!filas || filas.length === 0) {
+      this.reportes.vuelosPdf(this.filtrosVuelos).subscribe({
+        next: (blob) => this.saveBlob(blob, 'reporte_vuelos.pdf'),
+        error: () => this.error = 'No se pudo descargar el PDF.'
+      });
       return;
     }
-    const keys: string[] = Array.from(
-      filas.reduce((set: Set<string>, row: any) => {
-        Object.keys(row || {}).forEach((k) => set.add(k));
-        return set;
-      }, new Set<string>())
-    ) as string[];
 
-    const header = keys.map((k) => this.escape(k)).join(',');
-    const lines = filas.map((row) =>
-      keys.map((k) => this.escape((row || {})[k])).join(',')
+    if (tipo === 'pasajeros') {
+      const codigo = this.codigoVueloPasajeros.trim();
+      if (!codigo) {
+        this.error = 'Ingresa el numero de vuelo.';
+        return;
+      }
+
+      this.reportes.pasajerosPorVueloPdf(codigo).subscribe({
+        next: (blob) => this.saveBlob(blob, `reporte_pasajeros_${this.safeName(codigo)}.pdf`),
+        error: () => this.error = 'No se pudo descargar el PDF.'
+      });
+      return;
+    }
+
+    if (tipo === 'equipaje') {
+      const codigo = this.codigoVueloEquipaje.trim();
+      if (!codigo) {
+        this.error = 'Ingresa el numero de vuelo.';
+        return;
+      }
+
+      this.reportes.equipajePorVueloPdf(codigo).subscribe({
+        next: (blob) => this.saveBlob(blob, `reporte_equipaje_${this.safeName(codigo)}.pdf`),
+        error: () => this.error = 'No se pudo descargar el PDF.'
+      });
+      return;
+    }
+
+    if (tipo === 'aviones') {
+      const id = Number(this.aerolineaIdAviones);
+      if (!id) {
+        this.error = 'Selecciona una aerolinea.';
+        return;
+      }
+
+      this.reportes.avionesPorAerolineaPdf(id).subscribe({
+        next: (blob) => this.saveBlob(blob, `reporte_aviones_aerolinea_${id}.pdf`),
+        error: () => this.error = 'No se pudo descargar el PDF.'
+      });
+      return;
+    }
+
+    if (tipo === 'aerolineas') {
+      const id = Number(this.aeropuertoIdAerolineas);
+      if (!id) {
+        this.error = 'Selecciona un aeropuerto.';
+        return;
+      }
+
+      this.reportes.aerolineasPorAeropuertoPdf(id).subscribe({
+        next: (blob) => this.saveBlob(blob, `reporte_aerolineas_aeropuerto_${id}.pdf`),
+        error: () => this.error = 'No se pudo descargar el PDF.'
+      });
+      return;
+    }
+
+    if (tipo === 'destinos') {
+      const id = Number(this.aerolineaIdDestinos);
+      if (!id) {
+        this.error = 'Selecciona una aerolinea.';
+        return;
+      }
+
+      this.reportes.destinosPorAerolineaPdf(id).subscribe({
+        next: (blob) => this.saveBlob(blob, `reporte_destinos_aerolinea_${id}.pdf`),
+        error: () => this.error = 'No se pudo descargar el PDF.'
+      });
+    }
+  }
+
+  descargarExcel(tipo: TipoReporte): void {
+    this.error = null;
+
+    if (tipo === 'vuelos') {
+      const msg = this.validarFiltrosVuelos();
+      if (msg) {
+        this.error = msg;
+        return;
+      }
+
+      this.reportes.vuelosExcel(this.filtrosVuelos).subscribe({
+        next: (blob) => this.saveBlob(blob, 'reporte_vuelos.xlsx'),
+        error: () => this.error = 'No se pudo descargar el Excel.'
+      });
+      return;
+    }
+
+    if (tipo === 'pasajeros') {
+      const codigo = this.codigoVueloPasajeros.trim();
+      if (!codigo) {
+        this.error = 'Ingresa el numero de vuelo.';
+        return;
+      }
+
+      this.reportes.pasajerosPorVueloExcel(codigo).subscribe({
+        next: (blob) => this.saveBlob(blob, `reporte_pasajeros_${this.safeName(codigo)}.xlsx`),
+        error: () => this.error = 'No se pudo descargar el Excel.'
+      });
+      return;
+    }
+
+    if (tipo === 'equipaje') {
+      const codigo = this.codigoVueloEquipaje.trim();
+      if (!codigo) {
+        this.error = 'Ingresa el numero de vuelo.';
+        return;
+      }
+
+      this.reportes.equipajePorVueloExcel(codigo).subscribe({
+        next: (blob) => this.saveBlob(blob, `reporte_equipaje_${this.safeName(codigo)}.xlsx`),
+        error: () => this.error = 'No se pudo descargar el Excel.'
+      });
+      return;
+    }
+
+    if (tipo === 'aviones') {
+      const id = Number(this.aerolineaIdAviones);
+      if (!id) {
+        this.error = 'Selecciona una aerolinea.';
+        return;
+      }
+
+      this.reportes.avionesPorAerolineaExcel(id).subscribe({
+        next: (blob) => this.saveBlob(blob, `reporte_aviones_aerolinea_${id}.xlsx`),
+        error: () => this.error = 'No se pudo descargar el Excel.'
+      });
+      return;
+    }
+
+    if (tipo === 'aerolineas') {
+      const id = Number(this.aeropuertoIdAerolineas);
+      if (!id) {
+        this.error = 'Selecciona un aeropuerto.';
+        return;
+      }
+
+      this.reportes.aerolineasPorAeropuertoExcel(id).subscribe({
+        next: (blob) => this.saveBlob(blob, `reporte_aerolineas_aeropuerto_${id}.xlsx`),
+        error: () => this.error = 'No se pudo descargar el Excel.'
+      });
+      return;
+    }
+
+    if (tipo === 'destinos') {
+      const id = Number(this.aerolineaIdDestinos);
+      if (!id) {
+        this.error = 'Selecciona una aerolinea.';
+        return;
+      }
+
+      this.reportes.destinosPorAerolineaExcel(id).subscribe({
+        next: (blob) => this.saveBlob(blob, `reporte_destinos_aerolinea_${id}.xlsx`),
+        error: () => this.error = 'No se pudo descargar el Excel.'
+      });
+    }
+  }
+
+  limpiar(tipo: TipoReporte): void {
+    this.error = null;
+    this.ok = null;
+    this.aviso = null;
+
+    if (tipo === 'vuelos') {
+      this.filtrosVuelos = {
+        fechaDesde: '',
+        horaDesde: '',
+        fechaHasta: '',
+        horaHasta: ''
+      };
+      this.resultadoVuelos = [];
+    }
+
+    if (tipo === 'pasajeros') {
+      this.codigoVueloPasajeros = '';
+      this.resultadoPasajeros = [];
+    }
+
+    if (tipo === 'equipaje') {
+      this.codigoVueloEquipaje = '';
+      this.resultadoEquipaje = [];
+    }
+
+    if (tipo === 'aviones') {
+      this.aerolineaIdAviones = '';
+      this.resultadoAviones = [];
+    }
+
+    if (tipo === 'aerolineas') {
+      this.aeropuertoIdAerolineas = '';
+      this.resultadoAerolineas = [];
+    }
+
+    if (tipo === 'destinos') {
+      this.aerolineaIdDestinos = '';
+      this.resultadoDestinos = [];
+    }
+  }
+
+  columnas(rows: any[]): string[] {
+    if (!rows || !rows.length) {
+      return [];
+    }
+
+    const set = new Set<string>();
+
+    rows.forEach((row) => {
+      Object.keys(row || {}).forEach((key) => set.add(key));
+    });
+
+    return Array.from(set);
+  }
+
+  getCell(row: any, key: string): any {
+    return row ? row[key] : '-';
+  }
+
+  humanize(key: string): string {
+    return String(key || '')
+      .replace(/_/g, ' ')
+      .replace(/([A-Z])/g, ' $1')
+      .trim()
+      .replace(/\w\S*/g, (txt) =>
+        txt.charAt(0).toUpperCase() + txt.substring(1).toLowerCase()
+      );
+  }
+
+  private run(fn: () => void): void {
+    this.error = null;
+    this.ok = null;
+    this.aviso = null;
+    this.cargando = true;
+
+    fn();
+  }
+
+  private postConsulta(rows: any[]): void {
+    this.cargando = false;
+
+    if (!rows.length) {
+      this.aviso = 'No se encontraron registros para los filtros ingresados.';
+      return;
+    }
+
+    this.ok = `Consulta realizada. Registros encontrados: ${rows.length}.`;
+  }
+
+  private fail(err: any, fallback: string): void {
+    this.error = err?.error?.message || err?.error || fallback;
+    this.cargando = false;
+  }
+
+  private validarFiltrosVuelos(): string {
+    const f = this.filtrosVuelos;
+
+    const algunFiltro = !!(
+      f.fechaDesde ||
+      f.horaDesde ||
+      f.fechaHasta ||
+      f.horaHasta
     );
 
-    const csv = [header, ...lines].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
+    if (!algunFiltro) {
+      return '';
+    }
+
+    if (!f.fechaDesde || !f.horaDesde || !f.fechaHasta || !f.horaHasta) {
+      return 'Si ingresas un rango, debes seleccionar fecha desde, hora desde, fecha hasta y hora hasta.';
+    }
+
+    const desde = new Date(`${f.fechaDesde}T${f.horaDesde}`);
+    const hasta = new Date(`${f.fechaHasta}T${f.horaHasta}`);
+
+    if (Number.isNaN(desde.getTime()) || Number.isNaN(hasta.getTime())) {
+      return 'Rango de fechas invalido.';
+    }
+
+    if (hasta <= desde) {
+      return 'La fecha y hora hasta debe ser mayor a la fecha y hora desde.';
+    }
+
+    const diffMs = hasta.getTime() - desde.getTime();
+    const diffDays = diffMs / (1000 * 60 * 60 * 24);
+
+    if (diffDays > 30) {
+      return 'El rango maximo de consulta es de 30 dias.';
+    }
+
+    return '';
+  }
+
+  private saveBlob(blob: Blob, filename: string): void {
+    const url = window.URL.createObjectURL(blob);
+
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${nombre}.csv`;
+    a.download = filename;
     a.click();
-    URL.revokeObjectURL(url);
+
+    window.URL.revokeObjectURL(url);
   }
 
-  private run(fn: () => void) {
-    this.cargando = true;
-    this.error = null;
-    try {
-      fn();
-    } finally {
-      // each call will flip cargando off on subscribe
-      setTimeout(() => (this.cargando = false), 350);
-    }
-  }
-
-  private setError(err: any, fallback: string) {
-    this.error = err?.error?.message || err?.error || fallback;
-  }
-
-  private escape(value: any): string {
-    const s = String(value ?? '').replace(/"/g, '""');
-    return `"${s}"`;
-  }
-
-  getCell(row: any, key: any): any {
-    const k = String(key ?? '');
-    return row ? row[k] : null;
-  }
-
-  private qs(obj: Record<string, any>): string {
-    const entries = Object.entries(obj || {}).filter(
-      ([, v]) => v !== null && v !== undefined && String(v).trim() !== ''
-    );
-    if (!entries.length) return '';
-    return (
-      '?' +
-      entries
-        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v).trim())}`)
-        .join('&')
-    );
-  }
-
-  private obtenerFechaMinima(): string {
-    const hoy = new Date();
-    const anio = hoy.getFullYear();
-    const mes = String(hoy.getMonth() + 1).padStart(2, '0');
-    const dia = String(hoy.getDate()).padStart(2, '0');
-
-    return `${anio}-${mes}-${dia}`;
+  private safeName(value: any): string {
+    return String(value || 'reporte')
+      .trim()
+      .replace(/[^a-zA-Z0-9._-]/g, '_');
   }
 }

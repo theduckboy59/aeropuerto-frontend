@@ -43,10 +43,14 @@ export interface ClienteVueloSegmentoDisponible {
   aeropuertoSalidaId: number | null;
   aeropuertoSalidaNombre: string | null;
   aeropuertoSalidaCodigoIata: string | null;
+  aeropuertoSalidaPais: string | null;
+  aeropuertoSalidaCiudad: string | null;
 
   aeropuertoLlegadaId: number | null;
   aeropuertoLlegadaNombre: string | null;
   aeropuertoLlegadaCodigoIata: string | null;
+  aeropuertoLlegadaPais: string | null;
+  aeropuertoLlegadaCiudad: string | null;
 
   fechaSalida: string | null;
   horaSalida: string | null;
@@ -73,10 +77,14 @@ export interface ClienteVueloDisponible {
   aeropuertoSalidaId: number | null;
   aeropuertoSalidaNombre: string | null;
   aeropuertoSalidaCodigoIata: string | null;
+  aeropuertoSalidaPais: string | null;
+  aeropuertoSalidaCiudad: string | null;
 
   aeropuertoLlegadaId: number | null;
   aeropuertoLlegadaNombre: string | null;
   aeropuertoLlegadaCodigoIata: string | null;
+  aeropuertoLlegadaPais: string | null;
+  aeropuertoLlegadaCiudad: string | null;
 
   puertaEmbarqueSalida: string | null;
   puertaEmbarqueLlegada: string | null;

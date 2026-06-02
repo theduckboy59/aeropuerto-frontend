@@ -64,9 +64,17 @@ export class PasajerosComponent implements OnInit {
       return;
     }
 
+    this.loading = true;
+    this.errorMessage = '';
+
     this.pasajeroService.eliminar(id).subscribe({
-      next: () => this.cargar(),
+      next: () => {
+        this.loading = false;
+        alert('Pasajero inactivado correctamente.');
+        this.cargar();
+      },
       error: (error: any) => {
+        this.loading = false;
         this.errorMessage = getApiErrorMessage(error, 'Error al inactivar pasajero');
       }
     });

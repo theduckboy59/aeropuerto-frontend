@@ -39,9 +39,6 @@ interface PasajeroReservaForm {
   telefonoEmergencia: string;
   direccion: string;
 
-  tipoPasajero: string;
-  adultoResponsablePasajeroId: string;
-
   claseVueloId: string;
   cantidadMaletas: number;
 
@@ -179,7 +176,15 @@ export class ReservarVueloComponent implements OnInit {
   }
 
   get puedePagar(): boolean {
-    return !!Number(this.reserva?.reservaId) && !this.pago;
+    if (!Number(this.reserva?.reservaId)) {
+      return false;
+    }
+
+    if (this.esReservaCancelada(this.reserva)) {
+      return false;
+    }
+
+    return !this.esReservaPagada(this.reserva);
   }
 
   get puedeHacerCheckin(): boolean {
@@ -599,6 +604,48 @@ export class ReservarVueloComponent implements OnInit {
   onClaseChange(item: PasajeroReservaForm): void {
     item.asientoUnicoId = '';
     item.asientoSeleccionadoPorSegmento = {};
+
+    this.cargarAsientosDeClase(item);
+  }
+
+  cargarAsientosDeClase(item: PasajeroReservaForm): void {
+    this.error = null;
+    this.aviso = null;
+
+    const claseVueloId = Number(item.claseVueloId);
+
+    if (!this.vueloSeleccionado || !this.segmentos.length) {
+      this.error = 'Selecciona un vuelo.';
+      return;
+    }
+
+    if (!claseVueloId) {
+      return;
+    }
+
+    const segmentoIds = this.segmentos
+      .map((s) => Number(s.segmentoOperadoId))
+      .filter((id) => !!id);
+
+    this.cargandoAsientos = true;
+
+    forkJoin(
+      segmentoIds.map((segmentoId) =>
+        this.asientosService.listarDisponiblesPorSegmento(segmentoId, claseVueloId)
+      )
+    ).subscribe({
+      next: (respuestas) => {
+        segmentoIds.forEach((segmentoId, index) => {
+          this.asientosPorSegmento[segmentoId] = respuestas[index] ?? [];
+        });
+
+        this.cargandoAsientos = false;
+      },
+      error: (err) => {
+        this.error = err?.error?.message || 'No se pudieron cargar asientos de la clase seleccionada.';
+        this.cargandoAsientos = false;
+      }
+    });
   }
 
   onMaletasChange(item: PasajeroReservaForm): void {
@@ -689,9 +736,21 @@ export class ReservarVueloComponent implements OnInit {
       next: (res) => {
         this.reserva = res;
         this.cargando = false;
+
+        this.aviso =
+          this.esReservaPagada(res)
+            ? 'Reserva creada y pagada.'
+            : 'Reserva creada. El pago quedo pendiente; puedes pagarlo ahora o despues desde Mis reservas.';
       },
       error: (err) => {
-        this.error = err?.error?.message || 'No se pudo crear la reserva.';
+        const msg = err?.error?.message || err?.error || '';
+
+        if (String(msg).toLowerCase().includes('ya tiene un vuelo')) {
+          this.error = msg;
+        } else {
+          this.error = msg || 'No se pudo crear la reserva.';
+        }
+
         this.cargando = false;
       }
     });
@@ -722,18 +781,33 @@ export class ReservarVueloComponent implements OnInit {
 
     this.cargando = true;
 
-    this.pagosService.pagar({
-      reservaId: Number(this.reserva.reservaId),
+    const pagoPendienteId = Number(this.reserva?.pagoId || 0);
+
+    const request = {
       metodoPagoId,
-      monto,
       nit: this.pagoForm.nit?.trim() || 'CF',
       nombreCliente:
         this.pagoForm.nombreCliente?.trim() ||
         this.pasajero?.nombreCompleto ||
         'Consumidor Final'
-    }).subscribe({
+    };
+
+    const observable = pagoPendienteId
+      ? this.pagosService.confirmarPagoPendiente(pagoPendienteId, request)
+      : this.pagosService.pagar({
+          reservaId: Number(this.reserva.reservaId),
+          metodoPagoId,
+          monto,
+          nit: request.nit,
+          nombreCliente: request.nombreCliente,
+          tipoPago: 'NORMAL'
+        });
+
+    observable.subscribe({
       next: (res) => {
         this.pago = res;
+        this.aviso = 'Pago confirmado correctamente. Ya puedes descargar la factura.';
+        this.refrescarReservaActual();
         this.cargando = false;
       },
       error: (err) => {
@@ -806,14 +880,21 @@ export class ReservarVueloComponent implements OnInit {
   }
 
   descargarFacturaPdf(): void {
-    const id = Number(this.pago?.id);
+    const id = Number(this.pago?.id || this.reserva?.pagoId);
 
     if (!id) {
+      this.error = 'No hay factura disponible para descargar.';
       return;
     }
 
     this.documentos.facturaPorPagoPdf(id).subscribe({
-      next: (blob) => this.saveBlob(blob, `factura_pago_${id}.pdf`)
+      next: (blob) => this.saveBlob(
+        blob,
+        `factura_${this.safeName(this.reserva?.codigoReserva || id)}.pdf`
+      ),
+      error: () => {
+        this.error = 'No se pudo descargar la factura.';
+      }
     });
   }
 
@@ -842,7 +923,13 @@ export class ReservarVueloComponent implements OnInit {
       return '-';
     }
 
-    return `${v.aeropuertoSalidaCodigoIata || '-'} → ${v.aeropuertoLlegadaCodigoIata || '-'}`;
+    const salidaCiudad = v.aeropuertoSalidaCiudad || v.aeropuertoSalidaNombre || '-';
+    const salidaPais = v.aeropuertoSalidaPais || '-';
+
+    const llegadaCiudad = v.aeropuertoLlegadaCiudad || v.aeropuertoLlegadaNombre || '-';
+    const llegadaPais = v.aeropuertoLlegadaPais || '-';
+
+    return `${salidaCiudad}, ${salidaPais} → ${llegadaCiudad}, ${llegadaPais}`;
   }
 
   getTipoVuelo(v: ClienteVueloDisponible | null): string {
@@ -850,7 +937,13 @@ export class ReservarVueloComponent implements OnInit {
   }
 
   getSegmentoTexto(s: ClienteVueloSegmentoDisponible): string {
-    return `Segmento ${s.ordenSegmento || '-'} | ${s.aeropuertoSalidaCodigoIata || '-'} → ${s.aeropuertoLlegadaCodigoIata || '-'}`;
+    const salidaCiudad = s.aeropuertoSalidaCiudad || s.aeropuertoSalidaNombre || '-';
+    const salidaPais = s.aeropuertoSalidaPais || '-';
+
+    const llegadaCiudad = s.aeropuertoLlegadaCiudad || s.aeropuertoLlegadaNombre || '-';
+    const llegadaPais = s.aeropuertoLlegadaPais || '-';
+
+    return `Segmento ${s.ordenSegmento || '-'} | ${salidaCiudad}, ${salidaPais} → ${llegadaCiudad}, ${llegadaPais}`;
   }
 
   getCodigoAsiento(a: AsientoVuelo | null | undefined): string {
@@ -885,10 +978,6 @@ export class ReservarVueloComponent implements OnInit {
       return this.pasajero?.nombreCompleto || 'Titular';
     }
 
-    if (item.usarPasajeroExistente) {
-      return item.pasajeroId ? `Pasajero ID ${item.pasajeroId}` : 'Pasajero existente';
-    }
-
     return item.nombreCompleto || item.pasaporte || 'Acompañante';
   }
 
@@ -899,6 +988,30 @@ export class ReservarVueloComponent implements OnInit {
       style: 'currency',
       currency: 'GTQ'
     });
+  }
+
+  refrescarReservaActual(): void {
+    const reservaId = Number(this.reserva?.reservaId);
+
+    if (!reservaId) {
+      return;
+    }
+
+    this.reservasService.obtenerPorId(reservaId).subscribe({
+      next: (res) => {
+        this.reserva = res;
+      },
+      error: () => {}
+    });
+  }
+
+  esReservaPagada(reserva: any): boolean {
+    return reserva?.pagada === true ||
+      String(reserva?.estadoPago || '').toUpperCase() === 'PAGADO';
+  }
+
+  esReservaCancelada(reserva: any): boolean {
+    return String(reserva?.estadoReserva || '').toUpperCase() === 'CANCELADA';
   }
 
   private inicializarPasajeroPrincipal(): void {
@@ -934,9 +1047,6 @@ export class ReservarVueloComponent implements OnInit {
       telefonoEmergencia: '',
       direccion: '',
 
-      tipoPasajero: 'ADULTO',
-      adultoResponsablePasajeroId: '',
-
       claseVueloId: '',
       cantidadMaletas: 0,
       asientoUnicoId: '',
@@ -969,9 +1079,9 @@ export class ReservarVueloComponent implements OnInit {
         return false;
       }
 
-      if (item.usarPasajeroExistente) {
+      if (item.esPrincipal) {
         if (!Number(item.pasajeroId)) {
-          if (mostrar) this.error = 'Debe ingresar ID de pasajero existente.';
+          if (mostrar) this.error = 'No se pudo identificar al pasajero titular.';
           return false;
         }
       } else {
@@ -982,12 +1092,12 @@ export class ReservarVueloComponent implements OnInit {
           !item.nacionalidad.trim() ||
           !item.telefonoEmergencia.trim()
         ) {
-          if (mostrar) this.error = 'Debe ingresar los datos obligatorios de cada acompañante.';
+          if (mostrar) this.error = 'Debe ingresar pasaporte, nombre, fecha nacimiento, nacionalidad y telefono de emergencia del acompanante.';
           return false;
         }
       }
 
-      const clave = item.usarPasajeroExistente
+      const clave = item.esPrincipal
         ? `ID-${Number(item.pasajeroId)}`
         : `PAS-${item.pasaporte.trim().toUpperCase()}`;
 
@@ -1028,28 +1138,25 @@ export class ReservarVueloComponent implements OnInit {
     const pasajerosPayload = this.pasajerosReserva.map((item) => {
       const segmentosAsientos = this.construirSegmentosAsientos(item, true);
       const primerSegmento = segmentosAsientos[0];
+      const esPrincipal = item.esPrincipal;
 
       return {
-        pasajeroId: item.usarPasajeroExistente ? Number(item.pasajeroId) : null,
+        pasajeroId: esPrincipal ? Number(item.pasajeroId) : null,
 
-        pasaporte: item.usarPasajeroExistente ? null : item.pasaporte.trim(),
-        nombreCompleto: item.usarPasajeroExistente ? null : item.nombreCompleto.trim(),
-        fechaNacimiento: item.usarPasajeroExistente ? null : item.fechaNacimiento,
-        nacionalidad: item.usarPasajeroExistente ? null : item.nacionalidad.trim(),
-        codigoArea: item.usarPasajeroExistente ? null : this.valorOpcional(item.codigoArea),
-        telefono: item.usarPasajeroExistente ? null : this.valorOpcional(item.telefono),
-        telefonoEmergencia: item.usarPasajeroExistente ? null : item.telefonoEmergencia.trim(),
-        direccion: item.usarPasajeroExistente ? null : this.valorOpcional(item.direccion),
+        pasaporte: esPrincipal ? null : item.pasaporte.trim(),
+        nombreCompleto: esPrincipal ? null : item.nombreCompleto.trim(),
+        fechaNacimiento: esPrincipal ? null : item.fechaNacimiento,
+        nacionalidad: esPrincipal ? null : item.nacionalidad.trim(),
+        codigoArea: esPrincipal ? null : this.valorOpcional(item.codigoArea),
+        telefono: esPrincipal ? null : this.valorOpcional(item.telefono),
+        telefonoEmergencia: esPrincipal ? null : item.telefonoEmergencia.trim(),
+        direccion: esPrincipal ? null : this.valorOpcional(item.direccion),
 
         claseVueloId: Number(item.claseVueloId),
         cantidadMaletas: Number(item.cantidadMaletas || 0),
         requiereAsiento: true,
         precioBase: this.getPrecioClasePasajero(item),
         asientoVueloId: primerSegmento?.asientoVueloId || null,
-        tipoPasajero: item.tipoPasajero || 'ADULTO',
-        adultoResponsablePasajeroId: item.adultoResponsablePasajeroId
-          ? Number(item.adultoResponsablePasajeroId)
-          : null,
         segmentosAsientos
       };
     });

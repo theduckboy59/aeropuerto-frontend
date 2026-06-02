@@ -38,6 +38,7 @@ import { RoleGuard } from './guards/role.guard';
 import { ConsultaVueloComponent } from './pages/consulta-vuelo/consulta-vuelo.component';
 import { ConsultasComponent } from './pages/consultas/consultas.component';
 import { ReservarVueloComponent } from './pages/reservar-vuelo/reservar-vuelo.component';
+import { MisReservasComponent } from './pages/mis-reservas/mis-reservas.component';
 import { AbordajeVuelosComponent } from './pages/abordaje-vuelos/abordaje-vuelos.component';
 
 import { ModeloAvionComponent } from './pages/modelo-avion/modelo-avion.component';
@@ -105,6 +106,12 @@ const routes: Routes = [
         component: ReservarVueloComponent,
         canActivate: [RoleGuard],
         data: { title: 'Reservar vuelo', roles: ['ROLE_CLIENTE'] }
+      },
+      {
+        path: 'reservas',
+        component: MisReservasComponent,
+        canActivate: [RoleGuard],
+        data: { title: 'Mis reservas', roles: ['ROLE_CLIENTE'] }
       }
     ]
   },

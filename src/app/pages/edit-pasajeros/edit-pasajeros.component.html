@@ -1,84 +1,98 @@
 <div class="page-root">
   <main class="content">
-    <header class="topbar" aria-label="Encabezado">
+    <header class="topbar">
       <div class="topbar-left">
-        <div class="badge">A L P</div>
+        <div class="badge">PX</div>
+
         <div>
           <h1 class="title">Editar pasajero</h1>
-          <p class="subtitle">Actualiza la informacion del pasajero.</p>
+          <p class="subtitle">
+            Actualiza datos personales del pasajero. No se cambia contrasena desde esta pantalla.
+          </p>
         </div>
       </div>
-      <div class="topbar-right">
-        <button class="btn-secondary" type="button" (click)="cancelar()">Regresar</button>
-      </div>
+
+      <button class="btn-secondary" type="button" (click)="regresar()">
+        Regresar
+      </button>
     </header>
 
-    <section class="card">
-      <div class="section">
-        <div *ngIf="loading">Cargando pasajero...</div>
-        <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+    <div class="alert-danger" *ngIf="error">{{ error }}</div>
+    <p class="muted" *ngIf="cargando">Cargando pasajero...</p>
 
-        <div class="form-grid" *ngIf="!loading">
-          <div class="field">
-            <label class="label">Usuario</label>
-            <input class="control" [(ngModel)]="form.username" />
-          </div>
+    <section class="card" *ngIf="!cargando">
+      <h2 class="section-title">Datos de cuenta</h2>
 
-          <div class="field">
-            <label class="label">Email</label>
-            <input class="control" type="email" [(ngModel)]="form.email" />
-          </div>
-
-          <div class="field">
-            <label class="label">Password (opcional)</label>
-            <input class="control" type="password" [(ngModel)]="form.password" />
-          </div>
-
-          <div class="field">
-            <label class="label">Pasaporte</label>
-            <input class="control" [(ngModel)]="form.pasaporte" maxlength="15" />
-          </div>
-
-          <div class="field field-wide">
-            <label class="label">Nombre Completo</label>
-            <input class="control" [(ngModel)]="form.nombreCompleto" />
-          </div>
-
-          <div class="field">
-            <label class="label">Fecha Nacimiento</label>
-            <input class="control" type="date" [(ngModel)]="form.fechaNacimiento" allowPastDate />
-          </div>
-
-          <div class="field">
-            <label class="label">Nacionalidad</label>
-            <input class="control" [(ngModel)]="form.nacionalidad" />
-          </div>
-
-          <div class="field">
-            <label class="label">Codigo Area</label>
-            <input class="control" [(ngModel)]="form.codigoArea" />
-          </div>
-
-          <div class="field">
-            <label class="label">Telefono</label>
-            <input class="control" [(ngModel)]="form.telefono" maxlength="8" />
-          </div>
-
-          <div class="field">
-            <label class="label">Telefono Emergencia</label>
-            <input class="control" [(ngModel)]="form.telefonoEmergencia" maxlength="8" />
-          </div>
-
-          <div class="field field-wide">
-            <label class="label">Direccion</label>
-            <input class="control" [(ngModel)]="form.direccion" />
-          </div>
+      <div class="form-grid">
+        <div class="field">
+          <label class="label">Usuario</label>
+          <input class="control" [(ngModel)]="form.username" name="username" />
         </div>
 
-        <div class="form-actions">
-          <button class="btn-primary" type="button" (click)="guardar()">Guardar cambios</button>
-          <button class="btn-secondary" type="button" (click)="cancelar()">Cancelar</button>
+        <div class="field">
+          <label class="label">Correo</label>
+          <input class="control" type="email" [(ngModel)]="form.email" name="email" />
         </div>
+      </div>
+    </section>
+
+    <section class="card" *ngIf="!cargando">
+      <h2 class="section-title">Datos personales</h2>
+
+      <div class="form-grid">
+        <div class="field">
+          <label class="label">Pasaporte</label>
+          <input class="control" [(ngModel)]="form.pasaporte" name="pasaporte" />
+        </div>
+
+        <div class="field field--wide">
+          <label class="label">Nombre completo</label>
+          <input class="control" [(ngModel)]="form.nombreCompleto" name="nombreCompleto" />
+        </div>
+
+        <div class="field">
+          <label class="label">Fecha nacimiento</label>
+          <input class="control" type="date" [(ngModel)]="form.fechaNacimiento" name="fechaNacimiento" allowPastDate />
+        </div>
+
+        <div class="field">
+          <label class="label">Nacionalidad</label>
+          <input class="control" [(ngModel)]="form.nacionalidad" name="nacionalidad" />
+        </div>
+
+        <div class="field">
+          <label class="label">Codigo area</label>
+          <input class="control" [(ngModel)]="form.codigoArea" name="codigoArea" />
+        </div>
+
+        <div class="field">
+          <label class="label">Telefono</label>
+          <input class="control" [(ngModel)]="form.telefono" name="telefono" />
+        </div>
+
+        <div class="field">
+          <label class="label">Telefono emergencia</label>
+          <input class="control" [(ngModel)]="form.telefonoEmergencia" name="telefonoEmergencia" />
+        </div>
+
+        <div class="field field--wide">
+          <label class="label">Direccion</label>
+          <input class="control" [(ngModel)]="form.direccion" name="direccion" />
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button
+          class="btn-primary"
+          type="button"
+          [disabled]="guardando"
+          (click)="guardar()">
+          {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
+
+        <button class="btn-secondary" type="button" (click)="regresar()">
+          Cancelar
+        </button>
       </div>
     </section>
   </main>

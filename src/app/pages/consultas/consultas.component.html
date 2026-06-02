@@ -1,264 +1,319 @@
 <div class="page-root">
   <main class="content">
-    <header class="topbar" aria-label="Encabezado">
+    <header class="topbar">
       <div class="topbar-left">
-        <div class="badge">A L P</div>
+        <div class="badge">RP</div>
+
         <div>
-          <h1 class="title">Consultas y reportes</h1>
+          <h1 class="title">Reportes administrativos</h1>
           <p class="subtitle">
-            Panel de consulta operativa. En aerolíneas y aeropuertos reales, estos reportes alimentan operaciones, seguridad y atención al pasajero.
+            Consulta informacion operativa y descarga reportes profesionales en PDF o Excel.
           </p>
         </div>
-      </div>
-      <div class="topbar-right">
-        <button class="btn-secondary" type="button" (click)="limpiar()">Limpiar</button>
-        <button class="btn-primary" type="button" (click)="imprimir()">Imprimir</button>
       </div>
     </header>
 
     <div class="alert-danger" *ngIf="error">{{ error }}</div>
-    <p class="muted" *ngIf="cargando">Consultando...</p>
+    <div class="alert-success" *ngIf="ok">{{ ok }}</div>
+    <div class="alert-info" *ngIf="aviso">{{ aviso }}</div>
 
-    <section class="grid">
-      <section class="card">
-        <div class="section-header">
-          <h2 class="section-title">Vuelos por fecha y hora</h2>
-          <div class="actions">
-            <button class="btn-secondary" type="button" (click)="descargarVuelosExcel()">Excel</button>
-            <button class="btn-secondary" type="button" (click)="descargarVuelosPdf()">PDF</button>
-            <button class="btn-secondary" type="button" (click)="exportarTablaCSV('reporte_vuelos', resultadoVuelos)">CSV</button>
-          </div>
-        </div>
+    <p class="muted" *ngIf="cargando">Procesando consulta...</p>
 
-        <div class="form-grid">
-          <div class="field">
-            <label class="label">Fecha desde</label>
-            <input class="control" type="date" [(ngModel)]="filtrosVuelos.fechaDesde" name="fechaDesde" [min]="fechaMinima" />
-          </div>
-          <div class="field">
-            <label class="label">Hora desde</label>
-            <input class="control" type="time" [(ngModel)]="filtrosVuelos.horaDesde" name="horaDesde" />
-          </div>
-          <div class="field">
-            <label class="label">Fecha hasta</label>
-            <input class="control" type="date" [(ngModel)]="filtrosVuelos.fechaHasta" name="fechaHasta" [min]="filtrosVuelos.fechaDesde || fechaMinima" />
-          </div>
-          <div class="field">
-            <label class="label">Hora hasta</label>
-            <input class="control" type="time" [(ngModel)]="filtrosVuelos.horaHasta" name="horaHasta" />
-          </div>
-        </div>
+    <section class="report-menu">
+      <button
+        class="report-tab"
+        [class.active]="reporteActivo === 'vuelos'"
+        type="button"
+        (click)="seleccionarReporte('vuelos')">
+        Vuelos
+      </button>
 
-        <div class="form-actions">
-          <button class="btn-primary" type="button" (click)="consultarVuelos()">Buscar</button>
-        </div>
+      <button
+        class="report-tab"
+        [class.active]="reporteActivo === 'pasajeros'"
+        type="button"
+        (click)="seleccionarReporte('pasajeros')">
+        Pasajeros por vuelo
+      </button>
 
-        <div class="table-wrap" *ngIf="resultadoVuelos.length">
-          <table class="table">
-            <thead>
-              <tr>
-                <th *ngFor="let kv of (resultadoVuelos[0] | keyvalue)">{{ kv.key }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let row of resultadoVuelos">
-                <td *ngFor="let kv of (resultadoVuelos[0] | keyvalue)">{{ getCell(row, kv.key) ?? '-' }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <button
+        class="report-tab"
+        [class.active]="reporteActivo === 'equipaje'"
+        type="button"
+        (click)="seleccionarReporte('equipaje')">
+        Equipaje por vuelo
+      </button>
 
-      <section class="card">
-        <div class="section-header">
-          <h2 class="section-title">Pasajeros por vuelo</h2>
-          <div class="actions">
-            <button class="btn-secondary" type="button" (click)="descargarPasajerosExcel(codigoVuelo)">Excel</button>
-            <button class="btn-secondary" type="button" (click)="descargarPasajerosPdf(codigoVuelo)">PDF</button>
-            <button class="btn-secondary" type="button" (click)="exportarTablaCSV('reporte_pasajeros_vuelo', resultadoPasajeros)">CSV</button>
-          </div>
-        </div>
+      <button
+        class="report-tab"
+        [class.active]="reporteActivo === 'aviones'"
+        type="button"
+        (click)="seleccionarReporte('aviones')">
+        Aviones por aerolinea
+      </button>
 
-        <div class="form-grid">
-          <div class="field field--wide">
-            <label class="label">Número de vuelo</label>
-            <input class="control" [(ngModel)]="codigoVuelo" name="codigoVuelo" placeholder="Ej: ALP-1024" (keyup.enter)="consultarPasajeros()" />
-          </div>
-        </div>
+      <button
+        class="report-tab"
+        [class.active]="reporteActivo === 'aerolineas'"
+        type="button"
+        (click)="seleccionarReporte('aerolineas')">
+        Aerolineas por aeropuerto
+      </button>
 
-        <div class="form-actions">
-          <button class="btn-primary" type="button" (click)="consultarPasajeros()">Buscar</button>
-        </div>
-
-        <div class="table-wrap" *ngIf="resultadoPasajeros.length">
-          <table class="table">
-            <thead>
-              <tr>
-                <th *ngFor="let kv of (resultadoPasajeros[0] | keyvalue)">{{ kv.key }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let row of resultadoPasajeros">
-                <td *ngFor="let kv of (resultadoPasajeros[0] | keyvalue)">{{ getCell(row, kv.key) ?? '-' }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="section-header">
-          <h2 class="section-title">Equipaje por vuelo</h2>
-          <div class="actions">
-            <button class="btn-secondary" type="button" (click)="descargarEquipajeExcel(codigoVueloEquipaje)">Excel</button>
-            <button class="btn-secondary" type="button" (click)="descargarEquipajePdf(codigoVueloEquipaje)">PDF</button>
-            <button class="btn-secondary" type="button" (click)="exportarTablaCSV('reporte_equipaje_vuelo', resultadoEquipaje)">CSV</button>
-          </div>
-        </div>
-
-        <div class="form-grid">
-          <div class="field field--wide">
-            <label class="label">Número de vuelo</label>
-            <input class="control" [(ngModel)]="codigoVueloEquipaje" name="codigoVueloEquipaje" placeholder="Ej: ALP-1024" (keyup.enter)="consultarEquipaje()" />
-          </div>
-        </div>
-
-        <div class="form-actions">
-          <button class="btn-primary" type="button" (click)="consultarEquipaje()">Buscar</button>
-        </div>
-
-        <div class="table-wrap" *ngIf="resultadoEquipaje.length">
-          <table class="table">
-            <thead>
-              <tr>
-                <th *ngFor="let kv of (resultadoEquipaje[0] | keyvalue)">{{ kv.key }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let row of resultadoEquipaje">
-                <td *ngFor="let kv of (resultadoEquipaje[0] | keyvalue)">{{ getCell(row, kv.key) ?? '-' }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="section-header">
-          <h2 class="section-title">Aviones por aerolínea</h2>
-          <div class="actions">
-            <button class="btn-secondary" type="button" (click)="descargarAvionesExcel(aerolineaId)">Excel</button>
-            <button class="btn-secondary" type="button" (click)="descargarAvionesPdf(aerolineaId)">PDF</button>
-            <button class="btn-secondary" type="button" (click)="exportarTablaCSV('reporte_aviones_aerolinea', resultadoAviones)">CSV</button>
-          </div>
-        </div>
-
-        <div class="form-grid">
-          <div class="field field--wide">
-            <label class="label">Aerolínea</label>
-            <select class="control" [(ngModel)]="aerolineaId" name="aerolineaId">
-              <option value="">Selecciona</option>
-              <option *ngFor="let a of aerolineas" [value]="a.id">{{ a.nombre }}</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-actions">
-          <button class="btn-primary" type="button" (click)="consultarAvionesPorAerolinea()">Buscar</button>
-        </div>
-
-        <div class="table-wrap" *ngIf="resultadoAviones.length">
-          <table class="table">
-            <thead>
-              <tr>
-                <th *ngFor="let kv of (resultadoAviones[0] | keyvalue)">{{ kv.key }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let row of resultadoAviones">
-                <td *ngFor="let kv of (resultadoAviones[0] | keyvalue)">{{ getCell(row, kv.key) ?? '-' }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="section-header">
-          <h2 class="section-title">Aerolíneas por aeropuerto</h2>
-          <div class="actions">
-            <button class="btn-secondary" type="button" (click)="descargarAerolineasExcel(aeropuertoId)">Excel</button>
-            <button class="btn-secondary" type="button" (click)="descargarAerolineasPdf(aeropuertoId)">PDF</button>
-            <button class="btn-secondary" type="button" (click)="exportarTablaCSV('reporte_aerolineas_aeropuerto', resultadoAerolineas)">CSV</button>
-          </div>
-        </div>
-
-        <div class="form-grid">
-          <div class="field field--wide">
-            <label class="label">Aeropuerto</label>
-            <select class="control" [(ngModel)]="aeropuertoId" name="aeropuertoId">
-              <option value="">Selecciona</option>
-              <option *ngFor="let a of aeropuertos" [value]="a.id">{{ a.nombre }}</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-actions">
-          <button class="btn-primary" type="button" (click)="consultarAerolineasPorAeropuerto()">Buscar</button>
-        </div>
-
-        <div class="table-wrap" *ngIf="resultadoAerolineas.length">
-          <table class="table">
-            <thead>
-              <tr>
-                <th *ngFor="let kv of (resultadoAerolineas[0] | keyvalue)">{{ kv.key }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let row of resultadoAerolineas">
-                <td *ngFor="let kv of (resultadoAerolineas[0] | keyvalue)">{{ getCell(row, kv.key) ?? '-' }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <section class="card">
-        <div class="section-header">
-          <h2 class="section-title">Destinos autorizados por aerolínea</h2>
-          <div class="actions">
-            <button class="btn-secondary" type="button" (click)="descargarDestinosExcel(aerolineaIdDestinos)">Excel</button>
-            <button class="btn-secondary" type="button" (click)="descargarDestinosPdf(aerolineaIdDestinos)">PDF</button>
-            <button class="btn-secondary" type="button" (click)="exportarTablaCSV('reporte_destinos_aerolinea', resultadoDestinos)">CSV</button>
-          </div>
-        </div>
-
-        <div class="form-grid">
-          <div class="field field--wide">
-            <label class="label">Aerolínea</label>
-            <select class="control" [(ngModel)]="aerolineaIdDestinos" name="aerolineaIdDestinos">
-              <option value="">Selecciona</option>
-              <option *ngFor="let a of aerolineas" [value]="a.id">{{ a.nombre }}</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-actions">
-          <button class="btn-primary" type="button" (click)="consultarDestinosPorAerolinea()">Buscar</button>
-        </div>
-
-        <div class="table-wrap" *ngIf="resultadoDestinos.length">
-          <table class="table">
-            <thead>
-              <tr>
-                <th *ngFor="let kv of (resultadoDestinos[0] | keyvalue)">{{ kv.key }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let row of resultadoDestinos">
-                <td *ngFor="let kv of (resultadoDestinos[0] | keyvalue)">{{ getCell(row, kv.key) ?? '-' }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <button
+        class="report-tab"
+        [class.active]="reporteActivo === 'destinos'"
+        type="button"
+        (click)="seleccionarReporte('destinos')">
+        Destinos por aerolinea
+      </button>
     </section>
+
+    <section class="card" *ngIf="reporteActivo === 'vuelos'">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Reporte de vuelos por fecha y hora</h2>
+          <p class="muted">
+            El rango es opcional. Si se usa rango, deben ingresarse los cuatro campos.
+          </p>
+        </div>
+
+        <div class="actions-inline">
+          <button class="btn-secondary" type="button" (click)="descargarPdf('vuelos')">
+            PDF
+          </button>
+
+          <button class="btn-secondary" type="button" (click)="descargarExcel('vuelos')">
+            Excel
+          </button>
+
+          <button class="btn-secondary" type="button" (click)="limpiar('vuelos')">
+            Limpiar
+          </button>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label class="label">Fecha desde</label>
+          <input class="control" type="date" [(ngModel)]="filtrosVuelos.fechaDesde" name="fechaDesde" allowPastDate />
+        </div>
+
+        <div class="field">
+          <label class="label">Hora desde</label>
+          <input class="control" type="time" [(ngModel)]="filtrosVuelos.horaDesde" name="horaDesde" />
+        </div>
+
+        <div class="field">
+          <label class="label">Fecha hasta</label>
+          <input class="control" type="date" [(ngModel)]="filtrosVuelos.fechaHasta" name="fechaHasta" allowPastDate />
+        </div>
+
+        <div class="field">
+          <label class="label">Hora hasta</label>
+          <input class="control" type="time" [(ngModel)]="filtrosVuelos.horaHasta" name="horaHasta" />
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-primary" type="button" (click)="consultarVuelos()">
+          Buscar
+        </button>
+      </div>
+
+      <ng-container *ngTemplateOutlet="tablaReporte; context: { rows: resultadoVuelos }"></ng-container>
+    </section>
+
+    <section class="card" *ngIf="reporteActivo === 'pasajeros'">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Reporte de pasajeros por vuelo</h2>
+          <p class="muted">
+            Ingresa el numero de vuelo para consultar pasajeros asignados.
+          </p>
+        </div>
+
+        <div class="actions-inline">
+          <button class="btn-secondary" type="button" (click)="descargarPdf('pasajeros')">PDF</button>
+          <button class="btn-secondary" type="button" (click)="descargarExcel('pasajeros')">Excel</button>
+          <button class="btn-secondary" type="button" (click)="limpiar('pasajeros')">Limpiar</button>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="field field--wide">
+          <label class="label">Numero de vuelo</label>
+          <input class="control" [(ngModel)]="codigoVueloPasajeros" name="codigoVueloPasajeros" placeholder="Ej. VUE-00001" />
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-primary" type="button" (click)="consultarPasajeros()">Buscar</button>
+      </div>
+
+      <ng-container *ngTemplateOutlet="tablaReporte; context: { rows: resultadoPasajeros }"></ng-container>
+    </section>
+
+    <section class="card" *ngIf="reporteActivo === 'equipaje'">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Reporte de equipaje por vuelo</h2>
+          <p class="muted">
+            Consulta maletas y pesos registrados por vuelo.
+          </p>
+        </div>
+
+        <div class="actions-inline">
+          <button class="btn-secondary" type="button" (click)="descargarPdf('equipaje')">PDF</button>
+          <button class="btn-secondary" type="button" (click)="descargarExcel('equipaje')">Excel</button>
+          <button class="btn-secondary" type="button" (click)="limpiar('equipaje')">Limpiar</button>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="field field--wide">
+          <label class="label">Numero de vuelo</label>
+          <input class="control" [(ngModel)]="codigoVueloEquipaje" name="codigoVueloEquipaje" placeholder="Ej. VUE-00001" />
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-primary" type="button" (click)="consultarEquipaje()">Buscar</button>
+      </div>
+
+      <ng-container *ngTemplateOutlet="tablaReporte; context: { rows: resultadoEquipaje }"></ng-container>
+    </section>
+
+    <section class="card" *ngIf="reporteActivo === 'aviones'">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Reporte de aviones por aerolinea</h2>
+          <p class="muted">
+            Selecciona una aerolinea para consultar su flota.
+          </p>
+        </div>
+
+        <div class="actions-inline">
+          <button class="btn-secondary" type="button" (click)="descargarPdf('aviones')">PDF</button>
+          <button class="btn-secondary" type="button" (click)="descargarExcel('aviones')">Excel</button>
+          <button class="btn-secondary" type="button" (click)="limpiar('aviones')">Limpiar</button>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="field field--wide">
+          <label class="label">Aerolinea</label>
+          <select class="control" [(ngModel)]="aerolineaIdAviones" name="aerolineaIdAviones">
+            <option value="">Selecciona</option>
+            <option *ngFor="let a of aerolineas" [value]="a.id">
+              {{ a.nombre || a.nombreAerolinea || a.id }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-primary" type="button" (click)="consultarAviones()">Buscar</button>
+      </div>
+
+      <ng-container *ngTemplateOutlet="tablaReporte; context: { rows: resultadoAviones }"></ng-container>
+    </section>
+
+    <section class="card" *ngIf="reporteActivo === 'aerolineas'">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Reporte de aerolineas por aeropuerto</h2>
+          <p class="muted">
+            Consulta aerolineas que operan por aeropuerto.
+          </p>
+        </div>
+
+        <div class="actions-inline">
+          <button class="btn-secondary" type="button" (click)="descargarPdf('aerolineas')">PDF</button>
+          <button class="btn-secondary" type="button" (click)="descargarExcel('aerolineas')">Excel</button>
+          <button class="btn-secondary" type="button" (click)="limpiar('aerolineas')">Limpiar</button>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="field field--wide">
+          <label class="label">Aeropuerto</label>
+          <select class="control" [(ngModel)]="aeropuertoIdAerolineas" name="aeropuertoIdAerolineas">
+            <option value="">Selecciona</option>
+            <option *ngFor="let a of aeropuertos" [value]="a.id">
+              {{ a.nombre || a.nombreAeropuerto || a.codigoIata || a.id }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-primary" type="button" (click)="consultarAerolineas()">Buscar</button>
+      </div>
+
+      <ng-container *ngTemplateOutlet="tablaReporte; context: { rows: resultadoAerolineas }"></ng-container>
+    </section>
+
+    <section class="card" *ngIf="reporteActivo === 'destinos'">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Reporte de destinos autorizados por aerolinea</h2>
+          <p class="muted">
+            Selecciona una aerolinea para consultar sus destinos autorizados.
+          </p>
+        </div>
+
+        <div class="actions-inline">
+          <button class="btn-secondary" type="button" (click)="descargarPdf('destinos')">PDF</button>
+          <button class="btn-secondary" type="button" (click)="descargarExcel('destinos')">Excel</button>
+          <button class="btn-secondary" type="button" (click)="limpiar('destinos')">Limpiar</button>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="field field--wide">
+          <label class="label">Aerolinea</label>
+          <select class="control" [(ngModel)]="aerolineaIdDestinos" name="aerolineaIdDestinos">
+            <option value="">Selecciona</option>
+            <option *ngFor="let a of aerolineas" [value]="a.id">
+              {{ a.nombre || a.nombreAerolinea || a.id }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-primary" type="button" (click)="consultarDestinos()">Buscar</button>
+      </div>
+
+      <ng-container *ngTemplateOutlet="tablaReporte; context: { rows: resultadoDestinos }"></ng-container>
+    </section>
+
+    <ng-template #tablaReporte let-rows="rows">
+      <div class="report-summary" *ngIf="rows?.length">
+        <span>Registros encontrados:</span>
+        <strong>{{ rows.length }}</strong>
+      </div>
+
+      <div class="table-wrap" *ngIf="rows?.length">
+        <table class="table">
+          <thead>
+            <tr>
+              <th *ngFor="let col of columnas(rows)">
+                {{ humanize(col) }}
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let row of rows">
+              <td *ngFor="let col of columnas(rows)">
+                {{ getCell(row, col) ?? '-' }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-template>
   </main>
 </div>

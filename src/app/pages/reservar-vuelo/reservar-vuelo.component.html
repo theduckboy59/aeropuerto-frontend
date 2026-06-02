@@ -127,7 +127,7 @@
         Ruta:
         {{ aeropuertoSalidaSeleccionado?.codigoIata || '-' }}
         →
-        {{ aeropuertoDestinoSeleccionado?.codigoIata || '-' }}
+        {{ aeropuertoDestinoSeleccionado.codigoIata || '-' }}
       </div>
 
       <div class="note" *ngIf="fechasDisponibles.length">
@@ -215,7 +215,7 @@
 
       <div class="pill">
         Vuelo:
-        {{ vueloSeleccionado?.codigoVuelo || vueloSeleccionado?.vueloOperadoId }}
+        {{ vueloSeleccionado.codigoVuelo || vueloSeleccionado.vueloOperadoId }}
         |
         {{ getRutaVuelo(vueloSeleccionado) }}
         |
@@ -231,14 +231,6 @@
       </div>
 
       <div class="form-actions">
-        <button
-          class="btn-secondary"
-          type="button"
-          [disabled]="cargandoAsientos"
-          (click)="cargarAsientos()">
-          {{ cargandoAsientos ? 'Cargando...' : 'Cargar asientos' }}
-        </button>
-
         <button class="btn-secondary" type="button" (click)="agregarPasajero()">
           + Agregar pasajero
         </button>
@@ -262,28 +254,6 @@
           </div>
 
           <div class="form-grid" *ngIf="!p.esPrincipal">
-            <div class="field field--wide">
-              <label class="check-row">
-                <input
-                  type="checkbox"
-                  [(ngModel)]="p.usarPasajeroExistente"
-                  (change)="cambiarModoPasajero(p)"
-                  [name]="'usarExistente_' + p.uid" />
-                <span>Usar pasajero existente por ID</span>
-              </label>
-            </div>
-
-            <div class="field" *ngIf="p.usarPasajeroExistente">
-              <label class="label">ID pasajero existente *</label>
-              <input
-                class="control"
-                type="number"
-                min="1"
-                [(ngModel)]="p.pasajeroId"
-                [name]="'pasajeroId_' + p.uid" />
-            </div>
-
-            <ng-container *ngIf="!p.usarPasajeroExistente">
               <div class="field">
                 <label class="label">Pasaporte *</label>
                 <input class="control" [(ngModel)]="p.pasaporte" [name]="'pasaporte_' + p.uid" />
@@ -328,7 +298,6 @@
                 <label class="label">Dirección</label>
                 <input class="control" [(ngModel)]="p.direccion" [name]="'direccion_' + p.uid" />
               </div>
-            </ng-container>
           </div>
 
           <div class="form-grid reservation-grid">
@@ -362,14 +331,6 @@
                 [name]="'maletas_' + p.uid" />
             </div>
 
-            <div class="field">
-              <label class="label">Tipo pasajero</label>
-              <select class="control" [(ngModel)]="p.tipoPasajero" [name]="'tipo_' + p.uid">
-                <option value="ADULTO">Adulto</option>
-                <option value="MENOR">Menor</option>
-                <option value="INFANTE">Infante</option>
-              </select>
-            </div>
           </div>
 
           <div class="seat-section" *ngIf="usaAsientoUnico">
@@ -446,6 +407,32 @@
         </div>
 
         <div class="kv-row">
+          <div class="kv-key">Estado reserva</div>
+          <div class="kv-val">
+            <span class="state-pill" [ngClass]="{
+              'state-ok': reserva.estadoReserva === 'CONFIRMADA',
+              'state-open': reserva.estadoReserva === 'CREADA',
+              'state-danger': reserva.estadoReserva === 'CANCELADA'
+            }">
+              {{ reserva.estadoReserva || '-' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Estado pago</div>
+          <div class="kv-val">
+            <span class="state-pill" [ngClass]="{
+              'state-ok': reserva.estadoPago === 'PAGADO',
+              'state-open': reserva.estadoPago === 'PENDIENTE',
+              'state-danger': reserva.estadoPago === 'ANULADO'
+            }">
+              {{ reserva.estadoPago || 'PENDIENTE' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="kv-row">
           <div class="kv-key">Pasajeros</div>
           <div class="kv-val">{{ reserva.cantidadPasajeros || boletosReserva.length || 1 }}</div>
         </div>
@@ -485,7 +472,7 @@
             <tr *ngFor="let b of boletosReserva">
               <td>{{ b.nombrePasajero || '-' }}</td>
               <td>{{ b.pasaporte || '-' }}</td>
-              <td>{{ b.codigoBoleto || b.boletoId }}</td>
+              <td>{{ b.codigoBoleto || '-' }}</td>
               <td>{{ b.codigoPaseAbordar || '-' }}</td>
               <td>
                 <span *ngIf="!b.segmentos?.length">{{ b.asiento || '-' }}</span>
@@ -539,13 +526,13 @@
           type="button"
           [disabled]="!puedePagar"
           (click)="pagar()">
-          Registrar pago
+          {{ reserva.estadoPago === 'PENDIENTE' ? 'Pagar reserva pendiente' : 'Registrar pago' }}
         </button>
 
         <button
           class="btn-secondary"
           type="button"
-          *ngIf="pago"
+          *ngIf="pago || reserva?.pagada"
           (click)="descargarFacturaPdf()">
           PDF factura
         </button>

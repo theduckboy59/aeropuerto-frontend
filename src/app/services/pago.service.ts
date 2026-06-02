@@ -10,6 +10,7 @@ export interface PagoRequest {
   recargoEquipaje?: number | null;
   nit?: string | null;
   nombreCliente?: string | null;
+  tipoPago?: string | null;
 }
 
 export interface ConfirmarPagoRequest {

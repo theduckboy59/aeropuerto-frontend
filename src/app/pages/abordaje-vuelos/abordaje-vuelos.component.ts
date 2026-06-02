@@ -246,7 +246,10 @@ export class AbordajeVuelosComponent implements OnInit {
         this.cargando = false;
       },
       error: (err: any) => {
-        this.error = err?.error?.message || 'El pasajero no se encuentra registrado en el vuelo o no tiene check-in.';
+        this.error = this.apiError(
+          err,
+          'El pasajero no se encuentra registrado en el vuelo, no tiene check-in o la reserva no esta pagada.'
+        );
         this.cargando = false;
       }
     });
@@ -323,7 +326,10 @@ export class AbordajeVuelosComponent implements OnInit {
           this.registrarAbordajeInterno(true);
         },
         error: (err: any) => {
-          this.error = err?.error?.message || 'No se pudo confirmar el pago del recargo.';
+          this.error = this.apiError(
+            err,
+            'No se pudo confirmar el pago del recargo.'
+          );
           this.cargandoPago = false;
         }
       });
@@ -361,7 +367,10 @@ export class AbordajeVuelosComponent implements OnInit {
         this.listar();
       },
       error: (err: any) => {
-        this.error = err?.error?.message || 'No se pudo finalizar el abordaje.';
+        this.error = this.apiError(
+          err,
+          'No se pudo finalizar el abordaje.'
+        );
         this.cargando = false;
       }
     });
@@ -438,10 +447,23 @@ export class AbordajeVuelosComponent implements OnInit {
               : 'Abordaje registrado correctamente.');
         },
         error: (err: any) => {
-          this.error = err?.error?.message || 'No se pudo registrar el abordaje.';
+          this.error = this.apiError(
+            err,
+            'No se pudo registrar el abordaje. Verifica pago, check-in y estado del boleto.'
+          );
           this.cargando = false;
         }
       });
+  }
+
+  private apiError(
+    err: any,
+    fallback: string
+  ): string {
+    return err?.error?.message ||
+      err?.error?.error ||
+      err?.error ||
+      fallback;
   }
 
   private equipajesValidos(): boolean {

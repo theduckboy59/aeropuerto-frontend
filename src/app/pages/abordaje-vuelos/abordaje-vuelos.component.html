@@ -253,6 +253,10 @@
           Registrar abordaje
         </button>
       </div>
+
+      <p class="muted" *ngIf="requierePagoRecargo">
+        Existe un recargo de equipaje pendiente. Debe confirmarse el pago antes de completar el abordaje.
+      </p>
     </section>
 
     <section class="card" *ngIf="consulta">

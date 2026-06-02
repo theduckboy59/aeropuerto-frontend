@@ -1,0 +1,304 @@
+<div class="page-root">
+  <main class="content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="badge">MR</div>
+
+        <div>
+          <h1 class="title">Mis reservas</h1>
+          <p class="subtitle">
+            Consulta tus reservas, paga pendientes, descarga documentos y cancela cuando aplique.
+          </p>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <button class="btn-secondary" type="button" (click)="cargarReservas()">
+          Refrescar
+        </button>
+      </div>
+    </header>
+
+    <div class="alert-danger" *ngIf="error">{{ error }}</div>
+    <div class="alert-success" *ngIf="ok">{{ ok }}</div>
+    <div class="alert-info" *ngIf="aviso">{{ aviso }}</div>
+
+    <p class="muted" *ngIf="cargando">Cargando reservas...</p>
+
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Reservas registradas</h2>
+          <p class="muted">
+            No se muestran IDs internos. Usa el codigo de reserva, boleto y pase.
+          </p>
+        </div>
+      </div>
+
+      <div class="table-wrap" *ngIf="reservas.length; else sinReservas">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Reserva</th>
+              <th>Fecha</th>
+              <th>Pasajeros</th>
+              <th>Estado reserva</th>
+              <th>Estado pago</th>
+              <th>Total</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr
+              *ngFor="let r of reservas"
+              [class.row-selected]="reservaSeleccionada?.reservaId === r.reservaId">
+              <td>{{ r.codigoReserva || '-' }}</td>
+              <td>{{ r.fechaReserva || '-' }}</td>
+              <td>{{ r.cantidadPasajeros || r.boletos?.length || 1 }}</td>
+
+              <td>
+                <span class="state-pill" [ngClass]="getEstadoReservaClass(r)">
+                  {{ r.estadoReserva || '-' }}
+                </span>
+              </td>
+
+              <td>
+                <span class="state-pill" [ngClass]="getEstadoPagoClass(r)">
+                  {{ r.estadoPago || 'PENDIENTE' }}
+                </span>
+              </td>
+
+              <td>{{ formatMoney(r.total || 0) }}</td>
+
+              <td>
+                <div class="actions-inline">
+                  <button class="btn-secondary" type="button" (click)="seleccionarReserva(r)">
+                    Ver
+                  </button>
+
+                  <button class="btn-secondary" type="button" (click)="descargarReservaPdf(r)">
+                    PDF reserva
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #sinReservas>
+        <p class="muted">No tienes reservas registradas.</p>
+      </ng-template>
+    </section>
+
+    <section class="card" *ngIf="reservaSeleccionada">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">
+            Detalle de reserva {{ reservaSeleccionada.codigoReserva || '' }}
+          </h2>
+          <p class="muted">
+            Informacion consolidada de reserva, pago, boletos y segmentos.
+          </p>
+        </div>
+
+        <div class="actions-inline">
+          <button class="btn-secondary" type="button" (click)="descargarReservaPdf()">
+            PDF reserva
+          </button>
+
+          <button
+            class="btn-danger"
+            type="button"
+            [disabled]="!puedeCancelarSeleccionada || cargandoDetalle"
+            (click)="cancelarReserva()">
+            Cancelar reserva
+          </button>
+        </div>
+      </div>
+
+      <p class="muted" *ngIf="cargandoDetalle">Cargando detalle...</p>
+
+      <div class="kv">
+        <div class="kv-row">
+          <div class="kv-key">Codigo reserva</div>
+          <div class="kv-val">{{ reservaSeleccionada.codigoReserva || '-' }}</div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Estado reserva</div>
+          <div class="kv-val">
+            <span class="state-pill" [ngClass]="getEstadoReservaClass(reservaSeleccionada)">
+              {{ reservaSeleccionada.estadoReserva || '-' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Estado pago</div>
+          <div class="kv-val">
+            <span class="state-pill" [ngClass]="getEstadoPagoClass(reservaSeleccionada)">
+              {{ reservaSeleccionada.estadoPago || 'PENDIENTE' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Pasajeros</div>
+          <div class="kv-val">
+            {{ reservaSeleccionada.cantidadPasajeros || boletos.length || 1 }}
+          </div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Subtotal</div>
+          <div class="kv-val">{{ formatMoney(reservaSeleccionada.subtotal || 0) }}</div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Recargo total</div>
+          <div class="kv-val">{{ formatMoney(reservaSeleccionada.recargoTotal || 0) }}</div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Total</div>
+          <div class="kv-val strong">{{ formatMoney(reservaSeleccionada.total || 0) }}</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" *ngIf="reservaSeleccionada">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Boletos</h2>
+          <p class="muted">
+            Cada pasajero puede descargar su boleto.
+          </p>
+        </div>
+      </div>
+
+      <div class="table-wrap" *ngIf="boletos.length; else sinBoletos">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Pasajero</th>
+              <th>Pasaporte</th>
+              <th>Boleto</th>
+              <th>Pase abordar</th>
+              <th>Asiento</th>
+              <th>Maletas</th>
+              <th>Estado</th>
+              <th>Total</th>
+              <th>PDF</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let b of boletos">
+              <td>{{ b.nombrePasajero || '-' }}</td>
+              <td>{{ b.pasaporte || '-' }}</td>
+              <td>{{ b.codigoBoleto || '-' }}</td>
+              <td>{{ b.codigoPaseAbordar || '-' }}</td>
+
+              <td>
+                <span *ngIf="!b.segmentos?.length">
+                  {{ b.asiento || '-' }}
+                </span>
+
+                <span *ngIf="b.segmentos?.length">
+                  <span *ngFor="let s of b.segmentos">
+                    S{{ s.ordenSegmento }}: {{ s.asiento || '-' }}&nbsp;
+                  </span>
+                </span>
+              </td>
+
+              <td>{{ b.cantidadMaletas || 0 }}</td>
+              <td>{{ b.estadoBoleto || '-' }}</td>
+              <td>{{ formatMoney(b.total || 0) }}</td>
+
+              <td>
+                <button class="btn-secondary" type="button" (click)="descargarBoletoPdf(b)">
+                  PDF boleto
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #sinBoletos>
+        <p class="muted">No hay boletos cargados para esta reserva.</p>
+      </ng-template>
+    </section>
+
+    <section class="card" *ngIf="reservaSeleccionada">
+      <div class="section-head">
+        <div>
+          <h2 class="section-title">Pago</h2>
+          <p class="muted">
+            Puedes pagar una reserva pendiente o descargar factura si ya esta pagada.
+          </p>
+        </div>
+      </div>
+
+      <div class="kv" *ngIf="pagoPrincipal">
+        <div class="kv-row">
+          <div class="kv-key">Estado pago</div>
+          <div class="kv-val">{{ pagoPrincipal.estadoPago || reservaSeleccionada.estadoPago || 'PENDIENTE' }}</div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Metodo pago</div>
+          <div class="kv-val">{{ pagoPrincipal.metodoPago || reservaSeleccionada.metodoPago || '-' }}</div>
+        </div>
+
+        <div class="kv-row">
+          <div class="kv-key">Monto</div>
+          <div class="kv-val">{{ formatMoney(pagoPrincipal.monto || reservaSeleccionada.total || 0) }}</div>
+        </div>
+      </div>
+
+      <div class="form-grid" *ngIf="puedePagarSeleccionada">
+        <div class="field">
+          <label class="label">Metodo pago</label>
+          <select class="control" [(ngModel)]="pagoForm.metodoPagoId" name="metodoPagoId">
+            <option value="">Selecciona</option>
+            <option *ngFor="let m of metodosPago" [value]="m.id">
+              {{ m.nombre }}
+            </option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="label">NIT</label>
+          <input class="control" [(ngModel)]="pagoForm.nit" name="nit" />
+        </div>
+
+        <div class="field field--wide">
+          <label class="label">Nombre facturacion</label>
+          <input class="control" [(ngModel)]="pagoForm.nombreCliente" name="nombreCliente" />
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button
+          class="btn-primary"
+          type="button"
+          *ngIf="puedePagarSeleccionada"
+          [disabled]="cargandoPago"
+          (click)="pagarReserva()">
+          {{ cargandoPago ? 'Confirmando...' : 'Pagar reserva' }}
+        </button>
+
+        <button
+          class="btn-secondary"
+          type="button"
+          *ngIf="esPagada(reservaSeleccionada)"
+          (click)="descargarFacturaPdf()">
+          PDF factura
+        </button>
+      </div>
+    </section>
+  </main>
+</div>

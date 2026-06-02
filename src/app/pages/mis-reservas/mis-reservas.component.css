@@ -23,6 +23,13 @@
   align-items: center;
 }
 
+.topbar-right,
+.actions-inline {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .badge {
   width: 44px;
   height: 44px;
@@ -83,38 +90,12 @@
   line-height: 1.45;
 }
 
-.report-menu {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 14px;
-}
-
-.report-tab {
-  min-height: 46px;
-  border: 1px solid #dbeafe;
-  border-radius: 14px;
-  background: #ffffff;
-  color: #0f172a;
-  font-weight: 900;
-  font-size: 12px;
-  cursor: pointer;
-  padding: 8px 10px;
-}
-
-.report-tab.active {
-  border-color: #0f4da8;
-  background: rgba(234, 246, 255, 0.95);
-  color: #0f4da8;
-  box-shadow: 0 0 0 3px rgba(15, 77, 168, 0.08);
-}
-
 .card {
   border: 1px solid #e5e7eb;
   border-radius: 16px;
   margin-bottom: 14px;
   padding: 16px;
-  background: rgba(255, 255, 255, 0.78);
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .section-head {
@@ -131,16 +112,70 @@
   font-weight: 900;
 }
 
-.actions-inline {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+.table-wrap {
+  overflow: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 980px;
+}
+
+.table th,
+.table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 12px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table th {
+  font-weight: 900;
+  background: rgba(234, 246, 255, 0.8);
+}
+
+.row-selected {
+  background: rgba(234, 246, 255, 0.55);
+}
+
+.kv {
+  display: grid;
+  gap: 8px;
+}
+
+.kv-row {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.kv-key {
+  font-weight: 900;
+  color: #0f4da8;
+}
+
+.kv-val {
+  color: #0f172a;
+  word-break: break-word;
+}
+
+.strong {
+  font-weight: 900;
 }
 
 .form-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
+  margin-top: 12px;
 }
 
 .field {
@@ -169,11 +204,6 @@
   width: 100%;
 }
 
-.control:focus {
-  border-color: rgba(59, 130, 246, 0.55);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
-}
-
 .form-actions {
   display: flex;
   gap: 10px;
@@ -182,7 +212,8 @@
 }
 
 .btn-primary,
-.btn-secondary {
+.btn-secondary,
+.btn-danger {
   height: 38px;
   padding: 0 12px;
   border-radius: 10px;
@@ -203,61 +234,55 @@
   color: #0f172a;
 }
 
-.report-summary {
+.btn-danger {
+  border: 1px solid #c63e3e;
+  color: #fff;
+  background: #dc2626;
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-danger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.state-pill {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  margin: 14px 0 10px;
-  padding: 8px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(15, 77, 168, 0.18);
-  background: rgba(234, 246, 255, 0.65);
-  color: #0f4da8;
-  font-size: 12px;
-}
-
-.table-wrap {
-  overflow: auto;
+  padding: 4px 9px;
   border: 1px solid #e5e7eb;
-  border-radius: 12px;
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 960px;
-}
-
-.table th,
-.table td {
-  padding: 10px 12px;
-  border-bottom: 1px solid #e5e7eb;
-  font-size: 12px;
-  text-align: left;
-  white-space: nowrap;
-}
-
-.table th {
+  background: #f8fafc;
+  font-size: 11px;
   font-weight: 900;
-  background: rgba(234, 246, 255, 0.85);
-  color: #0f4da8;
 }
 
-.table tbody tr:hover {
-  background: rgba(248, 250, 252, 0.9);
+.state-open {
+  border-color: rgba(245, 158, 11, 0.35);
+  background: rgba(255, 251, 235, 0.9);
+  color: #92400e;
 }
 
-@media (max-width: 1100px) {
-  .report-menu {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+.state-info {
+  border-color: rgba(14, 165, 233, 0.3);
+  background: rgba(240, 249, 255, 0.9);
+  color: #075985;
 }
 
-@media (max-width: 780px) {
-  .section-head {
-    flex-direction: column;
-  }
+.state-ok {
+  border-color: rgba(34, 197, 94, 0.3);
+  background: rgba(240, 253, 244, 0.9);
+  color: #166534;
+}
 
+.state-danger {
+  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(254, 242, 242, 0.9);
+  color: #991b1b;
+}
+
+@media (max-width: 980px) {
   .form-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -265,13 +290,17 @@
   .field--wide {
     grid-column: 1 / -1;
   }
-}
 
-@media (max-width: 560px) {
-  .report-menu {
+  .kv-row {
     grid-template-columns: 1fr;
   }
 
+  .section-head {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 640px) {
   .form-grid {
     grid-template-columns: 1fr;
   }
