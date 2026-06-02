@@ -1,7 +1,7 @@
 <div class="shell">
   <header class="topbar" role="banner">
-    <button class="icon-btn" type="button" (click)="toggleSidebar()" aria-label="Mostrar/ocultar sidebar">
-      ☰
+    <button class="icon-btn" type="button" (click)="toggleSidebar()" aria-label="Mostrar u ocultar sidebar">
+      <span aria-hidden="true">&equiv;</span>
     </button>
     <div class="topbar-title">
       <div class="topbar-app">Aeropuerto Los Primos</div>
@@ -13,39 +13,39 @@
   <div class="body">
     <aside class="sidebar" [class.closed]="!sidebarOpen" aria-label="Sidebar">
       <div class="logo" aria-label="Logo">
-        <div class="logo-badge">A L P</div>
+        <div class="logo-badge">ALP</div>
         <div class="logo-text">
-          <div class="logo-title">ALP</div>
-          <div class="logo-sub">Admin</div>
+          <div class="logo-title">Los Primos</div>
+          <div class="logo-sub">Administracion</div>
         </div>
       </div>
 
-      <nav class="nav" aria-label="Módulos">
+      <nav class="nav" aria-label="Modulos">
         <details class="group" open>
-          <summary class="group-title">Aerolínea</summary>
+          <summary class="group-title">Aerolinea</summary>
           <details class="subgroup" open>
-            <summary class="subgroup-title">Administración</summary>
-            <a class="nav-item sub" routerLink="/menu/aerolinea/aerolineas" routerLinkActive="active">Gestión Aerolíneas</a>
+            <summary class="subgroup-title">Administracion</summary>
+            <a class="nav-item sub" routerLink="/menu/aerolinea/aerolineas" routerLinkActive="active">Gestion Aerolineas</a>
           </details>
 
           <details class="subgroup" open>
             <summary class="subgroup-title">Personal</summary>
-            <a class="nav-item sub" routerLink="/menu/aerolinea/empleados" routerLinkActive="active">Gestión Empleados</a>
-            <a class="nav-item sub" routerLink="/menu/aerolinea/tripulacion" routerLinkActive="active">Gestión Tripulación</a>
+            <a class="nav-item sub" routerLink="/menu/aerolinea/empleados" routerLinkActive="active">Gestion Empleados</a>
+            <a class="nav-item sub" routerLink="/menu/aerolinea/tripulacion" routerLinkActive="active">Gestion Tripulacion</a>
           </details>
 
           <details class="subgroup" open>
-            <summary class="subgroup-title">Operación Aérea</summary>
-            <a class="nav-item sub" routerLink="/menu/aerolinea/modelo-avion" routerLinkActive="active">Modelos de avión</a>
-            <a class="nav-item sub" routerLink="/menu/aerolinea/aviones" routerLinkActive="active">Gestión Avión</a>
-            <a class="nav-item sub" routerLink="/menu/aerolinea/asiento-ubi" routerLinkActive="active">Ubicación Asientos</a>
+            <summary class="subgroup-title">Operacion aerea</summary>
+            <a class="nav-item sub" routerLink="/menu/aerolinea/modelo-avion" routerLinkActive="active">Modelos de avion</a>
+            <a class="nav-item sub" routerLink="/menu/aerolinea/aviones" routerLinkActive="active">Gestion Avion</a>
+            <a class="nav-item sub" routerLink="/menu/aerolinea/asiento-ubi" routerLinkActive="active">Ubicacion Asientos</a>
             <a class="nav-item sub" routerLink="/menu/aerolinea/config-clase-filas-avion" routerLinkActive="active">Configurar clases por filas</a>
           </details>
 
           <details class="subgroup" open>
             <summary class="subgroup-title">Infraestructura</summary>
-            <a class="nav-item sub" routerLink="/menu/aerolinea/aeropuertos" routerLinkActive="active">Gestión Aeropuertos</a>
-            <a class="nav-item sub" routerLink="/menu/aerolinea/destinos-autorizados" routerLinkActive="active">Gestión Destinos Autorizados</a>
+            <a class="nav-item sub" routerLink="/menu/aerolinea/aeropuertos" routerLinkActive="active">Gestion Aeropuertos</a>
+            <a class="nav-item sub" routerLink="/menu/aerolinea/destinos-autorizados" routerLinkActive="active">Gestion Destinos Autorizados</a>
           </details>
         </details>
 
@@ -56,14 +56,14 @@
             class="nav-item"
             routerLink="/menu/aerolinea/vuelos"
             routerLinkActive="active">
-            Gestión Vuelos Programados
+            Gestion Vuelos Programados
           </a>
 
           <a
             class="nav-item"
             routerLink="/menu/aerolinea/vuelos-operados"
             routerLinkActive="active">
-            Gestión Vuelos Operados
+            Gestion Vuelos Operados
           </a>
         </details>
 
@@ -80,7 +80,7 @@
 
       <div class="sidebar-footer" role="contentinfo">
         <div class="divider" aria-hidden="true"></div>
-        <button class="logout" type="button" (click)="logout()">Cerrar sesión</button>
+        <button class="logout" type="button" (click)="logout()">Cerrar sesion</button>
       </div>
     </aside>
 

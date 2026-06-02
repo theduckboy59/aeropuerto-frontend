@@ -3,89 +3,106 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
-export interface ClienteVueloSegmentoDisponible {
-  segmentoOperadoId: number;
-  segmentoVueloId?: number | null;
-  ordenSegmento: number;
-
-  aeropuertoSalidaId: number;
-  aeropuertoSalidaNombre?: string | null;
-  aeropuertoSalidaCodigoIata?: string | null;
-
-  aeropuertoLlegadaId: number;
-  aeropuertoLlegadaNombre?: string | null;
-  aeropuertoLlegadaCodigoIata?: string | null;
-
-  fechaSalida?: string | null;
-  horaSalida?: string | null;
-  fechaLlegada?: string | null;
-  horaLlegada?: string | null;
-
-  avionId?: number | null;
-  codigoAvion?: string | null;
-
-  asientosDisponiblesTotal?: number | null;
-  asientosDisponiblesEconomica?: number | null;
-  asientosDisponiblesEjecutiva?: number | null;
+export interface ClienteUbicacionDisponible {
+  pais: string | null;
+  ciudad: string | null;
+  totalAeropuertos: number | null;
+  totalVuelos: number | null;
 }
 
-export interface ClienteVueloDisponible {
-  vueloOperadoId: number;
-  vueloProgramadoId?: number | null;
-  vueloId?: number | null;
-
-  codigoVuelo?: string | null;
-
-  aerolineaId?: number | null;
-  aerolineaNombre?: string | null;
-
-  aeropuertoSalidaId?: number | null;
-  aeropuertoSalidaNombre?: string | null;
-  aeropuertoSalidaCodigoIata?: string | null;
-
-  aeropuertoLlegadaId?: number | null;
-  aeropuertoLlegadaNombre?: string | null;
-  aeropuertoLlegadaCodigoIata?: string | null;
-
-  puertaEmbarqueSalida?: string | null;
-  puertaEmbarqueLlegada?: string | null;
-
-  fechaSalida?: string | null;
-  horaSalida?: string | null;
-  fechaLlegada?: string | null;
-  horaLlegada?: string | null;
-
-  duracionMinutos?: number | null;
-
-  precioEconomica?: number | null;
-  precioEjecutiva?: number | null;
-
-  tipoSegmentoVueloId?: number | null;
-  tipoSegmentoVueloNombre?: string | null;
-
-  requiereNuevoAsiento?: boolean | null;
-  cantidadSegmentos?: number | null;
-  tuvoEscala?: boolean | null;
-
-  asientosDisponiblesTotal?: number | null;
-  asientosDisponiblesEconomica?: number | null;
-  asientosDisponiblesEjecutiva?: number | null;
-
-  segmentos?: ClienteVueloSegmentoDisponible[];
+export interface ClienteAeropuertoDisponible {
+  aeropuertoId: number;
+  nombre: string | null;
+  codigoIata: string | null;
+  codigoIcao: string | null;
+  pais: string | null;
+  ciudad: string | null;
+  totalVuelos: number | null;
+  asientosDisponiblesTotal: number | null;
 }
 
 export interface ClienteDestinoAutorizado {
   aeropuertoId: number;
-  nombre?: string | null;
-  codigoIata?: string | null;
-  ciudad?: string | null;
-  pais?: string | null;
+  nombre: string | null;
+  codigoIata: string | null;
+  ciudad: string | null;
+  pais: string | null;
 }
 
 export interface ClienteFechaDisponible {
-  fechaSalida: string;
-  vuelosDisponibles?: number | null;
-  precioMinimo?: number | null;
+  fechaSalida: string | null;
+  vuelosDisponibles: number | null;
+  precioMinimo: number | null;
+}
+
+export interface ClienteVueloSegmentoDisponible {
+  segmentoOperadoId: number;
+  segmentoVueloId: number | null;
+  ordenSegmento: number | null;
+
+  aeropuertoSalidaId: number | null;
+  aeropuertoSalidaNombre: string | null;
+  aeropuertoSalidaCodigoIata: string | null;
+
+  aeropuertoLlegadaId: number | null;
+  aeropuertoLlegadaNombre: string | null;
+  aeropuertoLlegadaCodigoIata: string | null;
+
+  fechaSalida: string | null;
+  horaSalida: string | null;
+  fechaLlegada: string | null;
+  horaLlegada: string | null;
+
+  avionId: number | null;
+  codigoAvion: string | null;
+
+  asientosDisponiblesTotal: number | null;
+  asientosDisponiblesEconomica: number | null;
+  asientosDisponiblesEjecutiva: number | null;
+}
+
+export interface ClienteVueloDisponible {
+  vueloOperadoId: number;
+  vueloProgramadoId: number | null;
+  vueloId: number | null;
+  codigoVuelo: string | null;
+
+  aerolineaId: number | null;
+  aerolineaNombre: string | null;
+
+  aeropuertoSalidaId: number | null;
+  aeropuertoSalidaNombre: string | null;
+  aeropuertoSalidaCodigoIata: string | null;
+
+  aeropuertoLlegadaId: number | null;
+  aeropuertoLlegadaNombre: string | null;
+  aeropuertoLlegadaCodigoIata: string | null;
+
+  puertaEmbarqueSalida: string | null;
+  puertaEmbarqueLlegada: string | null;
+
+  fechaSalida: string | null;
+  horaSalida: string | null;
+  fechaLlegada: string | null;
+  horaLlegada: string | null;
+
+  duracionMinutos: number | null;
+
+  precioEconomica: number | null;
+  precioEjecutiva: number | null;
+
+  tipoSegmentoVueloId: number | null;
+  tipoSegmentoVueloNombre: string | null;
+  requiereNuevoAsiento: boolean | null;
+
+  cantidadSegmentos: number | null;
+  tuvoEscala: boolean | null;
+
+  asientosDisponiblesTotal: number | null;
+  asientosDisponiblesEconomica: number | null;
+  asientosDisponiblesEjecutiva: number | null;
+
+  segmentos?: ClienteVueloSegmentoDisponible[];
 }
 
 @Injectable({
@@ -96,6 +113,88 @@ export class ClienteVueloService {
 
   constructor(private http: HttpClient) {}
 
+  buscarOrigenes(q?: string | null): Observable<ClienteUbicacionDisponible[]> {
+    let params = new HttpParams();
+
+    if (q && q.trim()) {
+      params = params.set('q', q.trim());
+    }
+
+    return this.http.get<ClienteUbicacionDisponible[]>(
+      `${this.api}/origenes`,
+      { params }
+    );
+  }
+
+  buscarAeropuertosSalida(
+    pais?: string | null,
+    ciudad?: string | null,
+    q?: string | null
+  ): Observable<ClienteAeropuertoDisponible[]> {
+    let params = new HttpParams();
+
+    if (pais && pais.trim()) {
+      params = params.set('pais', pais.trim());
+    }
+
+    if (ciudad && ciudad.trim()) {
+      params = params.set('ciudad', ciudad.trim());
+    }
+
+    if (q && q.trim()) {
+      params = params.set('q', q.trim());
+    }
+
+    return this.http.get<ClienteAeropuertoDisponible[]>(
+      `${this.api}/aeropuertos-salida`,
+      { params }
+    );
+  }
+
+  buscarDestinosUbicaciones(
+    aeropuertoSalidaId: number,
+    q?: string | null
+  ): Observable<ClienteUbicacionDisponible[]> {
+    let params = new HttpParams()
+      .set('aeropuertoSalidaId', String(aeropuertoSalidaId));
+
+    if (q && q.trim()) {
+      params = params.set('q', q.trim());
+    }
+
+    return this.http.get<ClienteUbicacionDisponible[]>(
+      `${this.api}/destinos-ubicaciones`,
+      { params }
+    );
+  }
+
+  buscarAeropuertosDestino(
+    aeropuertoSalidaId: number,
+    pais?: string | null,
+    ciudad?: string | null,
+    q?: string | null
+  ): Observable<ClienteAeropuertoDisponible[]> {
+    let params = new HttpParams()
+      .set('aeropuertoSalidaId', String(aeropuertoSalidaId));
+
+    if (pais && pais.trim()) {
+      params = params.set('pais', pais.trim());
+    }
+
+    if (ciudad && ciudad.trim()) {
+      params = params.set('ciudad', ciudad.trim());
+    }
+
+    if (q && q.trim()) {
+      params = params.set('q', q.trim());
+    }
+
+    return this.http.get<ClienteAeropuertoDisponible[]>(
+      `${this.api}/aeropuertos-destino`,
+      { params }
+    );
+  }
+
   listarDisponibles(
     aeropuertoSalidaId: number,
     aeropuertoLlegadaId: number,
@@ -105,8 +204,8 @@ export class ClienteVueloService {
       .set('aeropuertoSalidaId', String(aeropuertoSalidaId))
       .set('aeropuertoLlegadaId', String(aeropuertoLlegadaId));
 
-    if (fechaSalida) {
-      params = params.set('fechaSalida', fechaSalida);
+    if (fechaSalida && fechaSalida.trim()) {
+      params = params.set('fechaSalida', fechaSalida.trim());
     }
 
     return this.http.get<ClienteVueloDisponible[]>(this.api, { params });
@@ -155,6 +254,8 @@ export class ClienteVueloService {
   }
 
   obtenerDetalle(vueloOperadoId: number): Observable<ClienteVueloDisponible> {
-    return this.http.get<ClienteVueloDisponible>(`${this.api}/${vueloOperadoId}`);
+    return this.http.get<ClienteVueloDisponible>(
+      `${this.api}/${vueloOperadoId}`
+    );
   }
 }

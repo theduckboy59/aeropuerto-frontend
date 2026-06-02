@@ -1,23 +1,58 @@
 import { Component, OnInit } from '@angular/core';
 import { forkJoin } from 'rxjs';
 
-import { AsientoVuelo, AsientoVueloService } from '../../services/asiento-vuelo.service';
-import { CatalogoService } from '../../services/catalogo.service';
-import { CheckInService } from '../../services/checkin.service';
 import {
-  ClienteDestinoAutorizado,
+  AsientoVuelo,
+  AsientoVueloService
+} from '../../services/asiento-vuelo.service';
+
+import { CatalogoService } from '../../services/catalogo.service';
+
+import {
+  ClienteAeropuertoDisponible,
   ClienteFechaDisponible,
+  ClienteUbicacionDisponible,
   ClienteVueloDisponible,
   ClienteVueloSegmentoDisponible,
   ClienteVueloService
 } from '../../services/cliente-vuelo.service';
+
+import { CheckInService } from '../../services/checkin.service';
 import { DocumentosService } from '../../services/documentos.service';
 import { PagoService } from '../../services/pago.service';
 import { PasajeroService } from '../../services/pasajero.service';
-import {
-  ReservaSegmentoAsientoRequest,
-  ReservaService
-} from '../../services/reserva.service';
+import { ReservaService } from '../../services/reserva.service';
+
+interface PasajeroReservaForm {
+  uid: number;
+  esPrincipal: boolean;
+  usarPasajeroExistente: boolean;
+
+  pasajeroId: string;
+
+  pasaporte: string;
+  nombreCompleto: string;
+  fechaNacimiento: string;
+  nacionalidad: string;
+  codigoArea: string;
+  telefono: string;
+  telefonoEmergencia: string;
+  direccion: string;
+
+  tipoPasajero: string;
+  adultoResponsablePasajeroId: string;
+
+  claseVueloId: string;
+  cantidadMaletas: number;
+
+  asientoUnicoId: string;
+  asientoSeleccionadoPorSegmento: Record<number, string>;
+}
+
+interface SegmentoAsientoPayload {
+  segmentoOperadoId: number;
+  asientoVueloId: number;
+}
 
 @Component({
   selector: 'app-reservar-vuelo',
@@ -35,35 +70,35 @@ export class ReservarVueloComponent implements OnInit {
 
   pasajero: any | null = null;
 
-  aeropuertos: any[] = [];
-  destinosAutorizados: ClienteDestinoAutorizado[] = [];
-  fechasDisponibles: ClienteFechaDisponible[] = [];
-  fechasRegresoDisponibles: ClienteFechaDisponible[] = [];
-
   clases: any[] = [];
   metodosPago: any[] = [];
 
-  filtros = {
-    tipoViaje: 'IDA',
-    aeropuertoSalidaId: '',
-    aeropuertoLlegadaId: '',
-    fechaSalida: '',
-    fechaRegreso: ''
-  };
+  busquedaOrigen = '';
+  origenes: ClienteUbicacionDisponible[] = [];
+  origenSeleccionado: ClienteUbicacionDisponible | null = null;
+  aeropuertosSalida: ClienteAeropuertoDisponible[] = [];
+  aeropuertoSalidaSeleccionado: ClienteAeropuertoDisponible | null = null;
+
+  busquedaDestino = '';
+  destinosUbicaciones: ClienteUbicacionDisponible[] = [];
+  destinoUbicacionSeleccionada: ClienteUbicacionDisponible | null = null;
+  aeropuertosDestino: ClienteAeropuertoDisponible[] = [];
+  aeropuertoDestinoSeleccionado: ClienteAeropuertoDisponible | null = null;
+
+  fechasDisponibles: ClienteFechaDisponible[] = [];
+  fechaSalida = '';
 
   vuelosDisponibles: ClienteVueloDisponible[] = [];
   vueloSeleccionado: ClienteVueloDisponible | null = null;
 
-  claseVueloId = '';
-  cantidadMaletas = 0;
+  pasajerosReserva: PasajeroReservaForm[] = [];
+  private uidSeq = 1;
 
   asientosPorSegmento: Record<number, AsientoVuelo[]> = {};
-  asientoUnicoId = '';
-  asientoSeleccionadoPorSegmento: Record<number, string> = {};
 
   reserva: any | null = null;
   pago: any | null = null;
-  checkin: any | null = null;
+  checkins: any[] = [];
 
   pagoForm = {
     metodoPagoId: '',
@@ -72,10 +107,10 @@ export class ReservarVueloComponent implements OnInit {
   };
 
   constructor(
-    private catalogos: CatalogoService,
-    private pasajeros: PasajeroService,
     private clienteVuelosService: ClienteVueloService,
     private asientosService: AsientoVueloService,
+    private catalogos: CatalogoService,
+    private pasajeros: PasajeroService,
     private reservasService: ReservaService,
     private pagosService: PagoService,
     private checkinService: CheckInService,
@@ -83,52 +118,27 @@ export class ReservarVueloComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.cargando = true;
-    this.error = null;
-    this.aviso = null;
-
-    this.pasajeros.obtenerActual().subscribe({
-      next: (pasajero) => {
-        this.pasajero = pasajero;
-        this.pagoForm.nombreCliente = pasajero?.nombreCompleto || '';
-      },
-      error: () => {
-        this.error = 'No se pudo cargar el perfil del pasajero. Inicia sesión de nuevo.';
-      }
-    });
-
-    this.catalogos.aeropuertos().subscribe({
-      next: (r) => {
-        this.aeropuertos = r ?? [];
-      },
-      error: () => {
-        this.error = 'No se pudieron cargar aeropuertos.';
-      }
-    });
-
-    this.catalogos.claseVuelo().subscribe({
-      next: (r) => {
-        this.clases = r ?? [];
-      }
-    });
-
-    this.catalogos.metodoPago().subscribe({
-      next: (r) => {
-        this.metodosPago = r ?? [];
-      }
-    });
-
-    setTimeout(() => {
-      this.cargando = false;
-    }, 250);
+    this.cargarDatosIniciales();
   }
 
   get segmentos(): ClienteVueloSegmentoDisponible[] {
     return this.vueloSeleccionado?.segmentos ?? [];
   }
 
-  get esIdaVuelta(): boolean {
-    return this.filtros.tipoViaje === 'IDA_VUELTA';
+  get aeropuertoSalidaId(): number {
+    return Number(this.aeropuertoSalidaSeleccionado?.aeropuertoId || 0);
+  }
+
+  get aeropuertoDestinoId(): number {
+    return Number(this.aeropuertoDestinoSeleccionado?.aeropuertoId || 0);
+  }
+
+  get puedeBuscarDestino(): boolean {
+    return !!this.aeropuertoSalidaId;
+  }
+
+  get puedeBuscarVuelos(): boolean {
+    return !!this.aeropuertoSalidaId && !!this.aeropuertoDestinoId;
   }
 
   get esCambioAvion(): boolean {
@@ -138,250 +148,311 @@ export class ReservarVueloComponent implements OnInit {
 
     const tipo = this.normalizarTexto(this.vueloSeleccionado.tipoSegmentoVueloNombre);
 
-    return (
-      tipo.includes('CAMBIO_AVION') ||
-      tipo.includes('CAMBIO') ||
-      this.vueloSeleccionado.requiereNuevoAsiento === true
-    );
+    return tipo.includes('CAMBIO') ||
+      this.vueloSeleccionado.requiereNuevoAsiento === true;
   }
 
   get usaAsientoUnico(): boolean {
     return !!this.vueloSeleccionado && !this.esCambioAvion;
   }
 
-  get primerSegmentoId(): number | null {
-    const segmento = this.segmentos[0];
-
-    if (!segmento) {
-      return null;
-    }
-
-    return this.getSegmentoId(segmento);
+  get primerSegmentoId(): number {
+    return Number(this.segmentos[0]?.segmentoOperadoId || 0);
   }
 
-  get asientosUnicos(): AsientoVuelo[] {
-    const segmentoId = this.primerSegmentoId;
-
-    if (!segmentoId) {
-      return [];
-    }
-
-    return this.asientosPorSegmento[segmentoId] ?? [];
+  get cantidadPasajeros(): number {
+    return this.pasajerosReserva.length;
   }
 
-  get puedeCargarAsientos(): boolean {
-    return !!this.vueloSeleccionado && !!Number(this.claseVueloId) && this.segmentos.length > 0;
+  get totalEstimado(): number {
+    return this.pasajerosReserva.reduce((acc, p) => {
+      return acc + this.getPrecioClasePasajero(p);
+    }, 0);
   }
 
-  get puedeReservar(): boolean {
-    if (!this.pasajero?.id || !this.pasajero?.userId) {
-      return false;
-    }
+  get boletosReserva(): any[] {
+    return this.reserva?.boletos ?? [];
+  }
 
-    if (!this.vueloSeleccionado || !Number(this.claseVueloId)) {
-      return false;
-    }
-
-    if (this.usaAsientoUnico) {
-      return !!Number(this.asientoUnicoId);
-    }
-
-    return this.segmentos.every((s) => {
-      const segmentoId = this.getSegmentoId(s);
-      return !!segmentoId && !!Number(this.asientoSeleccionadoPorSegmento[segmentoId]);
-    });
+  get puedeCrearReserva(): boolean {
+    return this.validarReserva(false);
   }
 
   get puedePagar(): boolean {
-    return !!this.reserva?.reservaId && !this.pago;
+    return !!Number(this.reserva?.reservaId) && !this.pago;
   }
 
   get puedeHacerCheckin(): boolean {
-    return !!this.reserva?.boletoId && !!this.reserva?.vueloOperadoId && !!this.pago && !this.checkin;
+    return !!Number(this.reserva?.reservaId) &&
+      !!Number(this.reserva?.vueloOperadoId) &&
+      !!this.pago &&
+      !this.checkins.length;
   }
 
-  get precioClaseSeleccionada(): number | null {
-    if (!this.vueloSeleccionado || !Number(this.claseVueloId)) {
-      return null;
-    }
+  cargarDatosIniciales(): void {
+    this.cargando = true;
 
-    const clase = this.clases.find((c) => Number(c.id) === Number(this.claseVueloId));
-    const nombreClase = this.normalizarTexto(clase?.nombre);
-
-    if (nombreClase.includes('EJECUTIVA')) {
-      return Number(this.vueloSeleccionado.precioEjecutiva ?? 0);
-    }
-
-    return Number(this.vueloSeleccionado.precioEconomica ?? 0);
-  }
-
-  onTipoViajeChange(): void {
-    this.filtros.fechaRegreso = '';
-    this.fechasRegresoDisponibles = [];
-
-    if (this.esIdaVuelta) {
-      this.cargarFechasRegresoDisponibles();
-    }
-  }
-
-  onOrigenChange(): void {
-    this.error = null;
-    this.aviso = null;
-
-    this.filtros.aeropuertoLlegadaId = '';
-    this.filtros.fechaSalida = '';
-    this.filtros.fechaRegreso = '';
-
-    this.destinosAutorizados = [];
-    this.fechasDisponibles = [];
-    this.fechasRegresoDisponibles = [];
-
-    this.resetSeleccionCompleta();
-
-    const salidaId = Number(this.filtros.aeropuertoSalidaId);
-
-    if (!salidaId) {
-      return;
-    }
-
-    this.cargarDestinosAutorizados();
-  }
-
-  onDestinoChange(): void {
-    this.error = null;
-    this.aviso = null;
-
-    this.filtros.fechaSalida = '';
-    this.filtros.fechaRegreso = '';
-
-    this.fechasDisponibles = [];
-    this.fechasRegresoDisponibles = [];
-
-    this.resetSeleccionCompleta();
-
-    const salidaId = Number(this.filtros.aeropuertoSalidaId);
-    const llegadaId = Number(this.filtros.aeropuertoLlegadaId);
-
-    if (!salidaId || !llegadaId) {
-      return;
-    }
-
-    if (salidaId === llegadaId) {
-      this.error = 'No se puede seleccionar el mismo aeropuerto de salida y llegada.';
-      return;
-    }
-
-    this.cargarFechasDisponibles();
-  }
-
-  onFechaSalidaChange(): void {
-    this.error = null;
-    this.aviso = null;
-
-    this.filtros.fechaRegreso = '';
-    this.fechasRegresoDisponibles = [];
-
-    this.resetSeleccionCompleta();
-
-    if (this.esIdaVuelta) {
-      this.cargarFechasRegresoDisponibles();
-    }
-  }
-
-  cargarDestinosAutorizados(): void {
-    const salidaId = Number(this.filtros.aeropuertoSalidaId);
-
-    if (!salidaId) {
-      return;
-    }
-
-    this.clienteVuelosService.listarDestinosAutorizados(salidaId).subscribe({
+    this.pasajeros.obtenerActual().subscribe({
       next: (res) => {
-        this.destinosAutorizados = res ?? [];
-
-        if (!this.destinosAutorizados.length) {
-          this.aviso = 'No hay destinos autorizados para el origen seleccionado.';
-        }
+        this.pasajero = res;
+        this.pagoForm.nombreCliente = res?.nombreCompleto || '';
+        this.inicializarPasajeroPrincipal();
+        this.cargando = false;
       },
-      error: (err) => {
-        this.error = err?.error?.message || 'No se pudieron cargar destinos autorizados.';
+      error: () => {
+        this.error = 'No se pudo cargar el perfil del pasajero.';
+        this.cargando = false;
+      }
+    });
+
+    this.catalogos.claseVuelo().subscribe({
+      next: (res) => {
+        this.clases = res ?? [];
+      },
+      error: () => {
+        this.clases = [];
+      }
+    });
+
+    this.catalogos.metodoPago().subscribe({
+      next: (res) => {
+        this.metodosPago = res ?? [];
+      },
+      error: () => {
+        this.metodosPago = [];
       }
     });
   }
 
-  cargarFechasDisponibles(): void {
-    const salidaId = Number(this.filtros.aeropuertoSalidaId);
-    const llegadaId = Number(this.filtros.aeropuertoLlegadaId);
+  buscarOrigenes(): void {
+    this.error = null;
+    this.aviso = null;
 
-    if (!salidaId || !llegadaId || salidaId === llegadaId) {
+    this.origenes = [];
+    this.origenSeleccionado = null;
+    this.aeropuertosSalida = [];
+    this.aeropuertoSalidaSeleccionado = null;
+
+    this.limpiarDestinoYVuelo();
+
+    const q = this.busquedaOrigen.trim();
+
+    if (!q) {
+      this.error = 'Ingresa país o ciudad de salida.';
       return;
     }
 
+    this.cargando = true;
+
+    this.clienteVuelosService.buscarOrigenes(q).subscribe({
+      next: (res) => {
+        this.origenes = res ?? [];
+
+        if (!this.origenes.length) {
+          this.aviso = 'No hay coincidencias de origen con vuelos operados.';
+        }
+
+        this.cargando = false;
+      },
+      error: (err) => {
+        this.error = err?.error?.message || 'No se pudieron buscar orígenes.';
+        this.cargando = false;
+      }
+    });
+  }
+
+  seleccionarOrigen(origen: ClienteUbicacionDisponible): void {
+    this.error = null;
+    this.aviso = null;
+
+    this.origenSeleccionado = origen;
+    this.aeropuertoSalidaSeleccionado = null;
+    this.aeropuertosSalida = [];
+
+    this.limpiarDestinoYVuelo();
+
+    this.cargando = true;
+
+    this.clienteVuelosService
+      .buscarAeropuertosSalida(origen.pais, origen.ciudad, null)
+      .subscribe({
+        next: (res) => {
+          this.aeropuertosSalida = res ?? [];
+
+          if (!this.aeropuertosSalida.length) {
+            this.aviso = 'La ubicación seleccionada no tiene aeropuertos de salida con vuelos.';
+          }
+
+          this.cargando = false;
+        },
+        error: (err) => {
+          this.error = err?.error?.message || 'No se pudieron cargar aeropuertos de salida.';
+          this.cargando = false;
+        }
+      });
+  }
+
+  seleccionarAeropuertoSalida(aeropuerto: ClienteAeropuertoDisponible): void {
+    this.error = null;
+    this.aviso = null;
+
+    this.aeropuertoSalidaSeleccionado = aeropuerto;
+
+    this.limpiarDestinoYVuelo();
+
+    this.aviso = 'Aeropuerto de salida seleccionado. Ahora busca país o ciudad destino.';
+  }
+
+  buscarDestinos(): void {
+    this.error = null;
+    this.aviso = null;
+
+    this.destinosUbicaciones = [];
+    this.destinoUbicacionSeleccionada = null;
+    this.aeropuertosDestino = [];
+    this.aeropuertoDestinoSeleccionado = null;
+
+    this.limpiarVueloYReserva();
+
+    if (!this.aeropuertoSalidaId) {
+      this.error = 'Primero selecciona aeropuerto de salida.';
+      return;
+    }
+
+    const q = this.busquedaDestino.trim();
+
+    if (!q) {
+      this.error = 'Ingresa país o ciudad destino.';
+      return;
+    }
+
+    this.cargando = true;
+
+    this.clienteVuelosService
+      .buscarDestinosUbicaciones(this.aeropuertoSalidaId, q)
+      .subscribe({
+        next: (res) => {
+          this.destinosUbicaciones = res ?? [];
+
+          if (!this.destinosUbicaciones.length) {
+            this.aviso = 'No hay destinos autorizados con vuelos operados para esa búsqueda.';
+          }
+
+          this.cargando = false;
+        },
+        error: (err) => {
+          this.error = err?.error?.message || 'No se pudieron buscar destinos.';
+          this.cargando = false;
+        }
+      });
+  }
+
+  seleccionarDestinoUbicacion(destino: ClienteUbicacionDisponible): void {
+    this.error = null;
+    this.aviso = null;
+
+    this.destinoUbicacionSeleccionada = destino;
+    this.aeropuertoDestinoSeleccionado = null;
+    this.aeropuertosDestino = [];
+
+    this.limpiarVueloYReserva();
+
+    if (!this.aeropuertoSalidaId) {
+      this.error = 'Primero selecciona aeropuerto de salida.';
+      return;
+    }
+
+    this.cargando = true;
+
+    this.clienteVuelosService
+      .buscarAeropuertosDestino(
+        this.aeropuertoSalidaId,
+        destino.pais,
+        destino.ciudad,
+        null
+      )
+      .subscribe({
+        next: (res) => {
+          this.aeropuertosDestino = res ?? [];
+
+          if (!this.aeropuertosDestino.length) {
+            this.aviso = 'No hay aeropuertos destino con vuelos para esa ciudad.';
+          }
+
+          this.cargando = false;
+        },
+        error: (err) => {
+          this.error = err?.error?.message || 'No se pudieron cargar aeropuertos destino.';
+          this.cargando = false;
+        }
+      });
+  }
+
+  seleccionarAeropuertoDestino(aeropuerto: ClienteAeropuertoDisponible): void {
+    this.error = null;
+    this.aviso = null;
+
+    if (!this.aeropuertoSalidaId) {
+      this.error = 'Primero selecciona aeropuerto de salida.';
+      return;
+    }
+
+    if (Number(aeropuerto.aeropuertoId) === this.aeropuertoSalidaId) {
+      this.error = 'No se puede seleccionar el mismo aeropuerto de salida y llegada.';
+      return;
+    }
+
+    this.aeropuertoDestinoSeleccionado = aeropuerto;
+    this.fechaSalida = '';
+
+    this.limpiarVueloYReserva();
+    this.cargarFechasDisponibles();
+  }
+
+  cargarFechasDisponibles(): void {
+    this.error = null;
+    this.aviso = null;
+
+    this.fechasDisponibles = [];
+
+    if (!this.puedeBuscarVuelos) {
+      this.error = 'Selecciona aeropuerto de salida y aeropuerto destino.';
+      return;
+    }
+
+    this.cargando = true;
+
     this.clienteVuelosService
       .listarFechasDisponibles(
-        salidaId,
-        llegadaId
+        this.aeropuertoSalidaId,
+        this.aeropuertoDestinoId
       )
       .subscribe({
         next: (res) => {
           this.fechasDisponibles = res ?? [];
 
           if (!this.fechasDisponibles.length) {
-            this.aviso = 'No hay fechas disponibles para esa ruta.';
+            this.aviso = 'No hay fechas disponibles para esta ruta.';
           }
+
+          this.cargando = false;
         },
         error: (err) => {
           this.error = err?.error?.message || 'No se pudieron cargar fechas disponibles.';
+          this.cargando = false;
         }
       });
   }
 
-  cargarFechasRegresoDisponibles(): void {
-    const salidaId = Number(this.filtros.aeropuertoSalidaId);
-    const llegadaId = Number(this.filtros.aeropuertoLlegadaId);
-    const fechaSalida = (this.filtros.fechaSalida || '').trim();
-
-    if (!this.esIdaVuelta || !salidaId || !llegadaId || !fechaSalida) {
-      return;
-    }
-
-    this.clienteVuelosService
-      .listarFechasRegresoDisponibles(
-        llegadaId,
-        salidaId,
-        fechaSalida
-      )
-      .subscribe({
-        next: (res) => {
-          this.fechasRegresoDisponibles = res ?? [];
-
-          if (!this.fechasRegresoDisponibles.length) {
-            this.aviso = 'No hay fechas de regreso disponibles para esa ruta.';
-          }
-        },
-        error: (err) => {
-          this.error = err?.error?.message || 'No se pudieron cargar fechas de regreso.';
-        }
-      });
-  }
-
-  buscar(): void {
+  buscarVuelos(): void {
     this.error = null;
     this.aviso = null;
 
-    this.resetSeleccionCompleta();
+    this.vuelosDisponibles = [];
+    this.limpiarVueloYReserva();
 
-    const salidaId = Number(this.filtros.aeropuertoSalidaId);
-    const llegadaId = Number(this.filtros.aeropuertoLlegadaId);
-    const fecha = (this.filtros.fechaSalida || '').trim();
-
-    if (!salidaId || !llegadaId) {
-      this.error = 'Debe seleccionar aeropuerto de salida y destino.';
-      return;
-    }
-
-    if (salidaId === llegadaId) {
-      this.error = 'No se puede seleccionar el mismo aeropuerto de salida y llegada.';
+    if (!this.puedeBuscarVuelos) {
+      this.error = 'Selecciona aeropuerto de salida y aeropuerto destino.';
       return;
     }
 
@@ -389,9 +460,9 @@ export class ReservarVueloComponent implements OnInit {
 
     this.clienteVuelosService
       .listarDisponibles(
-        salidaId,
-        llegadaId,
-        fecha || null
+        this.aeropuertoSalidaId,
+        this.aeropuertoDestinoId,
+        this.fechaSalida || null
       )
       .subscribe({
         next: (res) => {
@@ -414,41 +485,32 @@ export class ReservarVueloComponent implements OnInit {
     this.error = null;
     this.aviso = null;
 
-    this.resetDespuesDeVuelo();
+    this.limpiarVueloYReserva();
 
-    const vueloOperadoId = Number(vuelo.vueloOperadoId);
+    const id = Number(vuelo.vueloOperadoId);
 
-    if (!vueloOperadoId) {
+    if (!id) {
       this.error = 'Vuelo inválido.';
       return;
     }
 
     this.cargando = true;
 
-    this.clienteVuelosService.obtenerDetalle(vueloOperadoId).subscribe({
-      next: (detalle) => {
-        this.vueloSeleccionado = detalle;
+    this.clienteVuelosService.obtenerDetalle(id).subscribe({
+      next: (res) => {
+        this.vueloSeleccionado = res;
 
         if (!this.segmentos.length) {
-          this.aviso = 'El vuelo seleccionado no tiene segmentos disponibles.';
+          this.aviso = 'El vuelo seleccionado no tiene segmentos.';
         }
 
         this.cargando = false;
       },
       error: (err) => {
-        this.error = err?.error?.message || 'No se pudo cargar el detalle del vuelo seleccionado.';
+        this.error = err?.error?.message || 'No se pudo cargar detalle del vuelo.';
         this.cargando = false;
       }
     });
-  }
-
-  onClaseChange(): void {
-    this.error = null;
-    this.aviso = null;
-
-    this.asientosPorSegmento = {};
-    this.asientoUnicoId = '';
-    this.asientoSeleccionadoPorSegmento = {};
   }
 
   cargarAsientos(): void {
@@ -456,121 +518,183 @@ export class ReservarVueloComponent implements OnInit {
     this.aviso = null;
 
     this.asientosPorSegmento = {};
-    this.asientoUnicoId = '';
-    this.asientoSeleccionadoPorSegmento = {};
+    this.limpiarAsientosPasajeros();
 
-    if (!this.puedeCargarAsientos) {
-      this.error = 'Selecciona un vuelo y una clase para cargar asientos.';
+    if (!this.vueloSeleccionado || !this.segmentos.length) {
+      this.error = 'Selecciona un vuelo.';
       return;
     }
 
-    const claseId = Number(this.claseVueloId);
-    const segmentos = this.segmentos;
-    const segmentoIds = segmentos
-      .map((s) => this.getSegmentoId(s))
-      .filter((id): id is number => !!id);
+    const segmentoIds = this.segmentos
+      .map((s) => Number(s.segmentoOperadoId))
+      .filter((id) => !!id);
 
     if (!segmentoIds.length) {
-      this.error = 'El vuelo no tiene segmentos válidos para cargar asientos.';
+      this.error = 'El vuelo no tiene segmentos válidos.';
       return;
     }
 
     this.cargandoAsientos = true;
 
     forkJoin(
-      segmentoIds.map((segmentoId) =>
-        this.asientosService.listarDisponiblesPorSegmento(
-          segmentoId,
-          claseId
-        )
+      segmentoIds.map((id) =>
+        this.asientosService.listarDisponiblesPorSegmento(id, null)
       )
     ).subscribe({
       next: (respuestas) => {
-        const map: Record<number, AsientoVuelo[]> = {};
+        const mapa: Record<number, AsientoVuelo[]> = {};
 
-        segmentoIds.forEach((segmentoId, index) => {
-          map[segmentoId] = respuestas[index] ?? [];
+        segmentoIds.forEach((id, index) => {
+          mapa[id] = respuestas[index] ?? [];
         });
 
-        this.asientosPorSegmento = map;
+        this.asientosPorSegmento = mapa;
 
-        const totalAsientos = Object.values(map)
+        const total = Object.values(mapa)
           .reduce((acc, lista) => acc + lista.length, 0);
 
-        if (!totalAsientos) {
-          this.aviso = 'No hay asientos disponibles para la clase seleccionada.';
-        }
-
-        if (this.usaAsientoUnico && !this.asientosUnicos.length) {
-          this.aviso = 'No hay asientos disponibles para el primer segmento del trayecto.';
+        if (!total) {
+          this.aviso = 'No hay asientos disponibles para este vuelo.';
         }
 
         this.cargandoAsientos = false;
       },
       error: (err) => {
-        this.error = err?.error?.message || 'No se pudieron cargar asientos disponibles.';
+        this.error = err?.error?.message || 'No se pudieron cargar asientos.';
         this.cargandoAsientos = false;
       }
     });
   }
 
-  reservar(): void {
+  agregarPasajero(): void {
+    this.pasajerosReserva.push(this.crearPasajeroForm(false));
+  }
+
+  quitarPasajero(index: number): void {
+    const item = this.pasajerosReserva[index];
+
+    if (!item || item.esPrincipal) {
+      return;
+    }
+
+    this.pasajerosReserva.splice(index, 1);
+  }
+
+  cambiarModoPasajero(item: PasajeroReservaForm): void {
+    if (item.esPrincipal) {
+      return;
+    }
+
+    item.pasajeroId = '';
+    item.pasaporte = '';
+    item.nombreCompleto = '';
+    item.fechaNacimiento = '';
+    item.nacionalidad = 'Guatemala';
+    item.codigoArea = '+502';
+    item.telefono = '';
+    item.telefonoEmergencia = '';
+    item.direccion = '';
+  }
+
+  onClaseChange(item: PasajeroReservaForm): void {
+    item.asientoUnicoId = '';
+    item.asientoSeleccionadoPorSegmento = {};
+  }
+
+  onMaletasChange(item: PasajeroReservaForm): void {
+    const cantidad = Number(item.cantidadMaletas ?? 0);
+
+    if (Number.isNaN(cantidad) || cantidad < 0) {
+      item.cantidadMaletas = 0;
+    }
+  }
+
+  setAsientoSegmento(
+    item: PasajeroReservaForm,
+    segmento: ClienteVueloSegmentoDisponible,
+    value: any
+  ): void {
+    const segmentoId = Number(segmento.segmentoOperadoId);
+
+    if (!segmentoId) {
+      return;
+    }
+
+    item.asientoSeleccionadoPorSegmento[segmentoId] = String(value || '');
+  }
+
+  getAsientoSegmento(
+    item: PasajeroReservaForm,
+    segmento: ClienteVueloSegmentoDisponible
+  ): string {
+    const segmentoId = Number(segmento.segmentoOperadoId);
+
+    if (!segmentoId) {
+      return '';
+    }
+
+    return item.asientoSeleccionadoPorSegmento[segmentoId] || '';
+  }
+
+  getAsientosSegmento(
+    item: PasajeroReservaForm,
+    segmento: ClienteVueloSegmentoDisponible
+  ): AsientoVuelo[] {
+    const segmentoId = Number(segmento.segmentoOperadoId);
+
+    if (!segmentoId || !Number(item.claseVueloId)) {
+      return [];
+    }
+
+    const actual = Number(this.getAsientoSegmento(item, segmento));
+
+    return (this.asientosPorSegmento[segmentoId] ?? [])
+      .filter((a) => !this.asientoUsadoEnSegmento(segmentoId, Number(a.id), item.uid) || Number(a.id) === actual);
+  }
+
+  getAsientosUnicos(item: PasajeroReservaForm): AsientoVuelo[] {
+    const segmentoId = this.primerSegmentoId;
+
+    if (!segmentoId || !Number(item.claseVueloId)) {
+      return [];
+    }
+
+    const actual = Number(item.asientoUnicoId);
+
+    return (this.asientosPorSegmento[segmentoId] ?? [])
+      .filter((a) => this.asientoExisteEnTodosLosSegmentos(a))
+      .filter((a) => !this.asientoUnicoUsado(a, item.uid) || Number(a.id) === actual);
+  }
+
+  crearReserva(): void {
     this.error = null;
     this.aviso = null;
     this.reserva = null;
     this.pago = null;
-    this.checkin = null;
+    this.checkins = [];
 
-    if (!this.puedeReservar) {
-      this.error = 'Antes de reservar debes seleccionar clase, asiento y maletas.';
+    if (!this.validarReserva(true)) {
       return;
     }
 
-    const segmentosAsientos = this.construirSegmentosAsientos();
+    const payload = this.construirPayloadReserva();
 
-    if (!segmentosAsientos.length) {
+    if (!payload) {
       return;
     }
-
-    const primerSegmento = segmentosAsientos[0];
 
     this.cargando = true;
 
-    this.reservasService
-      .crear({
-        userId: Number(this.pasajero.userId),
-        pasajeroId: Number(this.pasajero.id),
-        vueloOperadoId: Number(this.vueloSeleccionado?.vueloOperadoId),
-
-        segmentoOperadoId: primerSegmento.segmentoOperadoId,
-        asientoVueloId: primerSegmento.asientoVueloId,
-        claseVueloId: Number(this.claseVueloId),
-        cantidadMaletas: Number(this.cantidadMaletas ?? 0),
-        requiereAsiento: true,
-
-        segmentosAsientos,
-
-        pasajeros: [
-          {
-            pasajeroId: Number(this.pasajero.id),
-            claseVueloId: Number(this.claseVueloId),
-            cantidadMaletas: Number(this.cantidadMaletas ?? 0),
-            requiereAsiento: true,
-            asientoVueloId: primerSegmento.asientoVueloId,
-            segmentosAsientos
-          }
-        ]
-      })
-      .subscribe({
-        next: (res) => {
-          this.reserva = res;
-          this.cargando = false;
-        },
-        error: (err) => {
-          this.error = err?.error?.message || 'No se pudo crear la reserva.';
-          this.cargando = false;
-        }
-      });
+    this.reservasService.crear(payload).subscribe({
+      next: (res) => {
+        this.reserva = res;
+        this.cargando = false;
+      },
+      error: (err) => {
+        this.error = err?.error?.message || 'No se pudo crear la reserva.';
+        this.cargando = false;
+      }
+    });
   }
 
   pagar(): void {
@@ -585,170 +709,76 @@ export class ReservarVueloComponent implements OnInit {
     const metodoPagoId = Number(this.pagoForm.metodoPagoId);
 
     if (!metodoPagoId) {
-      this.error = 'Selecciona el método de pago.';
+      this.error = 'Selecciona método de pago.';
       return;
     }
 
-    const monto = Number(this.reserva?.total ?? this.reserva?.subtotal ?? 0);
+    const monto = Number(this.reserva?.total ?? 0);
 
     if (!monto || monto <= 0) {
-      this.error = 'Monto inválido para pago.';
+      this.error = 'Monto inválido.';
       return;
     }
 
     this.cargando = true;
 
-    this.pagosService
-      .pagar({
-        reservaId: Number(this.reserva.reservaId),
-        metodoPagoId,
-        monto,
-        nit: (this.pagoForm.nit || '').trim() || 'CF',
-        nombreCliente: (this.pagoForm.nombreCliente || '').trim()
-      })
-      .subscribe({
-        next: (res) => {
-          this.pago = res;
-          this.cargando = false;
-        },
-        error: (err) => {
-          this.error = err?.error?.message || 'No se pudo registrar el pago.';
-          this.cargando = false;
-        }
-      });
+    this.pagosService.pagar({
+      reservaId: Number(this.reserva.reservaId),
+      metodoPagoId,
+      monto,
+      nit: this.pagoForm.nit?.trim() || 'CF',
+      nombreCliente:
+        this.pagoForm.nombreCliente?.trim() ||
+        this.pasajero?.nombreCompleto ||
+        'Consumidor Final'
+    }).subscribe({
+      next: (res) => {
+        this.pago = res;
+        this.cargando = false;
+      },
+      error: (err) => {
+        this.error = err?.error?.message || 'No se pudo registrar el pago.';
+        this.cargando = false;
+      }
+    });
   }
 
   hacerCheckin(): void {
     this.error = null;
     this.aviso = null;
 
-    if (!this.reserva?.boletoId || !this.reserva?.vueloOperadoId) {
-      this.error = 'No hay boleto asociado para check-in.';
+    if (!this.reserva?.vueloOperadoId || !this.pago) {
+      this.error = 'Primero debe existir reserva pagada.';
       return;
     }
 
-    if (!this.pago) {
-      this.error = 'Primero debe registrar el pago.';
+    const boletos = this.obtenerBoletosParaCheckin();
+
+    if (!boletos.length) {
+      this.error = 'No hay boletos para check-in.';
       return;
     }
 
     this.cargando = true;
 
-    this.checkinService
-      .realizar({
-        boletoId: Number(this.reserva.boletoId),
-        vueloOperadoId: Number(this.reserva.vueloOperadoId),
-        tipoCheckin: 'WEB'
-      })
-      .subscribe({
-        next: (res) => {
-          this.checkin = res;
-          this.cargando = false;
-        },
-        error: (err) => {
-          this.error = err?.error?.message || 'No se pudo hacer check-in. Verifica que el pago exista.';
-          this.cargando = false;
-        }
-      });
-  }
-
-  setAsientoSegmento(
-    segmento: ClienteVueloSegmentoDisponible,
-    asientoVueloId: string
-  ): void {
-    const segmentoId = this.getSegmentoId(segmento);
-
-    if (!segmentoId) {
-      return;
-    }
-
-    this.asientoSeleccionadoPorSegmento[segmentoId] = asientoVueloId;
-  }
-
-  getAsientoSegmento(
-    segmento: ClienteVueloSegmentoDisponible
-  ): string {
-    const segmentoId = this.getSegmentoId(segmento);
-
-    if (!segmentoId) {
-      return '';
-    }
-
-    return this.asientoSeleccionadoPorSegmento[segmentoId] ?? '';
-  }
-
-  getAsientosSegmento(
-    segmento: ClienteVueloSegmentoDisponible
-  ): AsientoVuelo[] {
-    const segmentoId = this.getSegmentoId(segmento);
-
-    if (!segmentoId) {
-      return [];
-    }
-
-    return this.asientosPorSegmento[segmentoId] ?? [];
-  }
-
-  getSegmentoId(
-    segmento: ClienteVueloSegmentoDisponible
-  ): number {
-    return Number(segmento.segmentoOperadoId);
-  }
-
-  getCodigoAsiento(
-    asiento: AsientoVuelo | null | undefined
-  ): string {
-    return String(
-      asiento?.codigoAsientoSistema ||
-      (asiento as any)?.numeroAsiento ||
-      asiento?.id ||
-      ''
-    );
-  }
-
-  getTituloSegmento(
-    segmento: ClienteVueloSegmentoDisponible
-  ): string {
-    return `${segmento.ordenSegmento || '-'} | ${segmento.aeropuertoSalidaCodigoIata || '-'} → ${segmento.aeropuertoLlegadaCodigoIata || '-'}`;
-  }
-
-  getDuracionTexto(
-    minutos: number | null | undefined
-  ): string {
-    const total = Number(minutos ?? 0);
-
-    if (!total) {
-      return '-';
-    }
-
-    const h = Math.floor(total / 60);
-    const m = total % 60;
-
-    if (h && m) {
-      return `${h}h ${m}m`;
-    }
-
-    if (h) {
-      return `${h}h`;
-    }
-
-    return `${m}m`;
-  }
-
-  getFechaDisponibleTexto(fecha: ClienteFechaDisponible): string {
-    const precio = fecha.precioMinimo != null
-      ? ` | desde ${fecha.precioMinimo}`
-      : '';
-
-    return `${fecha.fechaSalida} | ${fecha.vuelosDisponibles ?? 0} vuelo(s)${precio}`;
-  }
-
-  tipoVueloTexto(
-    vuelo: ClienteVueloDisponible | null
-  ): string {
-    const tipo = vuelo?.tipoSegmentoVueloNombre || 'DIRECTO';
-
-    return String(tipo).replace(/_/g, ' ');
+    forkJoin(
+      boletos.map((b) =>
+        this.checkinService.realizar({
+          boletoId: Number(b.boletoId),
+          vueloOperadoId: Number(this.reserva?.vueloOperadoId),
+          tipoCheckin: 'WEB'
+        })
+      )
+    ).subscribe({
+      next: (res) => {
+        this.checkins = res ?? [];
+        this.cargando = false;
+      },
+      error: (err) => {
+        this.error = err?.error?.message || 'No se pudo hacer check-in.';
+        this.cargando = false;
+      }
+    });
   }
 
   descargarReservaPdf(): void {
@@ -758,30 +788,20 @@ export class ReservarVueloComponent implements OnInit {
       return;
     }
 
-    const codigo = this.nombreArchivoSeguro(
-      this.reserva?.codigoReserva,
-      'reserva'
-    );
-
     this.documentos.reservaPdf(id).subscribe({
-      next: (blob) => this.saveBlob(blob, `reserva_${codigo}.pdf`)
+      next: (blob) => this.saveBlob(blob, `reserva_${this.safeName(this.reserva?.codigoReserva)}.pdf`)
     });
   }
 
-  descargarBoletoPdf(): void {
-    const id = Number(this.reserva?.boletoId);
+  descargarBoletoPdf(boleto: any): void {
+    const id = Number(boleto?.boletoId);
 
     if (!id) {
       return;
     }
 
-    const codigo = this.nombreArchivoSeguro(
-      this.reserva?.codigoBoleto,
-      'boleto'
-    );
-
     this.documentos.boletoPdf(id).subscribe({
-      next: (blob) => this.saveBlob(blob, `boleto_${codigo}.pdf`)
+      next: (blob) => this.saveBlob(blob, `boleto_${this.safeName(boleto?.codigoBoleto)}.pdf`)
     });
   }
 
@@ -792,96 +812,343 @@ export class ReservarVueloComponent implements OnInit {
       return;
     }
 
-    const serie = this.nombreArchivoSeguro(
-      this.pago?.factura?.serie,
-      'FEL'
-    );
-
-    const numero = this.nombreArchivoSeguro(
-      this.pago?.factura?.numero,
-      'sin_numero'
-    );
-
     this.documentos.facturaPorPagoPdf(id).subscribe({
-      next: (blob) => this.saveBlob(blob, `factura_${serie}_${numero}.pdf`)
+      next: (blob) => this.saveBlob(blob, `factura_pago_${id}.pdf`)
     });
   }
 
-  private construirSegmentosAsientos(): ReservaSegmentoAsientoRequest[] {
+  getFechaTexto(f: ClienteFechaDisponible): string {
+    return `${f.fechaSalida || '-'} | ${f.vuelosDisponibles || 0} vuelo(s)`;
+  }
+
+  getUbicacionTexto(u: ClienteUbicacionDisponible | null): string {
+    if (!u) {
+      return '-';
+    }
+
+    return `${u.ciudad || '-'}, ${u.pais || '-'}`;
+  }
+
+  getAeropuertoTexto(a: ClienteAeropuertoDisponible | null): string {
+    if (!a) {
+      return '-';
+    }
+
+    return `${a.codigoIata || '-'} - ${a.nombre || '-'} | ${a.ciudad || '-'}, ${a.pais || '-'}`;
+  }
+
+  getRutaVuelo(v: ClienteVueloDisponible | null): string {
+    if (!v) {
+      return '-';
+    }
+
+    return `${v.aeropuertoSalidaCodigoIata || '-'} → ${v.aeropuertoLlegadaCodigoIata || '-'}`;
+  }
+
+  getTipoVuelo(v: ClienteVueloDisponible | null): string {
+    return String(v?.tipoSegmentoVueloNombre || 'DIRECTO').replace(/_/g, ' ');
+  }
+
+  getSegmentoTexto(s: ClienteVueloSegmentoDisponible): string {
+    return `Segmento ${s.ordenSegmento || '-'} | ${s.aeropuertoSalidaCodigoIata || '-'} → ${s.aeropuertoLlegadaCodigoIata || '-'}`;
+  }
+
+  getCodigoAsiento(a: AsientoVuelo | null | undefined): string {
+    return String(a?.codigoAsientoSistema || a?.id || '');
+  }
+
+  getPrecioClasePasajero(item: PasajeroReservaForm): number {
+    if (!this.vueloSeleccionado || !Number(item.claseVueloId)) {
+      return 0;
+    }
+
+    const clase = this.clases.find((c) => Number(c.id) === Number(item.claseVueloId));
+    const nombre = this.normalizarTexto(clase?.nombre);
+
+    if (nombre.includes('EJECUTIVA')) {
+      return Number(this.vueloSeleccionado.precioEjecutiva || 0);
+    }
+
+    return Number(this.vueloSeleccionado.precioEconomica || 0);
+  }
+
+  getPasajeroTitulo(item: PasajeroReservaForm, index: number): string {
+    if (item.esPrincipal) {
+      return `Pasajero ${index + 1} - Titular`;
+    }
+
+    return `Pasajero ${index + 1} - Acompañante`;
+  }
+
+  getPasajeroResumen(item: PasajeroReservaForm): string {
+    if (item.esPrincipal) {
+      return this.pasajero?.nombreCompleto || 'Titular';
+    }
+
+    if (item.usarPasajeroExistente) {
+      return item.pasajeroId ? `Pasajero ID ${item.pasajeroId}` : 'Pasajero existente';
+    }
+
+    return item.nombreCompleto || item.pasaporte || 'Acompañante';
+  }
+
+  formatMoney(value: any): string {
+    const amount = Number(value ?? 0);
+
+    return amount.toLocaleString('es-GT', {
+      style: 'currency',
+      currency: 'GTQ'
+    });
+  }
+
+  private inicializarPasajeroPrincipal(): void {
+    const principal = this.crearPasajeroForm(true);
+
+    principal.usarPasajeroExistente = true;
+    principal.pasajeroId = this.pasajero?.id ? String(this.pasajero.id) : '';
+    principal.pasaporte = this.pasajero?.pasaporte || '';
+    principal.nombreCompleto = this.pasajero?.nombreCompleto || '';
+    principal.fechaNacimiento = this.pasajero?.fechaNacimiento || '';
+    principal.nacionalidad = this.pasajero?.nacionalidad || 'Guatemala';
+    principal.codigoArea = this.pasajero?.codigoArea || '+502';
+    principal.telefono = this.pasajero?.telefono || '';
+    principal.telefonoEmergencia = this.pasajero?.telefonoEmergencia || '';
+    principal.direccion = this.pasajero?.direccion || '';
+
+    this.pasajerosReserva = [principal];
+  }
+
+  private crearPasajeroForm(esPrincipal: boolean): PasajeroReservaForm {
+    return {
+      uid: this.uidSeq++,
+      esPrincipal,
+      usarPasajeroExistente: esPrincipal,
+
+      pasajeroId: '',
+      pasaporte: '',
+      nombreCompleto: '',
+      fechaNacimiento: '',
+      nacionalidad: 'Guatemala',
+      codigoArea: '+502',
+      telefono: '',
+      telefonoEmergencia: '',
+      direccion: '',
+
+      tipoPasajero: 'ADULTO',
+      adultoResponsablePasajeroId: '',
+
+      claseVueloId: '',
+      cantidadMaletas: 0,
+      asientoUnicoId: '',
+      asientoSeleccionadoPorSegmento: {}
+    };
+  }
+
+  private validarReserva(mostrar: boolean): boolean {
+    if (!this.vueloSeleccionado) {
+      if (mostrar) this.error = 'Selecciona un vuelo.';
+      return false;
+    }
+
+    if (!this.pasajerosReserva.length) {
+      if (mostrar) this.error = 'Debe existir al menos un pasajero.';
+      return false;
+    }
+
+    const pasajeros = new Set<string>();
+    const asientos = new Set<string>();
+
+    for (const item of this.pasajerosReserva) {
+      if (!Number(item.claseVueloId)) {
+        if (mostrar) this.error = `Selecciona clase para ${this.getPasajeroResumen(item)}.`;
+        return false;
+      }
+
+      if (Number(item.cantidadMaletas || 0) < 0) {
+        if (mostrar) this.error = 'La cantidad de maletas no puede ser negativa.';
+        return false;
+      }
+
+      if (item.usarPasajeroExistente) {
+        if (!Number(item.pasajeroId)) {
+          if (mostrar) this.error = 'Debe ingresar ID de pasajero existente.';
+          return false;
+        }
+      } else {
+        if (
+          !item.pasaporte.trim() ||
+          !item.nombreCompleto.trim() ||
+          !item.fechaNacimiento ||
+          !item.nacionalidad.trim() ||
+          !item.telefonoEmergencia.trim()
+        ) {
+          if (mostrar) this.error = 'Debe ingresar los datos obligatorios de cada acompañante.';
+          return false;
+        }
+      }
+
+      const clave = item.usarPasajeroExistente
+        ? `ID-${Number(item.pasajeroId)}`
+        : `PAS-${item.pasaporte.trim().toUpperCase()}`;
+
+      if (pasajeros.has(clave)) {
+        if (mostrar) this.error = 'No puede repetir pasajeros en la misma reserva.';
+        return false;
+      }
+
+      pasajeros.add(clave);
+
+      const segmentos = this.construirSegmentosAsientos(item, mostrar);
+
+      if (!segmentos.length) {
+        return false;
+      }
+
+      for (const sa of segmentos) {
+        const key = `${sa.segmentoOperadoId}-${sa.asientoVueloId}`;
+
+        if (asientos.has(key)) {
+          if (mostrar) this.error = 'No puede repetir el mismo asiento en el mismo segmento.';
+          return false;
+        }
+
+        asientos.add(key);
+      }
+    }
+
+    return true;
+  }
+
+  private construirPayloadReserva(): any | null {
     if (!this.vueloSeleccionado) {
       this.error = 'Selecciona un vuelo.';
+      return null;
+    }
+
+    const pasajerosPayload = this.pasajerosReserva.map((item) => {
+      const segmentosAsientos = this.construirSegmentosAsientos(item, true);
+      const primerSegmento = segmentosAsientos[0];
+
+      return {
+        pasajeroId: item.usarPasajeroExistente ? Number(item.pasajeroId) : null,
+
+        pasaporte: item.usarPasajeroExistente ? null : item.pasaporte.trim(),
+        nombreCompleto: item.usarPasajeroExistente ? null : item.nombreCompleto.trim(),
+        fechaNacimiento: item.usarPasajeroExistente ? null : item.fechaNacimiento,
+        nacionalidad: item.usarPasajeroExistente ? null : item.nacionalidad.trim(),
+        codigoArea: item.usarPasajeroExistente ? null : this.valorOpcional(item.codigoArea),
+        telefono: item.usarPasajeroExistente ? null : this.valorOpcional(item.telefono),
+        telefonoEmergencia: item.usarPasajeroExistente ? null : item.telefonoEmergencia.trim(),
+        direccion: item.usarPasajeroExistente ? null : this.valorOpcional(item.direccion),
+
+        claseVueloId: Number(item.claseVueloId),
+        cantidadMaletas: Number(item.cantidadMaletas || 0),
+        requiereAsiento: true,
+        precioBase: this.getPrecioClasePasajero(item),
+        asientoVueloId: primerSegmento?.asientoVueloId || null,
+        tipoPasajero: item.tipoPasajero || 'ADULTO',
+        adultoResponsablePasajeroId: item.adultoResponsablePasajeroId
+          ? Number(item.adultoResponsablePasajeroId)
+          : null,
+        segmentosAsientos
+      };
+    });
+
+    const primero = pasajerosPayload[0];
+    const primerSegmento = primero?.segmentosAsientos?.[0];
+
+    return {
+      userId: Number(this.pasajero?.userId || 0) || null,
+      pasajeroId: Number(this.pasajero?.id || primero?.pasajeroId || 0) || null,
+      vueloOperadoId: Number(this.vueloSeleccionado.vueloOperadoId),
+
+      segmentoOperadoId: primerSegmento?.segmentoOperadoId || null,
+      asientoVueloId: primerSegmento?.asientoVueloId || null,
+      claseVueloId: primero?.claseVueloId || null,
+      cantidadMaletas: primero?.cantidadMaletas || 0,
+      precioBase: primero?.precioBase || null,
+      requiereAsiento: true,
+      segmentosAsientos: primero?.segmentosAsientos || [],
+
+      pasajeros: pasajerosPayload
+    };
+  }
+
+  private construirSegmentosAsientos(
+    item: PasajeroReservaForm,
+    mostrar: boolean
+  ): SegmentoAsientoPayload[] {
+    if (!this.vueloSeleccionado || !this.segmentos.length) {
+      if (mostrar) this.error = 'Selecciona un vuelo con segmentos.';
       return [];
     }
 
     if (this.usaAsientoUnico) {
-      return this.construirAsientoUnicoParaTrayecto();
+      return this.construirAsientoUnico(item, mostrar);
     }
 
-    return this.construirAsientosPorSegmento();
+    return this.construirAsientosPorSegmento(item, mostrar);
   }
 
-  private construirAsientoUnicoParaTrayecto(): ReservaSegmentoAsientoRequest[] {
+  private construirAsientoUnico(
+    item: PasajeroReservaForm,
+    mostrar: boolean
+  ): SegmentoAsientoPayload[] {
+    const asientoId = Number(item.asientoUnicoId);
     const primerSegmentoId = this.primerSegmentoId;
-    const asientoId = Number(this.asientoUnicoId);
 
-    if (!primerSegmentoId || !asientoId) {
-      this.error = 'Selecciona un asiento.';
+    if (!asientoId || !primerSegmentoId) {
+      if (mostrar) this.error = `Selecciona asiento para ${this.getPasajeroResumen(item)}.`;
       return [];
     }
 
-    const asientoBase = this.asientosUnicos.find((a) => Number(a.id) === asientoId);
+    const asientoBase = (this.asientosPorSegmento[primerSegmentoId] ?? [])
+      .find((a) => Number(a.id) === asientoId);
 
     if (!asientoBase) {
-      this.error = 'El asiento seleccionado ya no está disponible.';
+      if (mostrar) this.error = 'El asiento seleccionado ya no está disponible.';
       return [];
     }
 
-    const codigoBase = this.getCodigoAsiento(asientoBase);
-
-    if (!codigoBase) {
-      this.error = 'No se pudo identificar el código del asiento seleccionado.';
-      return [];
-    }
-
-    const resultado: ReservaSegmentoAsientoRequest[] = [];
+    const codigo = this.getCodigoAsiento(asientoBase);
+    const resultado: SegmentoAsientoPayload[] = [];
 
     for (const segmento of this.segmentos) {
-      const segmentoId = this.getSegmentoId(segmento);
+      const segmentoId = Number(segmento.segmentoOperadoId);
 
-      if (!segmentoId) {
-        this.error = 'Hay un segmento inválido en el vuelo.';
-        return [];
-      }
+      const equivalente = (this.asientosPorSegmento[segmentoId] ?? [])
+        .find((a) => this.getCodigoAsiento(a) === codigo);
 
-      const asientosSegmento = this.asientosPorSegmento[segmentoId] ?? [];
-
-      const asientoEquivalente = asientosSegmento.find(
-        (a) => this.getCodigoAsiento(a) === codigoBase
-      );
-
-      if (!asientoEquivalente) {
-        this.error = `El asiento ${codigoBase} no está disponible en el segmento ${segmento.ordenSegmento}.`;
+      if (!equivalente) {
+        if (mostrar) {
+          this.error = `El asiento ${codigo} no está disponible en el segmento ${segmento.ordenSegmento}.`;
+        }
         return [];
       }
 
       resultado.push({
         segmentoOperadoId: segmentoId,
-        asientoVueloId: Number(asientoEquivalente.id)
+        asientoVueloId: Number(equivalente.id)
       });
     }
 
     return resultado;
   }
 
-  private construirAsientosPorSegmento(): ReservaSegmentoAsientoRequest[] {
-    const resultado: ReservaSegmentoAsientoRequest[] = [];
+  private construirAsientosPorSegmento(
+    item: PasajeroReservaForm,
+    mostrar: boolean
+  ): SegmentoAsientoPayload[] {
+    const resultado: SegmentoAsientoPayload[] = [];
 
     for (const segmento of this.segmentos) {
-      const segmentoId = this.getSegmentoId(segmento);
-      const asientoId = Number(this.asientoSeleccionadoPorSegmento[segmentoId]);
+      const segmentoId = Number(segmento.segmentoOperadoId);
+      const asientoId = Number(item.asientoSeleccionadoPorSegmento[segmentoId]);
 
       if (!segmentoId || !asientoId) {
-        this.error = `Selecciona asiento para el segmento ${segmento.ordenSegmento}.`;
+        if (mostrar) {
+          this.error = `Selecciona asiento para ${this.getPasajeroResumen(item)} en el segmento ${segmento.ordenSegmento}.`;
+        }
         return [];
       }
 
@@ -894,45 +1161,103 @@ export class ReservarVueloComponent implements OnInit {
     return resultado;
   }
 
-  private saveBlob(blob: Blob, filename: string): void {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+  private asientoExisteEnTodosLosSegmentos(asiento: AsientoVuelo): boolean {
+    const codigo = this.getCodigoAsiento(asiento);
 
-    a.href = url;
-    a.download = filename;
-    a.click();
-
-    URL.revokeObjectURL(url);
-  }
-
-  private nombreArchivoSeguro(
-    value: any,
-    fallback: string
-  ): string {
-    const text = String(value ?? '').trim();
-
-    if (!text) {
-      return fallback;
+    if (!codigo) {
+      return false;
     }
 
-    return text.replace(/[^a-zA-Z0-9._-]/g, '_');
+    return this.segmentos.every((s) => {
+      const segmentoId = Number(s.segmentoOperadoId);
+
+      return (this.asientosPorSegmento[segmentoId] ?? [])
+        .some((a) => this.getCodigoAsiento(a) === codigo);
+    });
   }
 
-  private resetSeleccionCompleta(): void {
+  private asientoUsadoEnSegmento(
+    segmentoId: number,
+    asientoId: number,
+    uid: number
+  ): boolean {
+    return this.pasajerosReserva.some((p) => {
+      if (p.uid === uid) {
+        return false;
+      }
+
+      if (this.usaAsientoUnico) {
+        return this.construirAsientoUnico(p, false)
+          .some((sa) => sa.segmentoOperadoId === segmentoId && sa.asientoVueloId === asientoId);
+      }
+
+      return Number(p.asientoSeleccionadoPorSegmento[segmentoId]) === asientoId;
+    });
+  }
+
+  private asientoUnicoUsado(asiento: AsientoVuelo, uid: number): boolean {
+    const codigo = this.getCodigoAsiento(asiento);
+
+    if (!codigo || !this.primerSegmentoId) {
+      return false;
+    }
+
+    return this.pasajerosReserva.some((p) => {
+      if (p.uid === uid) {
+        return false;
+      }
+
+      const asientoId = Number(p.asientoUnicoId);
+
+      if (!asientoId) {
+        return false;
+      }
+
+      const asientoActual = (this.asientosPorSegmento[this.primerSegmentoId] ?? [])
+        .find((a) => Number(a.id) === asientoId);
+
+      return this.getCodigoAsiento(asientoActual) === codigo;
+    });
+  }
+
+  private obtenerBoletosParaCheckin(): any[] {
+    if (this.reserva?.boletos?.length) {
+      return this.reserva.boletos.filter((b: any) => !!Number(b.boletoId));
+    }
+
+    if (this.reserva?.boletoId) {
+      return [{ boletoId: this.reserva.boletoId }];
+    }
+
+    return [];
+  }
+
+  private limpiarDestinoYVuelo(): void {
+    this.busquedaDestino = '';
+    this.destinosUbicaciones = [];
+    this.destinoUbicacionSeleccionada = null;
+    this.aeropuertosDestino = [];
+    this.aeropuertoDestinoSeleccionado = null;
+    this.fechasDisponibles = [];
+    this.fechaSalida = '';
+    this.limpiarVueloYReserva();
+  }
+
+  private limpiarVueloYReserva(): void {
     this.vuelosDisponibles = [];
-    this.resetDespuesDeVuelo();
-  }
-
-  private resetDespuesDeVuelo(): void {
     this.vueloSeleccionado = null;
-    this.claseVueloId = '';
-    this.cantidadMaletas = 0;
     this.asientosPorSegmento = {};
-    this.asientoUnicoId = '';
-    this.asientoSeleccionadoPorSegmento = {};
+    this.limpiarAsientosPasajeros();
     this.reserva = null;
     this.pago = null;
-    this.checkin = null;
+    this.checkins = [];
+  }
+
+  private limpiarAsientosPasajeros(): void {
+    this.pasajerosReserva.forEach((p) => {
+      p.asientoUnicoId = '';
+      p.asientoSeleccionadoPorSegmento = {};
+    });
   }
 
   private normalizarTexto(value: any): string {
@@ -946,10 +1271,36 @@ export class ReservarVueloComponent implements OnInit {
 
   private obtenerFechaMinima(): string {
     const hoy = new Date();
-    const anio = hoy.getFullYear();
-    const mes = String(hoy.getMonth() + 1).padStart(2, '0');
-    const dia = String(hoy.getDate()).padStart(2, '0');
+    const y = hoy.getFullYear();
+    const m = String(hoy.getMonth() + 1).padStart(2, '0');
+    const d = String(hoy.getDate()).padStart(2, '0');
 
-    return `${anio}-${mes}-${dia}`;
+    return `${y}-${m}-${d}`;
+  }
+
+  private valorOpcional(value: any): string | null {
+    const text = String(value ?? '').trim();
+    return text || null;
+  }
+
+  private saveBlob(blob: Blob, filename: string): void {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+
+    a.href = url;
+    a.download = filename;
+    a.click();
+
+    URL.revokeObjectURL(url);
+  }
+
+  private safeName(value: any): string {
+    const text = String(value ?? '').trim();
+
+    if (!text) {
+      return 'documento';
+    }
+
+    return text.replace(/[^a-zA-Z0-9._-]/g, '_');
   }
 }

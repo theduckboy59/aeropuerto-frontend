@@ -1,20 +1,40 @@
 <div class="page-root">
-  <div class="page-layout">
+  <nav class="top-link" aria-label="Navegacion">
+    <button class="top-link-btn" type="button" routerLink="/portal">Volver al portal</button>
+  </nav>
 
-    <div class="brand">
+  <div class="page-layout">
+    <section class="brand" aria-label="Registro de pasajeros">
       <div class="brand-badge">AEROPUERTO</div>
       <h1 class="brand-title">Los Primos</h1>
       <p class="brand-subtitle">
-        Registro de pasajeros
+        Crea una cuenta para reservar, consultar y administrar tu informacion de viaje.
       </p>
-    </div>
+
+      <div class="brand-panel" aria-label="Resumen">
+        <div>
+          <span class="panel-kicker">Perfil</span>
+          <strong>Pasajero</strong>
+        </div>
+        <div>
+          <span class="panel-kicker">Acceso</span>
+          <strong>Seguro</strong>
+        </div>
+        <div>
+          <span class="panel-kicker">Terminal</span>
+          <strong>ALP</strong>
+        </div>
+      </div>
+    </section>
 
     <div class="panel">
       <div class="card">
-
         <div class="header">
-          <h2 class="card-title">Crear cuenta</h2>
-          <p class="card-subtitle">Complete la información</p>
+          <div>
+            <p class="eyebrow">Registro</p>
+            <h2 class="card-title">Crear cuenta</h2>
+          </div>
+          <p class="card-subtitle">Complete la informacion solicitada</p>
         </div>
 
         <div class="alert-error" *ngIf="errorMessage">
@@ -22,9 +42,11 @@
         </div>
 
         <form class="form">
+          <div class="section-heading">
+            <span>Credenciales</span>
+          </div>
 
           <div class="grid">
-
             <div class="field">
               <label class="label">Usuario</label>
               <input class="control"
@@ -44,8 +66,8 @@
                      placeholder="ej: usuario@mail.com">
             </div>
 
-            <div class="field">
-              <label class="label">Contraseña</label>
+            <div class="field field-wide">
+              <label class="label">Contrasena</label>
 
               <div class="password-row">
                 <input class="control"
@@ -63,10 +85,16 @@
               </div>
 
               <small class="hint">
-                Mínimo 6 caracteres, una mayúscula, un número y un carácter especial.
+                Minimo 6 caracteres, una mayuscula, un numero y un caracter especial.
               </small>
             </div>
+          </div>
 
+          <div class="section-heading">
+            <span>Datos personales</span>
+          </div>
+
+          <div class="grid">
             <div class="field">
               <label class="label">Pasaporte</label>
               <input class="control"
@@ -80,16 +108,16 @@
             </div>
 
             <div class="field">
-              <label class="label">Nombre Completo</label>
+              <label class="label">Nombre completo</label>
               <input class="control"
                      [(ngModel)]="form.nombreCompleto"
                      name="nombreCompleto"
                      autocomplete="name"
-                     placeholder="ej: Juan Pérez">
+                     placeholder="ej: Juan Perez">
             </div>
 
             <div class="field">
-              <label class="label">Fecha Nacimiento</label>
+              <label class="label">Fecha nacimiento</label>
               <input type="date"
                      class="control"
                      [(ngModel)]="form.fechaNacimiento"
@@ -104,9 +132,15 @@
                      name="nacionalidad"
                      placeholder="ej: GUATEMALA">
             </div>
+          </div>
 
+          <div class="section-heading">
+            <span>Contacto</span>
+          </div>
+
+          <div class="grid">
             <div class="field">
-              <label class="label">Código Área</label>
+              <label class="label">Codigo area</label>
               <input class="control"
                      [(ngModel)]="form.codigoArea"
                      name="codigoArea"
@@ -117,7 +151,7 @@
             </div>
 
             <div class="field">
-              <label class="label">Teléfono</label>
+              <label class="label">Telefono</label>
               <input class="control"
                      [(ngModel)]="form.telefono"
                      name="telefono"
@@ -129,7 +163,7 @@
             </div>
 
             <div class="field">
-              <label class="label">Teléfono Emergencia</label>
+              <label class="label">Telefono emergencia</label>
               <input class="control"
                      [(ngModel)]="form.telefonoEmergencia"
                      name="telefonoEmergencia"
@@ -140,24 +174,22 @@
                      placeholder="ej: 87654321">
             </div>
 
-            <div class="field field-wide">
-              <label class="label">Dirección</label>
+            <div class="field">
+              <label class="label">Direccion</label>
               <input class="control"
                      [(ngModel)]="form.direccion"
                      name="direccion"
                      autocomplete="street-address"
                      placeholder="ej: Zona 1, Ciudad de Guatemala">
             </div>
-
           </div>
 
           <div class="footer">
-
             <button class="btn-primary"
                     type="button"
                     (click)="register()"
                     [disabled]="loading">
-              {{ loading ? 'Registrando...' : 'VALIDAR' }}
+              {{ loading ? 'Registrando...' : 'Crear cuenta' }}
             </button>
 
             <button class="btn-secondary"
@@ -166,13 +198,9 @@
                     [disabled]="loading">
               Cancelar
             </button>
-
           </div>
-
         </form>
-
       </div>
     </div>
-
   </div>
 </div>

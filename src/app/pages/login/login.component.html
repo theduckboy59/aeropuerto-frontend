@@ -1,19 +1,32 @@
 <div class="ig-root">
-  <nav class="ig-top" aria-label="Navegación">
+  <nav class="ig-top" aria-label="Navegacion">
     <a class="ig-top-link" routerLink="/portal">Volver al portal</a>
   </nav>
 
-  <main class="ig-wrap" aria-label="Inicio de sesión">
+  <main class="ig-wrap" aria-label="Inicio de sesion">
+    <section class="ig-hero" aria-label="Bienvenida">
+      <div class="ig-hero-badge">Terminal segura</div>
+      <h2 class="ig-hero-title">Control operativo con vista clara desde el primer acceso.</h2>
+      <p class="ig-hero-copy">
+        Gestiona vuelos, pasajeros y recursos desde una experiencia mas limpia, estable y profesional.
+      </p>
+      <div class="ig-hero-strip" aria-label="Estado del sistema">
+        <span>ALP</span>
+        <span>Operativo</span>
+        <span>Acceso protegido</span>
+      </div>
+    </section>
+
     <section class="ig-auth" aria-label="Acceso">
       <div class="ig-cards" aria-label="Panel de acceso">
         <div class="ig-card ig-card--main" aria-labelledby="login-title">
           <div class="brand">
-            <div class="brand-badge" aria-label="Código del aeropuerto">ALP</div>
+            <div class="brand-badge" aria-label="Codigo del aeropuerto">ALP</div>
             <h1 class="brand-title">Aeropuerto Los Primos</h1>
             <p class="brand-subtitle">Acceso al panel operativo</p>
           </div>
 
-          <h2 id="login-title" class="ig-title">Iniciar sesión</h2>
+          <h2 id="login-title" class="ig-title">Iniciar sesion</h2>
 
           <form class="ig-form" (submit)="$event.preventDefault(); login()">
             <label class="ig-field">
@@ -28,7 +41,7 @@
             </label>
 
             <label class="ig-field">
-              <span class="ig-label">Contraseña</span>
+              <span class="ig-label">Contrasena</span>
               <div class="ig-pass">
                 <input
                   class="ig-input ig-input--pass"
@@ -36,7 +49,7 @@
                   name="password"
                   [type]="show ? 'text' : 'password'"
                   autocomplete="current-password"
-                  placeholder="Tu contraseña"
+                  placeholder="Tu contrasena"
                 />
                 <button class="ig-pass-toggle" type="button" (click)="togglePassword()">
                   {{ show ? 'Ocultar' : 'Ver' }}
@@ -59,7 +72,7 @@
               aria-hidden="true"
               loading="lazy"
             />
-            <p class="ig-alt-text">¿No tienes cuenta?</p>
+            <p class="ig-alt-text">No tienes cuenta?</p>
             <p class="ig-alt-sub">Crea tu usuario para entrar al sistema.</p>
             <a class="ig-alt-link" routerLink="/register">Registrarse</a>
           </div>
@@ -67,7 +80,7 @@
       </div>
 
       <p class="ig-meta" aria-label="Nota">
-        Al ingresar aceptas las políticas internas de uso del sistema.
+        Al ingresar aceptas las politicas internas de uso del sistema.
       </p>
     </section>
   </main>

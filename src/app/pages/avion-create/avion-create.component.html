@@ -23,6 +23,22 @@
         <h2 class="section-title">Datos del avión</h2>
 
         <div class="form-grid">
+          <div class="field field-wide">
+            <label class="check-row">
+              <input
+                type="checkbox"
+                [(ngModel)]="modeloPersonalizado"
+                name="modeloPersonalizado"
+                (change)="onModeloPersonalizadoChange()"
+              />
+              <span>Crear modelo personalizado desde esta pantalla</span>
+            </label>
+
+            <p class="hint">
+              Si se activa, el sistema crea primero el modelo y después crea el avión con ese modelo.
+            </p>
+          </div>
+
           <div class="field">
             <label class="label">Aerolínea *</label>
             <select class="control" [(ngModel)]="form.aerolineaId" name="aerolineaId">
@@ -43,14 +59,14 @@
             </select>
           </div>
 
-          <div class="field">
+          <div class="field" *ngIf="!modeloPersonalizado">
             <label class="label">Modelo *</label>
             <select
               class="control"
               [(ngModel)]="form.modeloAvionId"
               name="modeloAvionId"
-              (change)="onModeloChange()">
-
+              (change)="onModeloChange()"
+            >
               <option value="">Seleccione</option>
               <option *ngFor="let m of modelosAvion" [value]="m.id">
                 {{ m.fabricante }} - {{ m.nombre }} ({{ m.codigoModelo }})
@@ -85,14 +101,129 @@
             <input
               class="control"
               type="number"
+              min="1"
               [(ngModel)]="form.filasConfiguradas"
               name="filasConfiguradas"
-              [placeholder]="modeloSeleccionado ? (modeloSeleccionado.filasMin + ' a ' + modeloSeleccionado.filasMax) : ''"
+              [placeholder]="getFilasPlaceholder()"
             />
           </div>
         </div>
 
-        <div class="model-info" *ngIf="modeloSeleccionado as ms">
+        <div class="custom-model-card" *ngIf="modeloPersonalizado">
+          <div class="custom-model-head">
+            <div>
+              <h3 class="custom-title">Modelo personalizado</h3>
+              <p class="hint">
+                Ejemplo para avión pequeño: configuración 3, pasillos 0, columnas 3 y una fila.
+              </p>
+            </div>
+
+            <button
+              class="btn-secondary"
+              type="button"
+              (click)="aplicarModeloTresAsientos()"
+            >
+              Usar ejemplo 3 asientos
+            </button>
+          </div>
+
+          <div class="form-grid">
+            <div class="field">
+              <label class="label">Fabricante *</label>
+              <input
+                class="control"
+                [(ngModel)]="modeloPersonalizadoForm.fabricante"
+                name="fabricanteModeloPersonalizado"
+              />
+            </div>
+
+            <div class="field">
+              <label class="label">Código modelo *</label>
+              <input
+                class="control"
+                [(ngModel)]="modeloPersonalizadoForm.codigoModelo"
+                name="codigoModeloPersonalizado"
+              />
+            </div>
+
+            <div class="field field-wide-2">
+              <label class="label">Nombre modelo *</label>
+              <input
+                class="control"
+                [(ngModel)]="modeloPersonalizadoForm.nombre"
+                name="nombreModeloPersonalizado"
+              />
+            </div>
+
+            <div class="field">
+              <label class="label">Niveles *</label>
+              <input
+                class="control"
+                type="number"
+                min="1"
+                max="2"
+                [(ngModel)]="modeloPersonalizadoForm.niveles"
+                name="nivelesModeloPersonalizado"
+              />
+            </div>
+
+            <div class="field">
+              <label class="label">Pasillos *</label>
+              <input
+                class="control"
+                type="number"
+                min="0"
+                [(ngModel)]="modeloPersonalizadoForm.pasillos"
+                name="pasillosModeloPersonalizado"
+              />
+            </div>
+
+            <div class="field">
+              <label class="label">Configuración *</label>
+              <input
+                class="control"
+                [(ngModel)]="modeloPersonalizadoForm.configuracion"
+                name="configuracionModeloPersonalizado"
+                placeholder="Ej. 3, 1-2, 3-3"
+              />
+            </div>
+
+            <div class="field">
+              <label class="label">Total columnas *</label>
+              <input
+                class="control"
+                type="number"
+                min="1"
+                [(ngModel)]="modeloPersonalizadoForm.totalColumnas"
+                name="totalColumnasModeloPersonalizado"
+              />
+            </div>
+
+            <div class="field">
+              <label class="label">Filas mínimas *</label>
+              <input
+                class="control"
+                type="number"
+                min="1"
+                [(ngModel)]="modeloPersonalizadoForm.filasMin"
+                name="filasMinModeloPersonalizado"
+              />
+            </div>
+
+            <div class="field">
+              <label class="label">Filas máximas *</label>
+              <input
+                class="control"
+                type="number"
+                min="1"
+                [(ngModel)]="modeloPersonalizadoForm.filasMax"
+                name="filasMaxModeloPersonalizado"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div class="model-info" *ngIf="!modeloPersonalizado && modeloSeleccionado as ms">
           <div class="model-title">Información del modelo</div>
 
           <div class="model-grid">
@@ -101,6 +232,21 @@
             <div><span class="k">Configuración:</span> {{ ms.configuracion }}</div>
             <div><span class="k">Columnas:</span> {{ ms.totalColumnas }}</div>
             <div><span class="k">Filas permitidas:</span> {{ ms.filasMin }} a {{ ms.filasMax }}</div>
+            <div><span class="k">Asientos estimados:</span> {{ getAsientosEstimados() }}</div>
+          </div>
+        </div>
+
+        <div class="model-info" *ngIf="modeloPersonalizado">
+          <div class="model-title">Resumen del modelo personalizado</div>
+
+          <div class="model-grid">
+            <div><span class="k">Fabricante:</span> {{ modeloPersonalizadoForm.fabricante || '-' }}</div>
+            <div><span class="k">Modelo:</span> {{ modeloPersonalizadoForm.nombre || '-' }}</div>
+            <div><span class="k">Configuración:</span> {{ modeloPersonalizadoForm.configuracion || '-' }}</div>
+            <div><span class="k">Columnas:</span> {{ modeloPersonalizadoForm.totalColumnas || 0 }}</div>
+            <div><span class="k">Pasillos:</span> {{ modeloPersonalizadoForm.pasillos }}</div>
+            <div><span class="k">Filas permitidas:</span> {{ modeloPersonalizadoForm.filasMin }} a {{ modeloPersonalizadoForm.filasMax }}</div>
+            <div><span class="k">Asientos estimados:</span> {{ getAsientosEstimados() }}</div>
           </div>
         </div>
 
@@ -109,8 +255,8 @@
             class="btn-primary"
             type="button"
             (click)="guardar()"
-            [disabled]="cargando">
-
+            [disabled]="cargando"
+          >
             {{ cargando ? 'Guardando...' : 'Crear avión' }}
           </button>
 
