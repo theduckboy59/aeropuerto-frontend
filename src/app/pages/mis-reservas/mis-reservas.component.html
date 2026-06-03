@@ -40,7 +40,10 @@
           <thead>
             <tr>
               <th>Reserva</th>
-              <th>Fecha</th>
+              <th>Fecha reserva</th>
+              <th>Vuelo</th>
+              <th>Ruta</th>
+              <th>Salida</th>
               <th>Pasajeros</th>
               <th>Estado reserva</th>
               <th>Estado pago</th>
@@ -55,6 +58,9 @@
               [class.row-selected]="reservaSeleccionada?.reservaId === r.reservaId">
               <td>{{ r.codigoReserva || '-' }}</td>
               <td>{{ r.fechaReserva || '-' }}</td>
+              <td>{{ getCodigoVueloReserva(r) }}</td>
+              <td>{{ getRutaReserva(r) }}</td>
+              <td>{{ getSalidaReserva(r) }}</td>
               <td>{{ r.cantidadPasajeros || r.boletos?.length || 1 }}</td>
 
               <td>
@@ -184,13 +190,17 @@
             <tr>
               <th>Pasajero</th>
               <th>Pasaporte</th>
+              <th>Vuelo</th>
+              <th>Ruta</th>
+              <th>Salida</th>
               <th>Boleto</th>
               <th>Pase abordar</th>
               <th>Asiento</th>
               <th>Maletas</th>
               <th>Estado</th>
+              <th>Check-in</th>
               <th>Total</th>
-              <th>PDF</th>
+              <th>Acciones</th>
             </tr>
           </thead>
 
@@ -198,6 +208,9 @@
             <tr *ngFor="let b of boletos">
               <td>{{ b.nombrePasajero || '-' }}</td>
               <td>{{ b.pasaporte || '-' }}</td>
+              <td>{{ getCodigoVueloBoleto(b) }}</td>
+              <td>{{ getRutaBoleto(b) }}</td>
+              <td>{{ getSalidaBoleto(b) }}</td>
               <td>{{ b.codigoBoleto || '-' }}</td>
               <td>{{ b.codigoPaseAbordar || '-' }}</td>
 
@@ -215,12 +228,36 @@
 
               <td>{{ b.cantidadMaletas || 0 }}</td>
               <td>{{ b.estadoBoleto || '-' }}</td>
+
+              <td>
+                <span class="state-pill" [ngClass]="getEstadoCheckinClass(b)">
+                  {{ getEstadoCheckinTexto(b) }}
+                </span>
+              </td>
+
               <td>{{ formatMoney(b.total || 0) }}</td>
 
               <td>
-                <button class="btn-secondary" type="button" (click)="descargarBoletoPdf(b)">
-                  PDF boleto
-                </button>
+                <div class="actions-inline">
+                  <button class="btn-secondary" type="button" (click)="descargarBoletoPdf(b)">
+                    PDF boleto
+                  </button>
+
+                  <button
+                    class="btn-primary"
+                    type="button"
+                    *ngIf="puedeHacerCheckin(b)"
+                    [disabled]="cargandoCheckinBoletoId === toNumber(b.boletoId)"
+                    (click)="hacerCheckin(b)">
+                    {{ cargandoCheckinBoletoId === toNumber(b.boletoId) ? 'Procesando...' : 'Hacer check-in' }}
+                  </button>
+
+                  <span
+                    class="state-pill state-ok"
+                    *ngIf="boletoTieneCheckin(b)">
+                    Check-in listo
+                  </span>
+                </div>
               </td>
             </tr>
           </tbody>

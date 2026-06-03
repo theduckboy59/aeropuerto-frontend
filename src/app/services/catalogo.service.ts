@@ -108,4 +108,8 @@ export class CatalogoService {
   estadoBoleto() {
     return this.http.get<any[]>(`${this.api}/estado-boleto`);
   }
+
+  estadoCheckin() {
+    return this.http.get<any[]>(`${this.api}/estado-checkin`);
+  }
 }

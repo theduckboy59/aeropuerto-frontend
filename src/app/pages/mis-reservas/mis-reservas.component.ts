@@ -10,6 +10,7 @@ import { PasajeroService } from '../../services/pasajero.service';
 import { PagoService } from '../../services/pago.service';
 import { DocumentosService } from '../../services/documentos.service';
 import { CatalogoService } from '../../services/catalogo.service';
+import { CheckInService } from '../../services/checkin.service';
 
 @Component({
   selector: 'app-mis-reservas',
@@ -20,6 +21,7 @@ export class MisReservasComponent implements OnInit {
   cargando = false;
   cargandoDetalle = false;
   cargandoPago = false;
+  cargandoCheckinBoletoId: number | null = null;
 
   error: string | null = null;
   ok: string | null = null;
@@ -30,6 +32,7 @@ export class MisReservasComponent implements OnInit {
   reservas: ReservaResponse[] = [];
   reservaSeleccionada: ReservaResponse | null = null;
   pagosReserva: any[] = [];
+  checkinsPorBoleto: Record<number, any> = {};
 
   metodosPago: any[] = [];
   estadosReserva: any[] = [];
@@ -47,7 +50,8 @@ export class MisReservasComponent implements OnInit {
     private reservasService: ReservaService,
     private pagosService: PagoService,
     private documentosService: DocumentosService,
-    private catalogosService: CatalogoService
+    private catalogosService: CatalogoService,
+    private checkinService: CheckInService
   ) {}
 
   ngOnInit(): void {
@@ -146,6 +150,7 @@ export class MisReservasComponent implements OnInit {
     this.reservas = [];
     this.reservaSeleccionada = null;
     this.pagosReserva = [];
+    this.checkinsPorBoleto = {};
 
     this.cargando = true;
 
@@ -199,6 +204,7 @@ export class MisReservasComponent implements OnInit {
     this.cargandoDetalle = true;
     this.reservaSeleccionada = null;
     this.pagosReserva = [];
+    this.checkinsPorBoleto = {};
 
     forkJoin({
       reserva: this.reservasService.obtenerPorId(reservaId),
@@ -207,6 +213,8 @@ export class MisReservasComponent implements OnInit {
       next: (res) => {
         this.reservaSeleccionada = res.reserva;
         this.pagosReserva = res.pagos ?? [];
+        this.checkinsPorBoleto = {};
+        this.cargarCheckinsBoletos(this.reservaSeleccionada?.boletos ?? []);
 
         if (!this.pagoForm.nombreCliente) {
           this.pagoForm.nombreCliente = this.pasajero?.nombreCompleto || '';
@@ -325,6 +333,8 @@ export class MisReservasComponent implements OnInit {
       next: (res) => {
         this.reservaSeleccionada = res.reserva;
         this.pagosReserva = res.pagos ?? [];
+        this.checkinsPorBoleto = {};
+        this.cargarCheckinsBoletos(this.reservaSeleccionada?.boletos ?? []);
 
         const index = this.reservas.findIndex((r) => Number(r.reservaId) === id);
 
@@ -433,6 +443,183 @@ export class MisReservasComponent implements OnInit {
     if (estado === 'ANULADO' || estado === 'RECHAZADO') return 'state-danger';
 
     return 'state-info';
+  }
+
+  hacerCheckin(boleto: any): void {
+    this.error = null;
+    this.ok = null;
+    this.aviso = null;
+
+    const boletoId = Number(boleto?.boletoId);
+
+    if (!boletoId) {
+      this.error = 'No se pudo identificar el boleto.';
+      return;
+    }
+
+    if (!this.esPagada(this.reservaSeleccionada)) {
+      this.error = 'Debe pagar la reserva antes de hacer check-in.';
+      return;
+    }
+
+    if (this.boletoTieneCheckin(boleto)) {
+      this.aviso = 'Este boleto ya tiene check-in realizado.';
+      return;
+    }
+
+    this.cargandoCheckinBoletoId = boletoId;
+
+    this.checkinService.realizar({
+      boletoId,
+      tipoCheckin: 'WEB'
+    }).subscribe({
+      next: (res) => {
+        this.checkinsPorBoleto[boletoId] = res;
+        this.ok = res?.mensaje || 'Check-in realizado correctamente.';
+        this.cargandoCheckinBoletoId = null;
+        this.recargarReservaSeleccionada();
+      },
+      error: (err) => {
+        this.error = err?.error?.message || 'No se pudo realizar el check-in.';
+        this.cargandoCheckinBoletoId = null;
+      }
+    });
+  }
+
+  private cargarCheckinsBoletos(boletos: any[]): void {
+    const ids = (boletos ?? [])
+      .map((b) => Number(b?.boletoId))
+      .filter((id) => !!id);
+
+    if (!ids.length) {
+      return;
+    }
+
+    forkJoin(
+      ids.map((id) => this.checkinService.consultarPorBoleto(id))
+    ).subscribe({
+      next: (res: any[]) => {
+        res.forEach((item) => {
+          const boletoId = Number(item?.boletoId);
+
+          if (boletoId) {
+            this.checkinsPorBoleto[boletoId] = item;
+          }
+        });
+      },
+      error: () => {
+        // No bloquea la pantalla. Si falla la consulta, el usuario aun puede intentar hacer check-in.
+      }
+    });
+  }
+
+  puedeHacerCheckin(boleto: any): boolean {
+    if (!this.reservaSeleccionada) {
+      return false;
+    }
+
+    if (!this.esPagada(this.reservaSeleccionada)) {
+      return false;
+    }
+
+    if (this.esCancelada(this.reservaSeleccionada)) {
+      return false;
+    }
+
+    const estadoBoleto = String(boleto?.estadoBoleto || '').toUpperCase();
+
+    if (estadoBoleto === 'CANCELADO' || estadoBoleto === 'ABORDADO') {
+      return false;
+    }
+
+    return !this.boletoTieneCheckin(boleto);
+  }
+
+  boletoTieneCheckin(boleto: any): boolean {
+    const boletoId = Number(boleto?.boletoId);
+
+    if (!boletoId) {
+      return false;
+    }
+
+    const checkin = this.checkinsPorBoleto[boletoId];
+    const segmentos = checkin?.segmentos ?? [];
+
+    if (!segmentos.length) {
+      return false;
+    }
+
+    return segmentos.every((s: any) =>
+      String(s?.estadoCheckin || '').toUpperCase() === 'REALIZADO'
+    );
+  }
+
+  getEstadoCheckinTexto(boleto: any): string {
+    if (!this.esPagada(this.reservaSeleccionada)) {
+      return 'PAGO PENDIENTE';
+    }
+
+    if (this.boletoTieneCheckin(boleto)) {
+      return 'REALIZADO';
+    }
+
+    return 'PENDIENTE';
+  }
+
+  getEstadoCheckinClass(boleto: any): string {
+    if (!this.esPagada(this.reservaSeleccionada)) {
+      return 'state-open';
+    }
+
+    if (this.boletoTieneCheckin(boleto)) {
+      return 'state-ok';
+    }
+
+    return 'state-info';
+  }
+
+  toNumber(value: any): number {
+    return Number(value || 0);
+  }
+
+  getCodigoVueloReserva(reserva: any): string {
+    return reserva?.codigoVuelo ||
+      reserva?.boletos?.[0]?.codigoVuelo ||
+      '-';
+  }
+
+  getRutaReserva(reserva: any): string {
+    return reserva?.ruta ||
+      reserva?.boletos?.[0]?.ruta ||
+      '-';
+  }
+
+  getSalidaReserva(reserva: any): string {
+    const fecha = reserva?.fechaSalida || reserva?.boletos?.[0]?.fechaSalida || '';
+    const hora = reserva?.horaSalida || reserva?.boletos?.[0]?.horaSalida || '';
+    const texto = `${fecha} ${hora}`.trim();
+
+    return texto || '-';
+  }
+
+  getCodigoVueloBoleto(boleto: any): string {
+    return boleto?.codigoVuelo ||
+      this.reservaSeleccionada?.codigoVuelo ||
+      '-';
+  }
+
+  getRutaBoleto(boleto: any): string {
+    return boleto?.ruta ||
+      this.reservaSeleccionada?.ruta ||
+      '-';
+  }
+
+  getSalidaBoleto(boleto: any): string {
+    const fecha = boleto?.fechaSalida || this.reservaSeleccionada?.fechaSalida || '';
+    const hora = boleto?.horaSalida || this.reservaSeleccionada?.horaSalida || '';
+    const texto = `${fecha} ${hora}`.trim();
+
+    return texto || '-';
   }
 
   formatMoney(value: any): string {

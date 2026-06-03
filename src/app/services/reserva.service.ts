@@ -65,6 +65,17 @@ export interface ReservaBoletoItemResponse {
   pasajeroId?: number | null;
   nombrePasajero?: string | null;
   pasaporte?: string | null;
+
+  vueloOperadoId?: number | null;
+  codigoVuelo?: string | null;
+  ruta?: string | null;
+  aeropuertoSalida?: string | null;
+  aeropuertoLlegada?: string | null;
+  fechaSalida?: string | null;
+  horaSalida?: string | null;
+  fechaLlegada?: string | null;
+  horaLlegada?: string | null;
+
   boletoId?: number | null;
   codigoBoleto?: string | null;
   codigoPaseAbordar?: string | null;
@@ -86,6 +97,14 @@ export interface ReservaResponse {
   codigoReserva?: string | null;
   codigoBoleto?: string | null;
   codigoPaseAbordar?: string | null;
+  codigoVuelo?: string | null;
+  ruta?: string | null;
+  aeropuertoSalida?: string | null;
+  aeropuertoLlegada?: string | null;
+  fechaSalida?: string | null;
+  horaSalida?: string | null;
+  fechaLlegada?: string | null;
+  horaLlegada?: string | null;
   estadoReserva?: string | null;
   estadoBoleto?: string | null;
   asientoVueloId?: number | null;
