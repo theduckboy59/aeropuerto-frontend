@@ -63,6 +63,7 @@ const routes: Routes = [
     path: 'abordaje',
     component: MenuAbordajeComponent,
     canActivate: [RoleGuard],
+    canActivateChild: [RoleGuard],
     data: { roles: ['ROLE_ADMIN_ABORDAJE'] },
     children: [
       {
@@ -94,6 +95,7 @@ const routes: Routes = [
     path: 'cliente',
     component: MenuClienteComponent,
     canActivate: [RoleGuard],
+    canActivateChild: [RoleGuard],
     data: { roles: ['ROLE_CLIENTE'] },
     children: [
       {
@@ -119,19 +121,20 @@ const routes: Routes = [
     path: 'menu',
     component: MenuComponent,
     canActivate: [RoleGuard],
-    data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA', 'ROLE_CONSULTAS_AEROLINEA'] },
+    canActivateChild: [RoleGuard],
+    data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] },
     children: [
       {
         path: '',
         component: DashboardComponent,
         canActivate: [RoleGuard],
-        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA', 'ROLE_CONSULTAS_AEROLINEA'] }
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
       },
       {
         path: 'consultas',
         component: ConsultasComponent,
         canActivate: [RoleGuard],
-        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA', 'ROLE_CONSULTAS_AEROLINEA'] }
+        data: { roles: ['ROLE_ADMIN_AEROLINEA', 'ROLE_ADMIN_SISTEMA'] }
       },
 
       {
