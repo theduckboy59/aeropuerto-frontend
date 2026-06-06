@@ -1,7 +1,7 @@
 <div class="shell">
   <header class="topbar" role="banner">
-    <button class="icon-btn" type="button" (click)="toggleSidebar()" aria-label="Mostrar/ocultar sidebar">
-      ☰
+    <button class="icon-btn" type="button" (click)="toggleSidebar()" aria-label="Mostrar u ocultar sidebar">
+      Menu
     </button>
     <div class="topbar-title">
       <div class="topbar-app">Aeropuerto Los Primos</div>
@@ -9,17 +9,17 @@
     </div>
   </header>
 
-  <div class="body">
+  <div class="body" [class.sidebar-closed]="!sidebarOpen">
     <aside class="sidebar" [class.closed]="!sidebarOpen" aria-label="Sidebar">
       <div class="logo">
-        <div class="logo-badge">A B</div>
+        <div class="logo-badge">AB</div>
         <div class="logo-text">
-          <div class="logo-title">ABORDAJE</div>
-          <div class="logo-sub">Operación</div>
+          <div class="logo-title">Abordaje</div>
+          <div class="logo-sub">Operacion</div>
         </div>
       </div>
 
-      <nav class="nav" aria-label="Módulos">
+      <nav class="nav" aria-label="Modulos">
         <a class="nav-item" routerLink="/abordaje" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Inicio</a>
         <a class="nav-item" routerLink="/abordaje/vuelos/abordaje" routerLinkActive="active">Abordaje</a>
         <a class="nav-item" routerLink="/abordaje/dashboard/pasajeros" routerLinkActive="active">Pasajeros</a>
@@ -27,15 +27,14 @@
 
       <div class="sidebar-footer">
         <div class="divider"></div>
-        <button class="logout" type="button" (click)="logout()">Cerrar sesión</button>
+        <button class="logout" type="button" (click)="logout()">Cerrar sesion</button>
       </div>
     </aside>
 
     <main class="content" role="main">
-      <section class="diagnostic" *ngIf="diagnosticMessage || sessionInfo">
-        <div class="diagnostic-title">Diagnostico de carga</div>
-        <div class="diagnostic-message" *ngIf="diagnosticMessage">{{ diagnosticMessage }}</div>
-        <div class="diagnostic-session">{{ sessionInfo }}</div>
+      <section class="diagnostic" *ngIf="diagnosticMessage">
+        <div class="diagnostic-title">Aviso del sistema</div>
+        <div class="diagnostic-message">{{ diagnosticMessage }}</div>
       </section>
 
       <router-outlet></router-outlet>

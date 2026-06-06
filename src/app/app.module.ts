@@ -19,7 +19,6 @@ import { EmpleadoFormComponent } from './pages/empleado-form/empleado-form.compo
 import { EmpleadoEditComponent } from './pages/empleado-edit/empleado-edit.component';
 import { RegisterComponent } from './pages/register/register.component';
 import { DashboardComponent } from './pages/dashboard/dashboard.component';
-import { PlaceholderComponent } from './pages/placeholder/placeholder.component';
 
 import { TripulacionComponent } from './pages/tripulacion/tripulacion.component';
 import { TripulacionCreateComponent } from './pages/tripulacion-create/tripulacion-create.component';
@@ -72,7 +71,6 @@ import { BlockPastDateDirective } from './directives/block-past-date.directive';
     EmpleadoEditComponent,
     RegisterComponent,
     DashboardComponent,
-    PlaceholderComponent,
 
     TripulacionComponent,
     TripulacionCreateComponent,

@@ -25,10 +25,9 @@ export class LoginComponent {
     this.show = !this.show;
   }
 
-  login() {
-    if (!this.email || !this.password) {
-      this.errorMessage = 'Por favor ingrese email y contraseña';
-      alert(this.errorMessage);
+  login(): void {
+    if (!this.email.trim() || !this.password) {
+      this.errorMessage = 'Ingresa tu correo y contrasena.';
       return;
     }
 
@@ -37,38 +36,34 @@ export class LoginComponent {
 
     this.auth
       .login({
-        email: this.email,
+        email: this.email.trim(),
         password: this.password
       })
       .subscribe({
         next: (res: any) => {
-          if (res.token) {
-            // Guardar token y rol
-            this.auth.saveToken(res.token);
-            
-            // Obtener datos del usuario desde el token
-            const role = this.jwtService.getRole(res.token);
-            console.log('Login exitoso. Rol:', role);
+          this.loading = false;
 
-            const landingRoute = this.auth.getLandingRouteForRole(role);
-            if (landingRoute) {
-              this.router.navigate([landingRoute]);
-            } else {
-              this.errorMessage = 'Tu rol no tiene un menu asignado';
-              alert(this.errorMessage);
-              this.auth.logout();
-            }
-          } else {
-            this.errorMessage = 'Error: No se recibió token';
-            alert(this.errorMessage);
+          if (!res.token) {
+            this.errorMessage = 'No se recibio token de acceso.';
+            return;
           }
-          this.loading = false;
+
+          this.auth.saveToken(res.token);
+
+          const role = this.jwtService.getRole(res.token);
+          const landingRoute = this.auth.getLandingRouteForRole(role);
+
+          if (landingRoute) {
+            this.router.navigate([landingRoute]);
+            return;
+          }
+
+          this.errorMessage = 'Tu rol no tiene un menu asignado.';
+          this.auth.logout();
         },
-        error: (err) => {
+        error: () => {
           this.loading = false;
-          console.log('ERROR:', err);
-          this.errorMessage = 'Credenciales invalidas';
-          alert(this.errorMessage);
+          this.errorMessage = 'Credenciales invalidas.';
         }
       });
   }

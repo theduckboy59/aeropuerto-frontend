@@ -29,6 +29,10 @@
           <h2 id="login-title" class="ig-title">Iniciar sesion</h2>
 
           <form class="ig-form" (submit)="$event.preventDefault(); login()">
+            <div class="ig-error" *ngIf="errorMessage" role="alert">
+              {{ errorMessage }}
+            </div>
+
             <label class="ig-field">
               <span class="ig-label">Usuario o correo</span>
               <input
@@ -58,6 +62,7 @@
             </label>
 
             <button class="ig-btn" type="submit" [disabled]="loading">
+              <span class="ig-btn-loader" *ngIf="loading" aria-hidden="true"></span>
               {{ loading ? 'Ingresando...' : 'Entrar' }}
             </button>
           </form>

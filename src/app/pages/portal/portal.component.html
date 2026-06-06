@@ -1,22 +1,27 @@
-<div class="page-root">
+<div class="portal-root">
   <nav class="top-actions" aria-label="Acciones de acceso">
-    <button class="top-action" type="button" routerLink="/login">Iniciar sesión</button>
+    <button class="top-action" type="button" routerLink="/login">Iniciar sesion</button>
     <button class="top-action" type="button" routerLink="/register">Registrarse</button>
     <button class="top-action top-action--ghost" type="button" routerLink="/consultas/vuelo">Consultar vuelo</button>
   </nav>
 
   <main class="page-layout">
     <section class="brand" aria-label="Portal principal">
-      <div class="brand-badge" aria-label="Código del aeropuerto">ALP</div>
+      <div class="brand-badge" aria-label="Codigo del aeropuerto">ALP</div>
       <h1 class="brand-title">Aeropuerto Los Primos</h1>
       <p class="brand-subtitle">
-        Centro de operaciones y administración. Accede con tu cuenta o crea un usuario nuevo.
+        Centro digital de operaciones aeroportuarias, reservas y seguimiento de vuelos.
       </p>
 
-      <div class="info-strip" role="note" aria-label="Información del portal">
+      <div class="brand-actions" aria-label="Accesos principales">
+        <a class="brand-action brand-action--primary" routerLink="/consultas/vuelo">Consultar vuelo</a>
+        <a class="brand-action" routerLink="/login">Entrar al sistema</a>
+      </div>
+
+      <div class="info-strip" role="note" aria-label="Informacion del portal">
         <div class="info-item">
           <span class="info-kicker">Terminal</span>
-          <span class="info-value">Portal de gestión</span>
+          <span class="info-value">Portal de gestion</span>
         </div>
         <div class="info-divider" aria-hidden="true"></div>
         <div class="info-item">
@@ -30,7 +35,7 @@
         </div>
       </div>
 
-      <section class="media" aria-label="Galería del aeropuerto">
+      <section class="media" aria-label="Galeria del aeropuerto">
         <div class="media-grid">
           <figure class="media-tile media-tile--wide">
             <img class="media-img" src="assets/portal/photos/terminal.jpg" alt="Terminal de aeropuerto" loading="lazy" />
@@ -41,13 +46,10 @@
             <figcaption class="media-caption">Puertas</figcaption>
           </figure>
           <figure class="media-tile">
-            <img class="media-img" src="assets/portal/photos/wing.jpg" alt="Ala de avión al atardecer" loading="lazy" />
+            <img class="media-img" src="assets/portal/photos/wing.jpg" alt="Ala de avion al atardecer" loading="lazy" />
             <figcaption class="media-caption">Embarque</figcaption>
           </figure>
         </div>
-        <p class="media-credits">
-          Fotos: Dbenbenn (CC BY-SA 3.0), Matt P. (CC BY 2.0), Tmeers91 (CC BY-SA 4.0) / Wikimedia Commons.
-        </p>
       </section>
     </section>
   </main>

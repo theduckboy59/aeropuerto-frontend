@@ -71,6 +71,11 @@
   display: grid;
   grid-template-columns: 292px 1fr;
   overflow: hidden;
+  transition: grid-template-columns 180ms ease;
+}
+
+.body.sidebar-closed {
+  grid-template-columns: 1fr;
 }
 
 .sidebar {
@@ -286,12 +291,6 @@
   margin-top: 6px;
   font-size: 13px;
   font-weight: 800;
-  line-height: 1.35;
-}
-
-.diagnostic-session {
-  margin-top: 4px;
-  font-size: 12px;
   line-height: 1.35;
 }
 

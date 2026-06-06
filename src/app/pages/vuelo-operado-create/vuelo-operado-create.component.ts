@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 
 import { Vuelo } from '../../services/vuelo.service';
@@ -54,6 +54,7 @@ export class VueloOperadoCreateComponent implements OnInit {
 
   constructor(
     private service: VueloOperadoService,
+    private route: ActivatedRoute,
     private router: Router
   ) {}
 
@@ -78,9 +79,11 @@ export class VueloOperadoCreateComponent implements OnInit {
 
         this.setTipoDirectoPorDefecto();
         this.filtrarVuelosDisponibles();
-        this.reconstruirSegmentos();
 
-        this.cargando = false;
+        if (!this.aplicarVueloProgramadoPreseleccionado()) {
+          this.reconstruirSegmentos();
+          this.cargando = false;
+        }
       },
       error: (err) => {
         console.error(err);
@@ -248,11 +251,29 @@ export class VueloOperadoCreateComponent implements OnInit {
       if (Number(s.aeropuertoSalidaId) === Number(s.aeropuertoLlegadaId)) {
         return `El segmento ${s.ordenSegmento} no puede tener el mismo aeropuerto de salida y llegada`;
       }
+
+      const salida = new Date(`${s.fechaSalida}T${this.normalizarHora(s.horaSalida)}`);
+      const llegada = new Date(`${s.fechaLlegada}T${this.normalizarHora(s.horaLlegada)}`);
+
+      if (Number.isNaN(salida.getTime()) || Number.isNaN(llegada.getTime()) || llegada <= salida) {
+        return `La llegada del segmento ${s.ordenSegmento} debe ser posterior a su salida`;
+      }
     }
 
     for (let i = 0; i < this.segmentos.length - 1; i++) {
       if (Number(this.segmentos[i].aeropuertoLlegadaId) !== Number(this.segmentos[i + 1].aeropuertoSalidaId)) {
         return 'Los segmentos deben estar conectados por aeropuerto';
+      }
+
+      const llegadaActual = new Date(
+        `${this.segmentos[i].fechaLlegada}T${this.normalizarHora(this.segmentos[i].horaLlegada)}`
+      );
+      const salidaSiguiente = new Date(
+        `${this.segmentos[i + 1].fechaSalida}T${this.normalizarHora(this.segmentos[i + 1].horaSalida)}`
+      );
+
+      if (salidaSiguiente < llegadaActual) {
+        return 'Los horarios de los segmentos no pueden solaparse';
       }
     }
 
@@ -383,6 +404,29 @@ export class VueloOperadoCreateComponent implements OnInit {
     }
   }
 
+  private aplicarVueloProgramadoPreseleccionado(): boolean {
+    const vueloProgramadoId = Number(
+      this.route.snapshot.queryParamMap.get('vueloProgramadoId')
+    );
+
+    if (!vueloProgramadoId) {
+      return false;
+    }
+
+    const existe = this.vuelosProgramadosDisponibles.some(
+      (vuelo: any) => Number(vuelo.vueloProgramadoId) === vueloProgramadoId
+    );
+
+    if (!existe) {
+      alert('El vuelo programado indicado no está disponible para crear una operación.');
+      return false;
+    }
+
+    this.form.vueloProgramadoId = String(vueloProgramadoId);
+    this.onVueloProgramadoChange();
+    return true;
+  }
+
   getVueloLabel(vuelo: any): string {
     if (!vuelo) return '-';
 
@@ -450,6 +494,11 @@ export class VueloOperadoCreateComponent implements OnInit {
   private toTime(value: any): string {
     const text = this.toText(value);
     return text.length >= 5 ? text.substring(0, 5) : text;
+  }
+
+  private normalizarHora(value: any): string {
+    const hora = this.toText(value).trim();
+    return hora.length === 5 ? `${hora}:00` : hora;
   }
 
   private normalize(value: any): string {

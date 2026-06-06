@@ -262,6 +262,86 @@ body {
 	color: #9e3d2a !important;
 }
 
+:where(a, button, input, select, textarea) {
+	font: inherit;
+}
+
+:where(a, button, .btn-primary, .btn-secondary, .btn-danger, .control, .card, .table-wrap) {
+	transition:
+		transform 160ms ease,
+		box-shadow 160ms ease,
+		border-color 160ms ease,
+		background 160ms ease,
+		color 160ms ease,
+		filter 160ms ease;
+}
+
+:where(button, [routerLink], a) {
+	-webkit-tap-highlight-color: transparent;
+}
+
+:where(button, a, input, select, textarea):focus-visible {
+	outline: 2px solid rgba(23, 167, 224, 0.72);
+	outline-offset: 2px;
+}
+
+:where(.page-root .content) {
+	animation: alp-page-in 280ms ease both;
+}
+
+:where(.page-root .card) {
+	border-radius: 12px !important;
+}
+
+:where(.page-root .control) {
+	min-height: 42px;
+	border-radius: 10px !important;
+}
+
+:where(.page-root textarea.control) {
+	min-height: 104px;
+	resize: vertical;
+}
+
+:where(.page-root .btn-primary, .page-root .btn-secondary, .page-root .btn-danger) {
+	min-height: 42px;
+	border-radius: 10px !important;
+	font-weight: 900;
+	white-space: normal;
+	text-align: center;
+}
+
+:where(.page-root .alert-success, .page-root .alert-info, .page-root .alert-danger) {
+	border-radius: 10px;
+	animation: alp-page-in 200ms ease both;
+}
+
+:where(.page-root .table-wrap) {
+	border-radius: 12px;
+	box-shadow: 0 14px 34px rgba(15, 77, 168, 0.06);
+}
+
+:where(.page-root .table tbody tr) {
+	transition: background 140ms ease, transform 140ms ease;
+}
+
+:where(.page-root .state-pill) {
+	border-radius: 999px;
+	font-weight: 900;
+}
+
+@keyframes alp-page-in {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
 @keyframes alp-card-in {
 	from {
 		opacity: 0;

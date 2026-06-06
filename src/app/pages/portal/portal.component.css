@@ -4,42 +4,42 @@
   inset: 0;
 }
 
-.page-root {
+.portal-root {
   height: 100%;
   width: 100%;
   overflow: hidden;
   position: relative;
   background:
-    radial-gradient(1200px 700px at 18% 22%, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0) 62%),
-    radial-gradient(900px 600px at 78% 78%, rgba(0, 0, 0, 0.26), rgba(0, 0, 0, 0) 64%),
-    linear-gradient(145deg, #0b2b45 0%, #0a4c77 45%, #0b6ea6 100%);
+    linear-gradient(115deg, rgba(7, 26, 43, 0.92), rgba(10, 76, 119, 0.76)),
+    url("/assets/portal/photos/terminal.jpg") center / cover no-repeat;
 }
 
-.page-root::before {
+.portal-root::before,
+.portal-root::after {
   content: "";
   position: absolute;
+  pointer-events: none;
+}
+
+.portal-root::before {
   inset: 0;
   background:
-    linear-gradient(90deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 32%, rgba(255, 255, 255, 0.05) 70%, rgba(255, 255, 255, 0));
-  opacity: 0.9;
-  pointer-events: none;
+    radial-gradient(960px 540px at 18% 14%, rgba(255, 255, 255, 0.16), transparent 64%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08), transparent 38%, rgba(0, 0, 0, 0.18));
 }
 
-.page-root::after {
-  content: "";
-  position: absolute;
-  inset: -20%;
-  background:
-    repeating-linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.075) 0px,
-      rgba(255, 255, 255, 0.075) 2px,
-      rgba(255, 255, 255, 0) 2px,
-      rgba(255, 255, 255, 0) 34px
-    );
+.portal-root::after {
+  inset: -18%;
+  background: repeating-linear-gradient(
+    91deg,
+    rgba(255, 255, 255, 0.075) 0,
+    rgba(255, 255, 255, 0.075) 1px,
+    transparent 1px,
+    transparent 34px
+  );
+  opacity: 0.16;
   transform: rotate(-8deg);
-  opacity: 0.18;
-  pointer-events: none;
+  animation: portalLines 24s linear infinite;
 }
 
 .top-actions {
@@ -48,7 +48,7 @@
   right: 18px;
   display: flex;
   gap: 10px;
-  z-index: 2;
+  z-index: 3;
 }
 
 .top-action {
@@ -56,36 +56,29 @@
   border: 0;
   border-radius: 999px;
   padding: 9px 14px;
-  font-weight: 800;
+  font-weight: 900;
   font-size: 12px;
   color: #123a52;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.78));
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.4) inset,
-    0 14px 28px rgba(0, 0, 0, 0.22);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(241, 248, 255, 0.84));
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.22);
   cursor: pointer;
-  transition: transform 120ms ease, box-shadow 120ms ease, filter 120ms ease;
+  transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
 }
 
 .top-action--ghost {
-  color: rgba(255, 255, 255, 0.92);
-  background: rgba(7, 26, 43, 0.22);
+  color: rgba(255, 255, 255, 0.94);
+  background: rgba(7, 26, 43, 0.28);
   border: 1px solid rgba(255, 255, 255, 0.22);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.18) inset,
-    0 14px 28px rgba(0, 0, 0, 0.2);
 }
 
 .top-action:hover {
   filter: brightness(1.02);
   transform: translateY(-1px);
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.26);
 }
 
-.top-action:active {
-  transform: translateY(0);
-}
-
-.top-action:focus-visible {
+.top-action:focus-visible,
+.brand-action:focus-visible {
   outline: 2px solid rgba(255, 255, 255, 0.9);
   outline-offset: 2px;
 }
@@ -97,24 +90,24 @@
   place-items: center;
   padding: 86px 22px 36px;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .brand {
-  width: min(980px, 100%);
-  padding: 46px 44px;
+  width: min(1040px, 100%);
+  padding: clamp(24px, 5vw, 48px);
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06));
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.07));
   box-shadow:
-    0 18px 50px rgba(0, 0, 0, 0.32),
-    0 1px 0 rgba(255, 255, 255, 0.12) inset;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+    0 28px 70px rgba(0, 0, 0, 0.34),
+    0 1px 0 rgba(255, 255, 255, 0.16) inset;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   color: rgba(255, 255, 255, 0.96);
   overflow: hidden;
   position: relative;
+  animation: portalIn 420ms ease both;
 }
 
 .brand::before {
@@ -122,55 +115,94 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(900px 600px at 15% 15%, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0) 60%),
-    radial-gradient(700px 520px at 82% 75%, rgba(0, 0, 0, 0.32), rgba(0, 0, 0, 0) 62%);
+    radial-gradient(900px 600px at 12% 12%, rgba(255, 255, 255, 0.14), transparent 60%),
+    linear-gradient(120deg, transparent 0%, rgba(0, 0, 0, 0.2) 100%);
   pointer-events: none;
 }
 
-.brand-badge {
+.brand > * {
   position: relative;
+  z-index: 1;
+}
+
+.brand-badge {
   width: max-content;
   padding: 6px 12px;
   border-radius: 999px;
   font-size: 11px;
-  font-weight: 900;
+  font-weight: 950;
   letter-spacing: 0.18em;
-  color: rgba(255, 255, 255, 0.86);
-  border: 1px solid rgba(255, 255, 255, 0.26);
-  background: rgba(7, 26, 43, 0.22);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.22);
+  color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  background: rgba(7, 26, 43, 0.26);
 }
 
 .brand-title {
-  position: relative;
   margin: 14px 0 0;
-  font-size: 52px;
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  line-height: 1.05;
-  text-shadow: 0 18px 40px rgba(0, 0, 0, 0.32);
+  font-size: clamp(2.35rem, 6vw, 4.2rem);
+  font-weight: 950;
+  line-height: 1.03;
+  text-shadow: 0 18px 42px rgba(0, 0, 0, 0.34);
 }
 
 .brand-subtitle {
-  position: relative;
   margin: 14px 0 0;
-  font-size: 14px;
+  max-width: 66ch;
+  font-size: 15px;
   line-height: 1.65;
   color: rgba(255, 255, 255, 0.82);
-  max-width: 72ch;
+}
+
+.brand-actions {
+  margin-top: 22px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.brand-action {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 11px 16px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 950;
+  color: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(7, 26, 43, 0.22);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.16);
+  transition: transform 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.brand-action--primary {
+  color: #123a52;
+  background: linear-gradient(180deg, #ffffff, #e9f6ff);
+  border-color: rgba(255, 255, 255, 0.64);
+}
+
+.brand-action:hover {
+  transform: translateY(-2px);
+  background: rgba(7, 26, 43, 0.32);
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.22);
+}
+
+.brand-action--primary:hover {
+  background: linear-gradient(180deg, #ffffff, #dff1ff);
 }
 
 .info-strip {
-  position: relative;
   margin-top: 26px;
   display: flex;
   flex-wrap: wrap;
   gap: 14px;
   align-items: center;
-  padding: 14px 14px;
-  border-radius: 14px;
+  padding: 14px;
+  border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(7, 26, 43, 0.18);
+  background: rgba(7, 26, 43, 0.2);
 }
 
 .info-item {
@@ -188,8 +220,8 @@
 
 .info-value {
   font-size: 13px;
-  font-weight: 800;
-  color: rgba(255, 255, 255, 0.92);
+  font-weight: 900;
+  color: rgba(255, 255, 255, 0.94);
 }
 
 .info-divider {
@@ -199,8 +231,8 @@
 }
 
 .media {
-  position: relative;
   margin-top: 22px;
+  animation: portalIn 520ms 80ms ease both;
 }
 
 .media-grid {
@@ -212,13 +244,12 @@
 .media-tile {
   margin: 0;
   position: relative;
-  border-radius: 14px;
+  border-radius: 12px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(7, 26, 43, 0.18);
   box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28);
   aspect-ratio: 4 / 3;
-  transform: translateZ(0);
   transition: transform 160ms ease, filter 160ms ease;
 }
 
@@ -232,16 +263,14 @@
   height: 100%;
   object-fit: cover;
   display: block;
-  filter: saturate(1.05) contrast(1.02);
+  filter: saturate(1.04) contrast(1.02);
 }
 
 .media-tile::after {
   content: "";
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.65) 100%);
-  pointer-events: none;
+  background: linear-gradient(180deg, transparent 40%, rgba(0, 0, 0, 0.68));
 }
 
 .media-caption {
@@ -250,25 +279,39 @@
   bottom: 10px;
   margin: 0;
   font-size: 12px;
-  font-weight: 900;
+  font-weight: 950;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.92);
+  color: rgba(255, 255, 255, 0.94);
   z-index: 1;
-  text-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
-}
-
-.media-credits {
-  margin: 10px 0 0;
-  font-size: 10px;
-  line-height: 1.4;
-  color: rgba(255, 255, 255, 0.62);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .media-tile:hover {
     transform: translateY(-2px);
     filter: brightness(1.04);
+  }
+}
+
+@keyframes portalIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes portalLines {
+  from {
+    transform: translateX(0) rotate(-8deg);
+  }
+
+  to {
+    transform: translateX(34px) rotate(-8deg);
   }
 }
 
@@ -285,27 +328,27 @@
 }
 
 @media (max-width: 900px) {
-  .page-root {
+  :host {
+    position: static;
+  }
+
+  .portal-root {
+    min-height: 100vh;
+    height: auto;
     overflow: auto;
   }
 
   .page-layout {
     place-items: start center;
-    padding-top: 74px;
-    padding-bottom: 24px;
-  }
-
-  .brand {
-    padding: 32px 18px 22px;
-  }
-
-  .brand-title {
-    font-size: 34px;
+    padding: 94px 12px 22px;
   }
 
   .top-actions {
     top: 12px;
+    left: 12px;
     right: 12px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
   }
 
   .info-divider {
@@ -314,6 +357,19 @@
 
   .info-item {
     min-width: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .brand-actions,
+  .top-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .brand-action,
+  .top-action {
+    width: 100%;
   }
 
   .media-grid {

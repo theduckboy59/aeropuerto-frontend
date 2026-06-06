@@ -145,10 +145,17 @@ export class VueloCreateComponent implements OnInit {
     this.guardando = true;
 
     this.vueloService.crear(payload).subscribe({
-      next: () => {
+      next: (vueloCreado) => {
         this.guardando = false;
-        alert('Vuelo creado correctamente');
-        this.router.navigate(['/menu/aerolinea/vuelos']);
+        alert('Vuelo programado creado. Continúa asignando avión y tripulación.');
+        this.router.navigate(
+          ['/menu/aerolinea/vuelos-operados/nuevo'],
+          {
+            queryParams: {
+              vueloProgramadoId: vueloCreado.vueloProgramadoId
+            }
+          }
+        );
       },
       error: (err) => {
         console.error(err);

@@ -1,26 +1,55 @@
 <section class="dash">
-  <header class="dash-header">
-    <h1 class="dash-title">Panel</h1>
-    <p class="dash-subtitle">Selecciona un módulo en el sidebar para empezar.</p>
+  <header class="dash-hero">
+    <div>
+      <p class="dash-kicker">Centro operativo</p>
+      <h1 class="dash-title">Panel de administracion</h1>
+      <p class="dash-subtitle">
+        Gestiona vuelos, recursos y pasajeros desde un punto de entrada claro y listo para operar.
+      </p>
+    </div>
+
+    <div class="dash-status" aria-label="Estado del sistema">
+      <span>ALP</span>
+      <strong>Operativo</strong>
+    </div>
   </header>
 
-  <div class="dash-grid">
-    <article class="card">
-      <div class="card-title">Tablas</div>
-      <div class="card-desc">Listados, paginación, filtros y acciones.</div>
-    </article>
-    <article class="card">
-      <div class="card-title">Forms</div>
-      <div class="card-desc">Crear / editar registros con validación.</div>
-    </article>
-    <article class="card">
-      <div class="card-title">Reportes</div>
-      <div class="card-desc">Consultas y exportables.</div>
-    </article>
-    <article class="card">
-      <div class="card-title">Dashboards</div>
-      <div class="card-desc">Indicadores y gráficos (cuando aplique).</div>
-    </article>
-  </div>
-</section>
+  <div class="dash-grid" aria-label="Accesos principales">
+    <a class="dash-card" routerLink="/menu/aerolinea/vuelos-operados">
+      <span class="dash-card-kicker">Operacion</span>
+      <strong>Vuelos operados</strong>
+      <span>Controla salidas, llegadas y ejecucion de vuelo.</span>
+    </a>
 
+    <a class="dash-card" routerLink="/menu/aerolinea/vuelos">
+      <span class="dash-card-kicker">Programacion</span>
+      <strong>Vuelos programados</strong>
+      <span>Administra rutas, horarios y planificacion.</span>
+    </a>
+
+    <a class="dash-card" routerLink="/menu/dashboard/pasajeros">
+      <span class="dash-card-kicker">Clientes</span>
+      <strong>Pasajeros</strong>
+      <span>Consulta y actualiza informacion de pasajeros.</span>
+    </a>
+
+    <a class="dash-card" routerLink="/menu/consultas">
+      <span class="dash-card-kicker">Reportes</span>
+      <strong>Consultas</strong>
+      <span>Revisa datos operativos y resultados del sistema.</span>
+    </a>
+  </div>
+
+  <section class="dash-band" aria-label="Gestion interna">
+    <div>
+      <p class="dash-kicker">Gestion interna</p>
+      <h2>Recursos de aerolinea</h2>
+    </div>
+
+    <div class="dash-actions">
+      <a routerLink="/menu/aerolinea/aviones">Aviones</a>
+      <a routerLink="/menu/aerolinea/tripulacion">Tripulacion</a>
+      <a routerLink="/menu/aerolinea/aeropuertos">Aeropuertos</a>
+    </div>
+  </section>
+</section>

@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, map, switchMap } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { Vuelo } from './vuelo.service';
 
@@ -218,31 +218,29 @@ export class VueloOperadoService {
   }
 
   listarAvionesDisponibles(aerolineaId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${environment.apiUrl}/catalogos/estado-avion`).pipe(
-      switchMap((estados) => {
-        const disponible = (estados ?? []).find((e: any) =>
-          this.normalize(e?.nombre).includes('DISPONIBLE')
-        );
+    const params = new HttpParams()
+      .set('page', '0')
+      .set('size', '1000')
+      .set('estadoId', '1')
+      .set('aerolineaId', String(aerolineaId));
 
-        let params = new HttpParams()
-          .set('page', '0')
-          .set('size', '1000')
-          .set('estadoId', '1')
-          .set('aerolineaId', String(aerolineaId));
-
-        if (disponible?.id) {
-          params = params.set('estadoAvionId', String(disponible.id));
-        }
-
-        return this.http.get<any>(`${environment.apiUrl}/avion`, { params });
-      }),
-      map((res) => this.getContent<any>(res))
+    return this.http.get<any>(`${environment.apiUrl}/avion`, { params }).pipe(
+      map((res) => this.getContent<any>(res)),
+      map((aviones) => aviones.filter((avion) => {
+        const estado = this.normalize(avion?.estadoAvionNombre);
+        return estado === 'DISPONIBLE' || estado === 'ASIGNADO';
+      }))
     );
   }
 
   listarTripulacionesDisponibles(aerolineaId: number): Observable<any[]> {
     return this.http.get<any[]>(
-      `${environment.apiUrl}/tripulaciones/disponibles/${aerolineaId}`
+      `${environment.apiUrl}/tripulaciones/aerolinea/${aerolineaId}`
+    ).pipe(
+      map((tripulaciones) => (tripulaciones ?? []).filter((tripulacion) => {
+        const estado = this.normalize(tripulacion?.estadoTripulacionNombre);
+        return estado === 'DISPONIBLE' || estado === 'ASIGNADA' || estado === 'ASIGNADO';
+      }))
     );
   }
 

@@ -11,7 +11,6 @@ import { AuthService } from '../../services/auth.service';
 export class MenuAbordajeComponent implements OnInit, OnDestroy {
   sidebarOpen = true;
   diagnosticMessage = '';
-  sessionInfo = '';
 
   private subscriptions = new Subscription();
 
@@ -22,8 +21,6 @@ export class MenuAbordajeComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.updateSessionInfo();
-
     this.subscriptions.add(
       this.route.queryParamMap.subscribe((params) => {
         const reason = params.get('reason');
@@ -38,8 +35,6 @@ export class MenuAbordajeComponent implements OnInit, OnDestroy {
       this.router.events
         .pipe(filter((event) => event instanceof NavigationEnd || event instanceof NavigationError))
         .subscribe((event) => {
-          this.updateSessionInfo();
-
           if (event instanceof NavigationError) {
             this.diagnosticMessage = `No se pudo cargar la ventana: ${event.error?.message || event.error || 'error de navegacion'}`;
           }
@@ -58,20 +53,6 @@ export class MenuAbordajeComponent implements OnInit, OnDestroy {
   logout(): void {
     this.auth.logout();
     this.router.navigate(['/']);
-  }
-
-  private updateSessionInfo(): void {
-    const token = this.auth.getToken();
-    const role = this.auth.getRole();
-
-    if (!token) {
-      this.sessionInfo = 'No hay token guardado.';
-      return;
-    }
-
-    this.sessionInfo = role
-      ? `Sesion activa. Rol detectado: ${role}.`
-      : 'Sesion activa, pero no se pudo detectar el rol del token.';
   }
 
   private buildDiagnosticMessage(
